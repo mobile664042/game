@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.simple.game.core.domain.cmd.push.ddz.util.SimpleQueue;
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.core.util.SimpleQueue;
 
 import lombok.Getter;
 

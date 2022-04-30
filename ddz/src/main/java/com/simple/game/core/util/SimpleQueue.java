@@ -1,4 +1,4 @@
-package com.simple.game.core.domain.cmd.push.ddz.util;
+package com.simple.game.core.util;
 
 public class SimpleQueue<T> {
 	private final  T[] data;
