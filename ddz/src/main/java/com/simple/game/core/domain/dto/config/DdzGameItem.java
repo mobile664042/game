@@ -1,0 +1,40 @@
+package com.simple.game.core.domain.dto.config;
+
+import com.simple.game.core.domain.dto.constant.ddz.DoubleKind;
+
+import lombok.Data;
+
+/***
+ * 游戏的扩展属性
+ * 
+ * @author zhibozhang
+ *
+ */
+@Data
+public class DdzGameItem extends GameItem{
+
+	/***游戏加倍玩法****/
+	private DoubleKind doubleKind = DoubleKind.exponential;
+
+	/***最长等待抢地主时长****/
+	private int maxRobbedLandlordSecond = 16;
+	
+
+	/***最长等待下一轮时长****/
+	private int maxReadyNextSecond = 20;
+	
+	/***最长等待过牌时长(如果此时是自己出牌，自动选择最少的一张牌)****/
+	private int maxPlayCardSecond = 12;
+	
+	/***一局游戏允许最大超时次数****/
+	private int maxPlayCardOuttimeCount = 3;
+	
+	/***一局游戏允许最大断线次数(断线后自动弃过牌)****/
+	private int maxDisconnectCount = 4;
+		
+	/***逃跑惩罚翻倍指数(站起、离开、掉线、出牌超时)****/
+	private int punishEscapeDoubleCount = 3;
+	
+	/***认输惩罚翻倍指数(快速结束游，队友不用赔钱)****/
+	private int punishSurrenderDoubleCount = 2;
+}
