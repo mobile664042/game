@@ -12,10 +12,9 @@
     <groupId>com.simple.game</groupId>  
     <artifactId>parent</artifactId>  
     <packaging>pom</packaging>  
-    <version>1.0-SNAPSHOT</version>  
+    <version>0.0.1-SNAPSHOT</version>  
     <modules>  
         <module>core</module>
-		
 		<module>ddz</module>
     </modules>  
 </project>  
