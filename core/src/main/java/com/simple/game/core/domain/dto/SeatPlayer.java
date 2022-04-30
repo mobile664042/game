@@ -11,7 +11,7 @@ import com.simple.game.core.domain.cmd.push.PushCancelBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.PushNotifyApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.push.PushRewardCmd;
-import com.simple.game.core.domain.cmd.push.PushRobSeatMasterCmd;
+import com.simple.game.core.domain.cmd.push.PushSetSeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.PushSitdownCmd;
 import com.simple.game.core.domain.cmd.push.PushStandupCmd;
 import com.simple.game.core.domain.cmd.push.PushStopAssistantCmd;
@@ -20,7 +20,7 @@ import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.ext.Gift;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.ToString;
 
 /***
@@ -29,21 +29,22 @@ import lombok.ToString;
  * @author zhibozhang
  *
  */
-@Data
+//@Data
+@Getter
 @ToString
 public class SeatPlayer {
 	/***玩家****/
-	private Player player;
+	protected Player player;
 	
 	/***席位号从1号开始****/
-	private GameSeat gameSeat;
+	protected GameSeat gameSeat;
 	
 	/**角色***/
-	private SeatPost seatPost;
+	protected SeatPost seatPost;
 	
 	
 	/**是否已经发送了辅助申请***/
-	private boolean applyAssistanted;
+	protected boolean applyAssistanted;
 	
 	public SeatPlayer(Player player, GameSeat gameSeat, SeatPost seatPost) {
 		this.player = player;
@@ -78,7 +79,7 @@ public class SeatPlayer {
 		return null;
 	}
 	
-	public PushRobSeatMasterCmd toPushRobSeatMasterCmd() {
+	public PushSetSeatSuccessorCmd toPushRobSeatMasterCmd() {
 		//TODO 
 		return null;
 	}

@@ -12,10 +12,7 @@ import com.simple.game.core.domain.cmd.push.ddz.PushRobLandlordCmd;
 import com.simple.game.core.domain.cmd.push.ddz.PushSurrenderCmd;
 import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.DdzDesk;
-import com.simple.game.core.domain.dto.DdzGameSeat;
-import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
-import com.simple.game.core.domain.dto.DdzPlayer;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.config.DdzDeskItem;
 import com.simple.game.core.domain.dto.config.DeskItem;
@@ -47,28 +44,7 @@ public class DdzGame extends TableGame{
 		return new DdzDesk(this);
 	}
 	
-	@Override
-	protected void preSitdown(long playerId, int position) {
-		DdzPlayer player = (DdzPlayer)this.getDdzDesk().getPlayerMap().get(playerId);
-		if(player == null) {
-			throw new BizException(String.format("%s不在当前游戏房间", playerId));
-		}
-		
-		//判断游戏币够不够
-		GameSeat gameSeat = this.getDdzDesk().getSeatPlayingMap().get(position);
-		if(gameSeat == null || gameSeat.getMaster() == null) {
-			if(player.getBcoin() < this.getDdzDeskItem().getMinSitdownCoin()) {
-				throw new BizException(String.format("%s的钱不够%s,无法坐下主席位", playerId, this.getDdzDeskItem().getMinSitdownCoin()));
-			}
-		}
-	}
-	@Override
-	protected void afterSitdown(SeatPlayer seatPlayer) {
-		DdzGameSeat extGameSeat = new DdzGameSeat(seatPlayer.getGameSeat());
-		seatPlayer.setGameSeat(extGameSeat);
-		extGameSeat.setReady(true);
-		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", seatPlayer.getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), seatPlayer.getGameSeat().getPosition());
-	}
+	
 	/***
 	 * 当前轮结束，准备下一轮
 	 * @param playerId
@@ -80,10 +56,6 @@ public class DdzGame extends TableGame{
 		PushReadyNextCmd result = getDdzDesk().readyNext(playerId, position, outParam);
 		this.broadcast(result, playerId);
 		logger.info("{}已准备进行一轮了,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
-	}
-	@Override
-	protected void preRobSeatMaster(long playerId) {
-		this.preQuickSitdown(playerId);
 	}
 	@Override
 	protected void preQuickSitdown(long playerId) {
@@ -99,9 +71,6 @@ public class DdzGame extends TableGame{
 	
 	@Override
 	protected void onApproveApplyAssistant(SeatPlayer player) {
-	}
-	@Override
-	protected void onStandUp(SeatPlayer player) {
 	}
 	@Override
 	protected void onDestroy() {

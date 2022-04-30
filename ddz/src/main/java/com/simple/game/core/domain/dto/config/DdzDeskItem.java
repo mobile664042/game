@@ -14,8 +14,8 @@ public class DdzDeskItem extends DeskItem{
 	/***最小坐下币****/
 	private int minSitdownCoin = 1000;
 	
-	/***最小强制站起币****/
-	private int minStandupCoin = 500;
+	/***最小可进行一轮游戏的币****/
+	private int minReadyCoin = 500;
 
 	/***单价****/
 	private int unitPrice = 5;

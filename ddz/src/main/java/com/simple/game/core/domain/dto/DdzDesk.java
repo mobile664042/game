@@ -1,12 +1,14 @@
 package com.simple.game.core.domain.dto;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
+import com.simple.game.core.domain.cmd.push.PushLeftCmd;
 import com.simple.game.core.domain.cmd.push.ddz.PushPlayCardCmd;
 import com.simple.game.core.domain.cmd.push.ddz.PushReadyNextCmd;
 import com.simple.game.core.domain.cmd.push.ddz.PushRobLandlordCmd;
@@ -45,37 +47,37 @@ public class DdzDesk extends TableDesk{
 	/***是否在进行中****/
 	protected GameProgress currentProgress = GameProgress.ready;
 	
-	
 	/***投降位***/
 	protected int surrenderPosition;
 	
 	/***最近的游戏结束时间***/
 	protected long lastGameOverTime;
+	/***最近系统发牌时间***/
+	protected long lastSendCardTime;
 	
-
+	/***最近一次过牌时间***/
+	protected long lastPlayCardTime;
+	
 	public boolean onScan() {
 		if(currentProgress == GameProgress.ready) {
-			if(this.seatPlayingMap.size() != 3) {
-				//未凑足3个人
-				return false;
-			}
-			
-			for(int position=1; position<=3; position++) {
-				GameSeat gameSeat = this.seatPlayingMap.get(position);
+			handleDisconnectPlayer();
+			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 				if(gameSeat == null) {
 					logger.error("系统有重大bug!!! 席位没找到");
 					return false;
 				}
-				if(gameSeat.getMaster() == null) {
-					logger.debug("{}主席位没人敢上", position);
-					return false;
-				}
-				DdzGameSeat extGameSeat = (DdzGameSeat)gameSeat;
-				if(!extGameSeat.isReady()) {
-					//还没准备好了
-					return false;
-				}
 				
+				if(!gameSeat.isReady() && gameSeat.getFansCount() > 0) {
+					//还没准备好了
+					return forceStandUpPosition(gameSeat);
+				}
+			}
+			
+			//更换主席位
+			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
+				gameSeat.handleChangeMaster();
 			}
 			
 			//可以开始了
@@ -87,19 +89,140 @@ public class DdzDesk extends TableDesk{
 		}
 		else if(currentProgress == GameProgress.sended) {
 			//判断等待抢地主是否超时
+			handleWaitRobLandlordTimeout();
 		}
 		else if(currentProgress == GameProgress.robbedLandlord) {
 			//判断等待出牌是否超时
-			
+			handleWaitPlayCardTimeout();
 		}
 		else if(currentProgress == GameProgress.gameover || currentProgress == GameProgress.gameover ) {
 			//结算游戏
 			this.settle();
 		}
-		// TODO Auto-generated method stub
 		return false;
 	}
 	
+	/***
+	 * 处理掉线的用户
+	 */
+	private void handleDisconnectPlayer() {
+		for(Player player : this.offlineMap.values()) {
+			long time = System.currentTimeMillis() - player.getOnline().getDisconnectTime();
+			if(time == 0 || time / 1000 < this.getDdzGameItem().getMaxDisconnectSecond()) {
+				continue;
+			}
+			
+			//判断是否是主席位
+			boolean isMaster = false;
+			for(GameSeat gameSeat : seatPlayingMap.values()) {
+				if(gameSeat.getMaster() != null && gameSeat.getMaster().getPlayer().getId() != player.getId()) {
+					isMaster = true;
+					break;
+				}
+			}
+			if(isMaster) {
+				continue;
+			}
+			
+			//强制下线
+			PushLeftCmd pushCmd = this.left(lastGameOverTime, OutParam.build());
+			this.broadcast(pushCmd);
+		}
+	}
+	
+	private boolean handleWaitRobLandlordTimeout() {
+		long time = System.currentTimeMillis() - lastSendCardTime; 
+		if(time == 0 || time / 1000 < this.getDdzGameItem().getMaxRobbedLandlordSecond()) {
+			return false;
+		}
+		
+		//超时，直接进入下一轮
+		handleNext();
+		return true;
+	}
+	
+	/***
+	 * 处理出牌超时的
+	 * @return
+	 */
+	private boolean handleWaitPlayCardTimeout() {
+		//当前出牌位
+		long time = System.currentTimeMillis() - lastPlayCardTime; 
+		if(time == 0) {
+			return false;
+		}
+		long second = time / 1000; 
+		if(second < this.getDdzGameItem().getDisconnectPlayCardSecond()) {
+			return false;
+		}
+		
+		int position = this.ddzCard.getCurrentPosition(); 
+		//判断主席位是否掉线且助手为0
+		DdzGameSeat gameSeat = (DdzGameSeat)this.getGameSeat(position);
+		if(!gameSeat.isDiconnectPlayCard()) {
+			//是否超时出牌
+			if(second < this.getDdzGameItem().getMaxPlayCardSecond()) {
+				return false;
+			}
+			else {
+				gameSeat.timeoutCountIncrease();
+			}
+		}
+		else {
+			gameSeat.skipCountIncrease();
+		}
+		
+		//自动过牌
+		List<Integer> outCards = new ArrayList<Integer>(1); 
+		boolean isGameOver = this.ddzCard.autoPlayCard(outCards);
+		afterPlayCard(isGameOver);
+		
+		//广播
+		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+		pushCmd.setPosition(position);
+		pushCmd.getCards().addAll(outCards);
+		this.broadcast(pushCmd);
+		return true;
+	}
+	
+	/****
+	 * 清理需要强制站起的用户
+	 */
+	private boolean forceStandUpPosition(DdzGameSeat gameSeat) {
+		long time = System.currentTimeMillis() - lastGameOverTime; 
+		if(time != 0 && time / 1000 > this.getDdzGameItem().getMaxReadyNextSecond()) {
+			//强制踢出这些站着茅坑不拉屎的人
+			gameSeat.standupAll();
+			logger.info("游戏结束后等待{}毫秒，{}席位一直不进行准备状态，强制站起", time, gameSeat.getPosition());
+		}
+		
+		//强制踢出那些长时间掉线的主席位
+		if(!gameSeat.getMaster().getPlayer().getOnline().isOnline()) {
+			//判断掉线是否超时
+			time = System.currentTimeMillis() - gameSeat.getMaster().getPlayer().getOnline().getDisconnectTime(); 
+			if(time != 0 && time / 1000 > this.getDdzGameItem().getMaxMasterDisconnectSecond()) {
+				gameSeat.standupAll();
+				logger.info("游戏结束后等待{}毫秒，{}主席位长时间掉线，强制站起", time, gameSeat.getPosition());
+			}
+		}
+		
+		//强制踢出那些经常出牌超时的人
+		if(gameSeat.getTimeoutCount() > this.getDdzGameItem().getMaxPlayCardOuttimeCount()) {
+			gameSeat.standupAll();
+			logger.info("游戏结束后等待{}毫秒，{}主席位经常牌超时的，强制站起", time, gameSeat.getPosition());
+		}
+		
+		//判断是否是经常跳过出牌
+		if(gameSeat.getSkipCount() > this.getDdzGameItem().getMaxSkipCount()) {
+			gameSeat.standupAll();
+			logger.info("游戏结束后等待{}毫秒，{}主席位经常自动跳过的，强制站起", time, gameSeat.getPosition());
+		}
+		return true;
+	}
+	
+	public boolean canStandUpMaster() {
+		return true;
+	}
 	public void shuffleCards() {
 		this.ddzCard.shuffleCards();
 	}
@@ -127,6 +250,7 @@ public class DdzDesk extends TableDesk{
 			pushCmd.getCards().addAll(this.ddzCard.getThirdCards());
 			gameSeat.broadcast(pushCmd);
 		}
+		lastSendCardTime = System.currentTimeMillis();
 	}
 	
 
@@ -164,10 +288,7 @@ public class DdzDesk extends TableDesk{
 		
 		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
 		boolean isGameOver = this.ddzCard.playCard(position, cards);
-		if(isGameOver) {
-			//进入gameover状态了
-			currentProgress = GameProgress.gameover;			
-		}
+		afterPlayCard(isGameOver);
 		outParam.setParam(seatPlayer);
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
 		pushCmd.setPosition(position);
@@ -175,17 +296,25 @@ public class DdzDesk extends TableDesk{
 		return pushCmd;
 	}
 	
+	private void afterPlayCard(boolean isGameOver) {
+		if(isGameOver) {
+			//进入gameover状态了
+			currentProgress = GameProgress.gameover;			
+		}
+		this.lastPlayCardTime = System.currentTimeMillis();
+	}
+	
 
 	public PushReadyNextCmd readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.ready) {
 			throw new BizException("不是准备状态，无法进行出牌");
 		}
+		
+		//判断游戏币是否允足，能否满足下一轮开始
 		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
 		outParam.setParam(seatPlayer);
 		DdzGameSeat extGameSeat = (DdzGameSeat)seatPlayer.getGameSeat();
-		extGameSeat.setReady(true);
-		
-		PushReadyNextCmd pushCmd = new PushReadyNextCmd();
+		PushReadyNextCmd pushCmd = extGameSeat.readyNext();
 		pushCmd.setPosition(position);
 		return pushCmd;
 	}
@@ -228,6 +357,7 @@ public class DdzDesk extends TableDesk{
 			throw new BizException("游戏还未结束");
 		}
 		
+		GameResultRecord gameResultRecord = null;
 		if(currentProgress != GameProgress.gameover) {
 			handleNormalResult();
 		}
@@ -235,10 +365,8 @@ public class DdzDesk extends TableDesk{
 			handleSurrenderResult();
 		}
 		
-		
-		//TODO 判断座位上的游戏币是否还是足够
-		//TODO 判断是否要强制踢某些人下些
-		
+		//处理逃跑的人
+		handleEscapeResult(gameResultRecord);
 		
 		//游戏进入下一轮
 		handleNext();
@@ -252,6 +380,37 @@ public class DdzDesk extends TableDesk{
 		((DdzGameSeat)this.seatPlayingMap.get(2)).setReady(false);
 		((DdzGameSeat)this.seatPlayingMap.get(3)).setReady(false);
 	}
+	
+	private void handleEscapeResult(GameResultRecord record) {
+		if(record == null) {
+			return;
+		}
+		
+		for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+			DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
+			if(gameSeat.getSkipCount() <= this.getDdzGameItem().getEscape2SkipCount()) {
+				continue;
+			}
+			
+			//要处罚了(系统一份，另外两个玩家各一份)
+			CoinManager.changeCoin(gameSeat.getMaster().player, -record.getSingleResult()*3, record.getBatchNo(), "逃跑处罚！");
+			
+			String reason = String.format("%s号位，逃跑处罚！", position);
+			if(position == 1) {
+				CoinManager.changeCoin(this.seatPlayingMap.get(2).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(3).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+			}
+			else if(position == 2) {
+				CoinManager.changeCoin(this.seatPlayingMap.get(1).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(3).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+			}
+			else {
+				CoinManager.changeCoin(this.seatPlayingMap.get(1).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(2).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+			}
+		}
+	}
+	
 	private void handleNormalResult() {
 		int doubleCount = this.ddzCard.getDoubleCount();
 		if(this.ddzCard.isSpring()) {
@@ -264,6 +423,7 @@ public class DdzDesk extends TableDesk{
 		GameResultRecord gameResultRecord = new GameResultRecord();
 		gameResultRecord.setUnitPrice(this.getDdzDeskItem().getUnitPrice());
 		gameResultRecord.setDoubleCount(doubleCount);
+		gameResultRecord.setSingleResult(singleResult);
 		gameResultRecord.setDoubleKind(getDoubleKind());
 		gameResultRecord.setLandlordPosition(landlordPosition);
 		gameResultRecord.getCards().addAll(this.ddzCard.getAllCards());
@@ -340,7 +500,7 @@ public class DdzDesk extends TableDesk{
 		ResultManager.save(gameResultRecord);
 	}
 	
-	private void handleSurrenderResult() {
+	private GameResultRecord handleSurrenderResult() {
 		int doubleCount = this.ddzCard.getDoubleCount() + this.getDdzGameItem().getPunishSurrenderDoubleCount();
 		if(this.ddzCard.isSpring()) {
 			doubleCount += 1;
@@ -496,6 +656,7 @@ public class DdzDesk extends TableDesk{
 			}
 		}
 		ResultManager.save(gameResultRecord);
+		return gameResultRecord;
 	}
 	
 	private SeatPlayer checkSeatPlayer(long playerId, int position) {

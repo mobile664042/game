@@ -1,6 +1,6 @@
 package com.simple.game.core.domain.cmd.push;
 
-public class PushRobSeatMasterCmd extends PushCmd{
+public class PushSetSeatSuccessorCmd extends PushCmd{
 
 	@Override
 	public int getCode() {

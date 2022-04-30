@@ -17,7 +17,7 @@ import com.simple.game.core.domain.cmd.push.PushChangeManagerCmd;
 import com.simple.game.core.domain.cmd.push.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.PushNotifyApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.push.PushRewardCmd;
-import com.simple.game.core.domain.cmd.push.PushRobSeatMasterCmd;
+import com.simple.game.core.domain.cmd.push.PushSetSeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.PushSitdownCmd;
 import com.simple.game.core.domain.cmd.push.PushStandupCmd;
 import com.simple.game.core.domain.cmd.push.PushStopAssistantCmd;
@@ -25,6 +25,7 @@ import com.simple.game.core.domain.cmd.push.PushStopOnlookerCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnGameSeatCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnSeatInfoListCmd;
 import com.simple.game.core.domain.dto.BaseDesk;
+import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
@@ -53,51 +54,78 @@ public abstract class TableGame extends BaseGame{
 	 */
 	public final synchronized RtnGameSeatCmd sitdown(long playerId, int position) {
 		this.operatorVerfy();
-		this.preSitdown(playerId, position);
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		
 		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushSitdownCmd pushCmd = getGameDesk().sitdown(playerId, position, outParam);
-		this.afterSitdown(outParam.getParam());
+		PushSitdownCmd pushCmd = gameSeat.sitdown(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
 		
 		logger.info("{}进入{}游戏:并在游戏桌{},席位{}坐下", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 		return outParam.getParam().getGameSeat().getRtnGameSeatCmd();
 	}
-	protected abstract void preSitdown(long playerId, int position);
-	protected abstract void afterSitdown(SeatPlayer seatPlayer);
 	
-	protected RtnSeatInfoListCmd getRtnSeatInfoListCmd(long playerId, int position) {
-		return getGameDesk().getRtnSeatInfoListCmd(playerId, position);
+	public RtnSeatInfoListCmd getRtnSeatInfoListCmd(int position) {
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		return gameSeat.getRtnSeatInfoListCmd();
 	}
-	
 
 	/***
 	 * 快速坐下
 	 * 
 	 * @param player
 	 */
-	public final synchronized void quickSitdown(long playerId) {
+	public final synchronized RtnGameSeatCmd quickSitdown(long playerId) {
 		this.operatorVerfy();
 		preQuickSitdown(playerId);
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushSitdownCmd pushCmd = getGameDesk().quickSitdown(playerId, outParam);
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getIdelGameSeat();
+		if(gameSeat == null) {
+			throw new BizException(String.format("已经没有空闲的席位了"));
+		}
+		
+		PushSitdownCmd pushCmd = gameSeat.sitdown(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}进入{}游戏:并在游戏桌{},抢到{}席位并坐下", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		
+		logger.info("{}进入{}游戏:并在游戏桌{},抢到{}席位并坐下", player.getNickname(), gameItem.getName(), deskItem.getNumber(), gameSeat.getPosition());
+		return gameSeat.getRtnGameSeatCmd();
 	}
-	protected abstract void preQuickSitdown(long playerId);
+	protected void preQuickSitdown(long playerId) {}
 	
 	/***
 	 * 申请辅助
 	 * @param playerId
 	 */
-	public synchronized void applyAssistant(long playerId) {
+	public synchronized void applyAssistant(long playerId, int position) {
 		this.operatorVerfy();
 		
-		OutParam<SeatPlayer> outParam = OutParam.build();
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("已经没有空闲的席位了"));
+		}
+		
 		//是否有进入的限制条件
-		getGameDesk().applyAssistant(playerId, outParam);
-		logger.info("{}在游戏席位: {}--{}--{}申请辅助", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		gameSeat.applyAssistant(player);
+		logger.info("{}在游戏席位: {}--{}--{}申请辅助", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 		//等待主席位应答
 	}
 	
@@ -106,10 +134,23 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param id
 	 */
-	public void approveApplyAssistant(long masterId, long playerId) {
+	public void approveApplyAssistant(long masterId, int position, long playerId) {
 		this.operatorVerfy();
+		Player master = getGameDesk().getPlayer(masterId);
+		if(master == null) {
+			throw new BizException(String.format("%s不在游戏中", masterId));
+		}
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("已经没有空闲的席位了"));
+		}
+		
 		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushNotifyApplyAssistantCmd pushCmd = getGameDesk().approveApplyAssistant(masterId, playerId, outParam);
+		PushNotifyApplyAssistantCmd pushCmd = gameSeat.approveApplyAssistant(master, player);
 		this.broadcast(pushCmd, masterId);
 		logger.info("{}同意席位:{}--{}--{}的{}成为辅助", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition(), playerId);
 	}
@@ -119,83 +160,136 @@ public abstract class TableGame extends BaseGame{
 	 * 从席位中站起来
 	 * @param player
 	 */
-	public final synchronized void standUp(long playerId) {
+	public final synchronized void standUp(long playerId, int position) {
 		this.operatorVerfy();
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
 		
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushStandupCmd pushCmd = getGameDesk().standUp(playerId, outParam);
-		this.onStandUp(outParam.getParam());
+		PushStandupCmd pushCmd = gameSeat.standUp(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}站起来了", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}在席位:{}--{}--{}站起来了", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 	}
-	protected abstract void onStandUp(SeatPlayer player);
 	
 	
-	public synchronized void stopAssistant(long playerId) {
+	public synchronized void stopAssistant(long playerId, int position) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushStopAssistantCmd pushCmd = getGameDesk().stopAssistant(playerId, outParam);
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		PushStopAssistantCmd pushCmd = gameSeat.stopAssistant(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}停止申请助手", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}在席位:{}--{}--{}停止申请助手", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 	}
-	public synchronized void stopOnlooker(long playerId) {
+	public synchronized void stopOnlooker(long playerId, int position) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushStopOnlookerCmd pushCmd = getGameDesk().stopOnlooker(playerId, outParam);
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		PushStopOnlookerCmd pushCmd = gameSeat.stopOnlooker(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}停止申请旁观者", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}在席位:{}--{}--{}停止申请旁观者", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 	}
-	public synchronized void bootAssistant(long playerId) {
+	public synchronized void bootAssistant(long playerId, int position) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushBootAssistantCmd pushCmd = getGameDesk().bootAssistant(playerId, outParam);
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		PushBootAssistantCmd pushCmd = gameSeat.bootAssistant(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}开启申请助手", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}在席位:{}--{}--{}开启申请助手", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 
 	}
-	public synchronized void bootOnlooker(long playerId) {
+	public synchronized void bootOnlooker(long playerId, int position) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushBootOnlookerCmd pushCmd = getGameDesk().bootOnlooker(playerId, outParam);
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		PushBootOnlookerCmd pushCmd = gameSeat.bootOnlooker(player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}开启申请旁观者", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}在席位:{}--{}--{}开启申请旁观者", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 	}
+	
 	/***
-	 * 当主席位为空中，抢主席位
+	 * 设置(下一轮)主席位继任人
 	 * @param player
 	 */
-	public final synchronized void robSeatMaster(long playerId) {
+	public final synchronized void setSeatSuccessor(long masterId, int position, long playerId) {
 		this.operatorVerfy();
-		preRobSeatMaster(playerId);
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushRobSeatMasterCmd pushCmd = getGameDesk().robSeatMaster(playerId, outParam);
+		Player master = getGameDesk().getPlayer(masterId);
+		if(master == null) {
+			throw new BizException(String.format("%s不在游戏中", masterId));
+		}
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		
+		PushSetSeatSuccessorCmd pushCmd = gameSeat.setSeatSuccessor(master, player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}抢主席位成功", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}在席位:{}--{}--{}将主席位继任者传给{}成功", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position, playerId);
 	}
-	protected abstract void preRobSeatMaster(long playerId);
 	
 	/***
 	 * 强制席中的某人站起
 	 * @param masterId
 	 * @param playerId
 	 */
-	public synchronized void forceStandUp(long masterId, long playerId) {
+	public synchronized void forceStandUp(long masterId, int position, long playerId) {
 		this.operatorVerfy();
-		SeatPlayer master = getGameDesk().preStandUp(masterId, playerId);
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushStandupCmd pushCmd = getGameDesk().standUp(playerId, outParam);
-		this.onStandUp(outParam.getParam());
+		Player master = getGameDesk().getPlayer(masterId);
+		if(master == null) {
+			throw new BizException(String.format("%s不在游戏中", masterId));
+		}
+		Player player = getGameDesk().getPlayer(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("已经没有空闲的席位了"));
+		}
+		
+		PushStandupCmd pushCmd = gameSeat.forceStandUp(master, player);
 		//广播进入信息
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}请 {}站起", master.getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition(), outParam.getParam().getPlayer().getNickname());
+		logger.info("{}在席位:{}--{}--{}请 {}站起", master.getNickname(), gameItem.getName(), deskItem.getNumber(), position, playerId);
 	}
-	
 	
 	/***
 	 * 在席位中对某个席位进行打赏
@@ -317,9 +411,7 @@ public abstract class TableGame extends BaseGame{
 	protected void preLeft(long playerId) {
 		SeatPlayer seatPlayer = getGameDesk().getSeatPlayer(playerId);
 		if(seatPlayer != null) {
-			OutParam<SeatPlayer> outParam = OutParam.build();
-			PushStandupCmd pushCmd = getGameDesk().standUp(playerId, outParam);
-			this.onStandUp(seatPlayer);
+			PushStandupCmd pushCmd = seatPlayer.getGameSeat().standUp(seatPlayer.getPlayer());
 			//广播进入信息
 			this.broadcast(pushCmd, playerId);
 			logger.info("强制在席位:{}--{}--{},将{}踢走", gameItem.getName(), deskItem.getNumber(), seatPlayer.getGameSeat().getPosition(), seatPlayer.getPlayer().getNickname());

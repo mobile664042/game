@@ -69,7 +69,7 @@ public abstract class BaseGame implements AddressNo{
 		this.baseDesk = buildDesk();
 		logger.info("游戏初使化完成, 耗时:{}", (System.currentTimeMillis() - startTime));
 	}
-	protected abstract void preInit(GameItem gameItem, DeskItem deskItem);
+	protected void preInit(GameItem gameItem, DeskItem deskItem) {};
 	
 	protected BaseDesk buildDesk(){
 		return new BaseDesk(this);
@@ -117,7 +117,7 @@ public abstract class BaseGame implements AddressNo{
 		onDestroy();
 		logger.info("游戏销毁完成, 耗时:{}", (System.currentTimeMillis() - startTime));
 	}
-	protected abstract void onDestroy();
+	protected void onDestroy() {};
 	
 	/***游戏暂停****/
 	public final synchronized void pause(int seconds) {
@@ -165,7 +165,7 @@ public abstract class BaseGame implements AddressNo{
 		logger.info("{}进入{}游戏:当前游戏桌{}", player.getNickname(), gameItem.getName(), deskItem.getNumber());
 		return rtnCmd;
 	}
-	protected abstract void preJoin(Player player);
+	protected void preJoin(Player player) {};
 	
 	
 	/***
@@ -197,7 +197,7 @@ public abstract class BaseGame implements AddressNo{
 		this.broadcast(pushCmd, playerId);
 		logger.info("{}离开{}游戏:当前游戏桌{}", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber());
 	}
-	protected abstract void preLeft(long playerId);
+	protected void preLeft(long playerId) {}
 	
 	
 	/***聊天****/
@@ -221,6 +221,15 @@ public abstract class BaseGame implements AddressNo{
 	
 	/***断网，掉线***/
 	public final void disconnect(long playerId) {
+		this.operatorVerfy();
+		OutParam<Player> outParam = OutParam.build();
+		PushDisconnectCmd pushCmd = this.baseDesk.disconnect(playerId, outParam);
+		this.broadcast(pushCmd, playerId);
+		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), deskItem.getNumber(), outParam.getParam().getNickname());
+	}
+	
+	/***掉线重连***/
+	public final void connected(long playerId) {
 		this.operatorVerfy();
 		OutParam<Player> outParam = OutParam.build();
 		PushDisconnectCmd pushCmd = this.baseDesk.disconnect(playerId, outParam);

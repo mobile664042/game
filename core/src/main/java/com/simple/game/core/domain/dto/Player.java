@@ -5,6 +5,7 @@ import java.util.List;
 import com.simple.game.core.domain.cmd.push.PushApplyManagerCmd;
 import com.simple.game.core.domain.cmd.push.PushChangeManagerCmd;
 import com.simple.game.core.domain.cmd.push.PushChatCmd;
+import com.simple.game.core.domain.cmd.push.PushConnectedCmd;
 import com.simple.game.core.domain.cmd.push.PushDisconnectCmd;
 import com.simple.game.core.domain.cmd.push.PushJoinedCmd;
 import com.simple.game.core.domain.cmd.push.PushLeftCmd;
@@ -101,6 +102,10 @@ public class Player {
 	}
 	
 	public PushDisconnectCmd toPushDisconnectCmd() {
+		return null;
+	}
+	
+	public PushConnectedCmd toPushConnectedCmd() {
 		return null;
 	}
 	

@@ -24,7 +24,7 @@ public class GameResultRecord {
 	 */
 	private final LinkedHashMap<Integer, ResultItem> map = new LinkedHashMap<Integer, ResultItem>();
 	
-	private String batchNo = "bno." + System.currentTimeMillis();
+	private String batchNo = "bno.gr." + System.currentTimeMillis();
 	
 	private final List<Integer> cards = new ArrayList<Integer>();
 	
@@ -39,6 +39,9 @@ public class GameResultRecord {
 	
 	/***单价****/
 	private int unitPrice;
+	
+	/***单份结果(unitPrice的对doubleCount计算结果)****/
+	private long singleResult;
 	
 	@Data
 	static public class ResultItem{

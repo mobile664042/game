@@ -1,9 +1,16 @@
 package com.simple.game.core.domain.dto;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.simple.game.core.domain.cmd.push.ddz.PushReadyNextCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnGameSeatCmd;
 import com.simple.game.core.domain.cmd.rtn.ddz.RtnDdzGameSeatCmd;
+import com.simple.game.core.domain.dto.config.DdzDeskItem;
+import com.simple.game.core.exception.BizException;
 
-import lombok.Data;
+import lombok.Getter;
 
 /***
  * 游戏桌
@@ -11,11 +18,11 @@ import lombok.Data;
  * @author zhibozhang
  *
  */
-@Data
+@Getter
 public class DdzGameSeat extends GameSeat{ 
-//	private List<Integer> cards = new ArrayList<Integer>(20); 
+	private static Logger logger = LoggerFactory.getLogger(DdzGameSeat.class);
 
-	public DdzGameSeat(BaseDesk desk, int position) {
+	public DdzGameSeat(DdzDesk desk, int position) {
 		super(desk, position);
 	}
 	
@@ -28,9 +35,75 @@ public class DdzGameSeat extends GameSeat{
 	 */
 	private boolean ready = true;
 	
+	
+	
+	/***当前轮的跳过次数****/
+	private int skipCount;
+	
+	/***当前轮的跳过次数****/
+	private int timeoutCount;
+	
+	public void skipCountIncrease() {
+		skipCount ++;
+	}
+	public void timeoutCountIncrease() {
+		skipCount ++;
+		timeoutCount ++;
+	}
+	
+	/***
+	 * 主席位想逃跑
+	 */
+	protected void doStandUpMaster() {
+		if(!((DdzDesk)this.getDesk()).canStandUpMaster()) {
+			throw new BizException("游戏正在进行中，主席位不可以站起(离开)");
+		}
+	}
 
+	@Override
+	protected void preSitdown(Player player) {
+		//判断游戏币够不够
+		if(player.getBcoin() < ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinSitdownCoin()) {
+			throw new BizException(String.format("%s的钱不够%s,无法坐下主席位", player.getId(), ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinSitdownCoin()));
+		}
+	}
+	@Override
+	protected void doSitdownMaster() {
+		this.ready = true;
+		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.getPlayer().getNickname(), this.desk.getCurrentGame().getGameItem().getName(), this.desk.getCurrentGame().getDeskItem().getNumber(), this.getPosition());
+	}
+	
+	
 	public RtnGameSeatCmd getRtnGameSeatCmd() {
 		//TODO 
 		return new RtnDdzGameSeatCmd();
+	}
+	
+	/***
+	 * 是否掉线出牌
+	 * @return
+	 */
+	public boolean isDiconnectPlayCard() {
+		if(!this.master.getPlayer().getOnline().isOnline() && assistantList.size() == 0) {
+			return true;
+		}
+		return false;
+	}
+
+	public void setReady(boolean ready) {
+		this.ready = ready;
+	}
+	
+	public PushReadyNextCmd readyNext() {
+		//判断游戏币够不够
+		if(master.getPlayer().getBcoin() < ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()) {
+			throw new BizException(String.format("%s的钱不够%s,无法准备下一轮", master.getPlayer().getId(), ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()));
+		}
+		this.ready = true;
+		return toPushReadyNextCmd();
+	}
+	
+	public PushReadyNextCmd toPushReadyNextCmd() {
+		return new PushReadyNextCmd();
 	}
 }

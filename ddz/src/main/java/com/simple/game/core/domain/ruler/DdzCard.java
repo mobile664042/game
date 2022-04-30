@@ -1,6 +1,7 @@
 package com.simple.game.core.domain.ruler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,12 +53,18 @@ public class DdzCard {
 		currentPosition = position;
 		if(landlordPosition == 1) {
 			firstCards.addAll(commonCards);
+			//自动排序，方便后面自动过最小牌
+			Collections.sort(firstCards);
 		}
 		if(landlordPosition == 2) {
 			secondCards.addAll(commonCards);
+			//自动排序，方便后面自动过最小牌
+			Collections.sort(secondCards);
 		}
 		if(landlordPosition == 3) {
 			thirdCards.addAll(commonCards);
+			//自动排序，方便后面自动过最小牌
+			Collections.sort(thirdCards);
 		}
 	}
 	
@@ -75,6 +82,11 @@ public class DdzCard {
 		commonCards.add(this.allCards.remove(0));
 		commonCards.add(this.allCards.remove(0));
 		commonCards.add(this.allCards.remove(0));
+		
+		//自动排序，方便后面自动过最小牌
+		Collections.sort(firstCards);
+		Collections.sort(secondCards);
+		Collections.sort(thirdCards);
 	}
 
 	
@@ -82,6 +94,32 @@ public class DdzCard {
 		return doubleCount;
 	}
 
+	/***
+	 * 自动出牌
+	 * @param outCards 出过的牌
+	 * @return 游戏是否可以结束
+	 */
+	public boolean autoPlayCard(List<Integer> outCards) {
+		if(!this.battlefield.isNull()) {
+			//直接跳过
+			playCard(currentPosition, null);
+			return false;
+		}
+		
+		//出一张最小的牌(发完牌后已排序)
+		Integer minCard = firstCards.get(0);
+		if(currentPosition == 1) {
+			minCard = firstCards.get(0);
+		}
+		else if(currentPosition == 2) {
+			minCard = secondCards.get(0);
+		}
+		else {
+			minCard = thirdCards.get(0);
+		}
+		outCards.add(minCard);
+		return playCard(currentPosition, outCards);
+	}
 	/***
 	 * 正常出牌
 	 * @param position
@@ -189,10 +227,10 @@ public class DdzCard {
 		if(currentPosition == 1) {
 			firstCards.removeAll(cards);
 		}
-		if(landlordPosition == 2) {
+		if(currentPosition == 2) {
 			secondCards.removeAll(cards);
 		}
-		if(landlordPosition == 3) {
+		if(currentPosition == 3) {
 			thirdCards.removeAll(cards);
 		}
 	}

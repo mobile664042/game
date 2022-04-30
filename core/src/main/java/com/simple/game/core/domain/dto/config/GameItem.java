@@ -25,8 +25,8 @@ public class GameItem {
 	private int seatMaxAssistant = 5;
 	
 
-	/***席位中最多旁观者个数****/
-	private int seatMaxonlooker = 300;
+	/***席位中最多粉丝个数****/
+	private int seatMaxFans = 300;
 	
 //	/***扩展属性****/
 //	private Object extConfig;

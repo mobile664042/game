@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.push.PushConnectedCmd;
 import com.simple.game.core.domain.cmd.push.PushDisconnectCmd;
 import com.simple.game.core.domain.cmd.push.PushLeftCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnGameInfoCmd;
@@ -21,7 +22,7 @@ import com.simple.game.core.domain.good.BaseGame;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.SimpleUtil;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.ToString;
 
 /***
@@ -34,7 +35,8 @@ import lombok.ToString;
  * @author zhibozhang
  *
  */
-@Data
+//@Data
+@Getter
 @ToString
 public class BaseDesk implements AddressNo{
 	private static Logger logger = LoggerFactory.getLogger(BaseDesk.class);
@@ -49,6 +51,13 @@ public class BaseDesk implements AddressNo{
 	 * key playerId
 	 */
 	protected final ConcurrentHashMap<Long, Player> playerMap = new ConcurrentHashMap<Long, Player>();
+	
+	/***
+	 * 掉线用户 
+	 * 减少遍历playerMap
+	 * key playerId
+	 */
+	protected final ConcurrentHashMap<Long, Player> offlineMap = new ConcurrentHashMap<Long, Player>();
 	
 	
 	/***当前正在进行的游戏****/
@@ -138,7 +147,7 @@ public class BaseDesk implements AddressNo{
 		if(player == null) {
 			throw new BizException(String.format("%s不在游戏中", playerId));
 		}
-		
+		offlineMap.remove(playerId);
 		out.setParam(player);
 		player.setAddress(null);
 		return player.toPushLeftCmd();
@@ -152,10 +161,21 @@ public class BaseDesk implements AddressNo{
 			throw new BizException(String.format("%s不在游戏中", playerId));
 		}
 		outParam.setParam(player);
-		//TODO 设置掉线
+		offlineMap.put(playerId, player);
 		player.getOnline().setSession(null);
 		
 		return player.toPushDisconnectCmd();
+	}
+	public PushConnectedCmd connected(long playerId, OutParam<Player> outParam) {
+		Player player = playerMap.get(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		outParam.setParam(player);
+		offlineMap.remove(playerId);
+		//TODO
+		player.getOnline().setSession(null);
+		return player.toPushConnectedCmd();
 	}
 	public RtnOnlineListCmd getRtnOnlineListCmd() {
 		// TODO Auto-generated method stub
