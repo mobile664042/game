@@ -35,8 +35,6 @@ public class DdzGameSeat extends GameSeat{
 	 */
 	private boolean ready = true;
 	
-	
-	
 	/***当前轮的跳过次数****/
 	private int skipCount;
 	
@@ -70,7 +68,7 @@ public class DdzGameSeat extends GameSeat{
 	@Override
 	protected void doSitdownMaster() {
 		this.ready = true;
-		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.getPlayer().getNickname(), this.desk.getCurrentGame().getGameItem().getName(), this.desk.getCurrentGame().getDeskItem().getNumber(), this.getPosition());
+		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.get().getPlayer().getNickname(), this.desk.getCurrentGame().getGameItem().getName(), this.desk.getCurrentGame().getDeskItem().getNumber(), this.getPosition());
 	}
 	
 	
@@ -84,7 +82,12 @@ public class DdzGameSeat extends GameSeat{
 	 * @return
 	 */
 	public boolean isDiconnectPlayCard() {
-		if(!this.master.getPlayer().getOnline().isOnline() && assistantList.size() == 0) {
+		if(this.master.get() == null) {
+			logger.warn("判断是否掉线时，主席位为空，是否有bug!");
+			return false;
+		}
+		
+		if(!this.master.get().getPlayer().getOnline().isOnline() && assistantMap.size() == 0) {
 			return true;
 		}
 		return false;
@@ -96,8 +99,8 @@ public class DdzGameSeat extends GameSeat{
 	
 	public PushReadyNextCmd readyNext() {
 		//判断游戏币够不够
-		if(master.getPlayer().getBcoin() < ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()) {
-			throw new BizException(String.format("%s的钱不够%s,无法准备下一轮", master.getPlayer().getId(), ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()));
+		if(master.get().getPlayer().getBcoin() < ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()) {
+			throw new BizException(String.format("%s的钱不够%s,无法准备下一轮", master.get().getPlayer().getId(), ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()));
 		}
 		this.ready = true;
 		return toPushReadyNextCmd();

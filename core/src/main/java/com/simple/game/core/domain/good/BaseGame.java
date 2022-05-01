@@ -154,7 +154,7 @@ public abstract class BaseGame implements AddressNo{
 	/***
 	 * 进入游戏
 	 */
-	public final synchronized RtnGameInfoCmd join(Player player) {
+	public final RtnGameInfoCmd join(Player player) {
 		this.operatorVerfy();
 		
 		//是否有进入的限制条件
@@ -188,7 +188,7 @@ public abstract class BaseGame implements AddressNo{
 	/***
 	 * 离开游戏
 	 */
-	public final synchronized void left(long playerId) {
+	public final void left(long playerId) {
 		this.operatorVerfy();
 		this.preLeft(playerId);
 		OutParam<Player> outParam = OutParam.build();

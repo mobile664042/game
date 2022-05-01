@@ -123,7 +123,7 @@ public class DdzGame extends TableGame{
 	 * @param playerId
 	 * @param position
 	 */
-	public synchronized void surrender(long playerId, int position) {
+	public void surrender(long playerId, int position) {
 		this.operatorVerfy();
 		OutParam<SeatPlayer> outParam = OutParam.build();
 		PushSurrenderCmd result = getDdzDesk().surrender(playerId, position, outParam);

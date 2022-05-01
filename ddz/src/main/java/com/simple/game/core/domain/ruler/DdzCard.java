@@ -13,6 +13,10 @@ import lombok.Getter;
 
 /***
  * 手牌
+ * 
+ * 所有动作不加锁，
+ * 由外部控制并发
+ * 
  * @author zhibozhang
  *
  */

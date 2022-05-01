@@ -75,6 +75,7 @@ public class BaseDesk implements AddressNo{
 	 * @throws BizException 验证不符号进入条件时会抛异常
 	 */
 	public RtnGameInfoCmd join(Player player) throws BizException{
+		//不需要加锁判断，减少时死锁，提高性能，允许极少量的误差
 		if(playerMap.size()+1 > currentGame.getDeskItem().getMaxPersion()) {
 			throw new BizException(String.format("人员已挤不下去了(已有%s)", currentGame.getDeskItem().getMaxPersion()));
 		}

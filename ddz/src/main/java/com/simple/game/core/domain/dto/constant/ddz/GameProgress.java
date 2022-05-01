@@ -3,8 +3,6 @@ package com.simple.game.core.domain.dto.constant.ddz;
 public enum GameProgress {
 	ready,
 	
-	
-	
 	sended,
 	
 	robbedLandlord,

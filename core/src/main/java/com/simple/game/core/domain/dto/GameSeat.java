@@ -3,6 +3,7 @@ package com.simple.game.core.domain.dto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,22 +41,22 @@ public class GameSeat implements AddressNo{
 	private static Logger logger = LoggerFactory.getLogger(GameSeat.class);
 
 	/***所属的桌子****/
-	protected TableDesk desk;
+	protected final TableDesk desk;
 	
 	/***席位号从1号开始****/
-	protected int position;
+	protected final int position;
 	
 //	/***扩展属性****/
 //	private Object extConfig;
 	
 	/***席位主要人员****/
-	protected SeatPlayer master;
+	protected final AtomicReference<SeatPlayer> master = new AtomicReference<SeatPlayer>();
 	
 	/***(下一轮)主席位继任者****/
 	protected SeatPlayer nextMaster;
 	
 	/***一个席位可以有多个助手人员****/
-	protected final List<SeatPlayer> assistantList = new ArrayList<SeatPlayer>();
+	protected final ConcurrentHashMap<Long, SeatPlayer> assistantMap = new ConcurrentHashMap<Long, SeatPlayer>();
 	
 	/***
 	 * 进入的玩家
@@ -122,42 +123,49 @@ public class GameSeat implements AddressNo{
 	}
 	
 	public void standupAll() {
-		standUp(this.master.player);
+		if(this.master.get() == null) {
+			logger.warn("主席位是空的，不需要站起，是不是产生bug了？");
+			return;
+		}
+		
+		standUp(this.master.get().getPlayer());
 	}
 	
 	protected void preSitdown(Player player) {}
 	
 	public PushSitdownCmd sitdown(Player player) {
 		preSitdown(player);
-		synchronized (this) {
-			//判断是否经坐下
-			SeatPlayer old = seatPlayerMap.get(player.getId());
-			if(old != null) {
-				throw new BizException(String.format("已经在桌位%s中，不可再坐下", old.getGameSeat().getPosition()));
-			}
-			
-			SeatPlayer seatPlayer = null;
-			//直接成为主席位
-			if(this.master == null) {
-				seatPlayer = buildSeatPlayer(player, SeatPost.master);
-				this.master = seatPlayer;
+		//判断是否经坐下
+		SeatPlayer old = seatPlayerMap.get(player.getId());
+		if(old != null) {
+			throw new BizException(String.format("已经在桌位%s中，不可再坐下", old.getGameSeat().getPosition()));
+		}
+		
+		SeatPlayer seatPlayer = null;
+		//直接成为主席位
+		if(this.master.get() == null) {
+			seatPlayer = buildSeatPlayer(player, SeatPost.master);
+			if(this.master.compareAndSet(null, seatPlayer)) {
 				doSitdownMaster();
 			}
 			else {
-				//判断是否超过最大限度
-				if(seatPlayerMap.size() >= desk.getCurrentGame().getGameItem().getSeatMaxFans()) {
-					throw new BizException(String.format("人员已挤不下去了(已有%s)", desk.getCurrentGame().getGameItem().getSeatMaxFans()));
-				}
-				if(this.isStopOnlooker()) {
-					throw new BizException(String.format("已禁止旁观！！"));
-				}
-				seatPlayer = buildSeatPlayer(player, SeatPost.onlooker);
+				throw new BizException(String.format("主席之位已被%s抢走了，请重试吧", master.get().getPlayer().getNickname()));
 			}
-			
-			seatPlayerMap.put(player.getId(), seatPlayer);
-			player.setAddress(this);
-			return seatPlayer.toPushSitdownCmd();
 		}
+		else {
+			//判断是否超过最大限度，不需要加锁判断，减少时死锁，提高性能，允许极少量的误差
+			if(seatPlayerMap.size() >= desk.getCurrentGame().getGameItem().getSeatMaxFans()) {
+				throw new BizException(String.format("人员已挤不下去了(已有%s)", desk.getCurrentGame().getGameItem().getSeatMaxFans()));
+			}
+			if(this.isStopOnlooker()) {
+				throw new BizException(String.format("已禁止旁观！！"));
+			}
+			seatPlayer = buildSeatPlayer(player, SeatPost.onlooker);
+		}
+		
+		seatPlayerMap.put(player.getId(), seatPlayer);
+		player.setAddress(this);
+		return seatPlayer.toPushSitdownCmd();
 	}
 	
 	protected void doSitdownMaster() {
@@ -179,16 +187,19 @@ public class GameSeat implements AddressNo{
 	}
 	
 
-
+	/***
+	 * 申请成为助手
+	 * @param player
+	 */
 	public void applyAssistant(Player player) {
 		SeatPlayer target = this.seatPlayerMap.get(player.getId());
 		if(target == null) {
 			throw new BizException(String.format("不在席位上，不可以申请辅助"));
 		}
-		if(target.getGameSeat().getMaster() == null) {
+		if(target.getGameSeat().getMaster().get() == null) {
 			throw new BizException(String.format("不存在主席位了不可以申请辅助"));
 		}
-		if(target.getGameSeat().getMaster().getPlayer().getId() == player.getId()) {
+		if(target.getGameSeat().getMaster().get().getPlayer().getId() == player.getId()) {
 			throw new BizException(String.format("已经是主席位了不可以申请辅助"));
 		}
 		if(target.getSeatPost() == SeatPost.assistant) {
@@ -202,7 +213,7 @@ public class GameSeat implements AddressNo{
 		target.applyAssistanted = true;
 		
 		//发送到主席位中去
-		SeatPlayer master = target.getGameSeat().getMaster();
+		SeatPlayer master = target.getGameSeat().getMaster().get();
 		PushNotifyApplyAssistantCmd pushCmd = target.toPushNotifyApplyAssistantCmd();
 		master.getPlayer().getOnline().push(pushCmd);
 		logger.info("{}向主席位{}发送辅助申请", target.getPlayer().getNickname(), master.getPlayer().getNickname());
@@ -223,7 +234,7 @@ public class GameSeat implements AddressNo{
 			throw new BizException(String.format("%s并没有申请辅助", player.getId()));
 		}
 		
-		other.getGameSeat().getAssistantList().add(other);
+		other.getGameSeat().assistantMap.put(other.getPlayer().getId(), other);
 		other.seatPost = SeatPost.assistant;
 		other.applyAssistanted = false;
 		
@@ -321,7 +332,7 @@ public class GameSeat implements AddressNo{
 		}
 		else if(seatPlayer.getSeatPost() == SeatPost.assistant) {
 			//主席位站起
-			assistantList.remove(seatPlayer);
+			assistantMap.remove(player.getId());
 			seatPlayerMap.remove(player.getId());
 		}
 		else {
@@ -332,8 +343,8 @@ public class GameSeat implements AddressNo{
 	
 	private void clear() {
 		seatPlayerMap.clear();
-		assistantList.clear();
-		this.master = null;
+		assistantMap.clear();
+		this.master.set(null);
 		this.nextMaster = null;
 		
 		this.stopOnlooker = false;

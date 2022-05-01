@@ -52,7 +52,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param position
 	 */
-	public final synchronized RtnGameSeatCmd sitdown(long playerId, int position) {
+	public final RtnGameSeatCmd sitdown(long playerId, int position) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -86,7 +86,7 @@ public abstract class TableGame extends BaseGame{
 	 * 
 	 * @param player
 	 */
-	public final synchronized RtnGameSeatCmd quickSitdown(long playerId) {
+	public final RtnGameSeatCmd quickSitdown(long playerId) {
 		this.operatorVerfy();
 		preQuickSitdown(playerId);
 		Player player = getGameDesk().getPlayer(playerId);
@@ -111,7 +111,7 @@ public abstract class TableGame extends BaseGame{
 	 * 申请辅助
 	 * @param playerId
 	 */
-	public synchronized void applyAssistant(long playerId, int position) {
+	public void applyAssistant(long playerId, int position) {
 		this.operatorVerfy();
 		
 		Player player = getGameDesk().getPlayer(playerId);
@@ -160,7 +160,7 @@ public abstract class TableGame extends BaseGame{
 	 * 从席位中站起来
 	 * @param player
 	 */
-	public final synchronized void standUp(long playerId, int position) {
+	public final void standUp(long playerId, int position) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -178,7 +178,7 @@ public abstract class TableGame extends BaseGame{
 	}
 	
 	
-	public synchronized void stopAssistant(long playerId, int position) {
+	public void stopAssistant(long playerId, int position) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -193,7 +193,7 @@ public abstract class TableGame extends BaseGame{
 		this.broadcast(pushCmd, playerId);
 		logger.info("{}在席位:{}--{}--{}停止申请助手", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 	}
-	public synchronized void stopOnlooker(long playerId, int position) {
+	public void stopOnlooker(long playerId, int position) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -208,7 +208,7 @@ public abstract class TableGame extends BaseGame{
 		this.broadcast(pushCmd, playerId);
 		logger.info("{}在席位:{}--{}--{}停止申请旁观者", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 	}
-	public synchronized void bootAssistant(long playerId, int position) {
+	public void bootAssistant(long playerId, int position) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -224,7 +224,7 @@ public abstract class TableGame extends BaseGame{
 		logger.info("{}在席位:{}--{}--{}开启申请助手", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
 
 	}
-	public synchronized void bootOnlooker(long playerId, int position) {
+	public void bootOnlooker(long playerId, int position) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -244,7 +244,7 @@ public abstract class TableGame extends BaseGame{
 	 * 设置(下一轮)主席位继任人
 	 * @param player
 	 */
-	public final synchronized void setSeatSuccessor(long masterId, int position, long playerId) {
+	public final void setSeatSuccessor(long masterId, int position, long playerId) {
 		this.operatorVerfy();
 		Player master = getGameDesk().getPlayer(masterId);
 		if(master == null) {
@@ -270,7 +270,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param masterId
 	 * @param playerId
 	 */
-	public synchronized void forceStandUp(long masterId, int position, long playerId) {
+	public void forceStandUp(long masterId, int position, long playerId) {
 		this.operatorVerfy();
 		Player master = getGameDesk().getPlayer(masterId);
 		if(master == null) {
@@ -295,7 +295,7 @@ public abstract class TableGame extends BaseGame{
 	 * 在席位中对某个席位进行打赏
 	 * @param player
 	 */
-	public synchronized void reward(long playerId, List<Integer> positionList, Gift gift) {
+	public void reward(long playerId, List<Integer> positionList, Gift gift) {
 		this.operatorVerfy();
 		OutParam<Player> outParam = OutParam.build();
 		List<PushRewardCmd> result = getGameDesk().reward(playerId, positionList, gift, outParam);

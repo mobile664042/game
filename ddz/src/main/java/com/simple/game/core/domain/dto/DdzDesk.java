@@ -58,7 +58,7 @@ public class DdzDesk extends TableDesk{
 	/***最近一次过牌时间***/
 	protected long lastPlayCardTime;
 	
-	public boolean onScan() {
+	public synchronized boolean onScan() {
 		if(currentProgress == GameProgress.ready) {
 			handleDisconnectPlayer();
 			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
@@ -95,7 +95,7 @@ public class DdzDesk extends TableDesk{
 			//判断等待出牌是否超时
 			handleWaitPlayCardTimeout();
 		}
-		else if(currentProgress == GameProgress.gameover || currentProgress == GameProgress.gameover ) {
+		else if(currentProgress == GameProgress.gameover || currentProgress == GameProgress.surrender ) {
 			//结算游戏
 			this.settle();
 		}
@@ -115,7 +115,7 @@ public class DdzDesk extends TableDesk{
 			//判断是否是主席位
 			boolean isMaster = false;
 			for(GameSeat gameSeat : seatPlayingMap.values()) {
-				if(gameSeat.getMaster() != null && gameSeat.getMaster().getPlayer().getId() != player.getId()) {
+				if(gameSeat.getMaster() != null && gameSeat.getMaster().get().getPlayer().getId() != player.getId()) {
 					isMaster = true;
 					break;
 				}
@@ -197,9 +197,9 @@ public class DdzDesk extends TableDesk{
 		}
 		
 		//强制踢出那些长时间掉线的主席位
-		if(!gameSeat.getMaster().getPlayer().getOnline().isOnline()) {
+		if(!gameSeat.getMaster().get().getPlayer().getOnline().isOnline()) {
 			//判断掉线是否超时
-			time = System.currentTimeMillis() - gameSeat.getMaster().getPlayer().getOnline().getDisconnectTime(); 
+			time = System.currentTimeMillis() - gameSeat.getMaster().get().getPlayer().getOnline().getDisconnectTime(); 
 			if(time != 0 && time / 1000 > this.getDdzGameItem().getMaxMasterDisconnectSecond()) {
 				gameSeat.standupAll();
 				logger.info("游戏结束后等待{}毫秒，{}主席位长时间掉线，强制站起", time, gameSeat.getPosition());
@@ -221,12 +221,24 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	public boolean canStandUpMaster() {
-		return true;
+//		ready,
+//		
+//		sended,
+//		
+//		robbedLandlord,
+//		
+//		/*****/
+//		gameover,
+//		
+//		/**额外扩展的状态(效果与gameover类似)***/
+//		surrender,
+		
+		return currentProgress == GameProgress.ready;
 	}
-	public void shuffleCards() {
+	private void shuffleCards() {
 		this.ddzCard.shuffleCards();
 	}
-	public void sendCards() {
+	private void sendCards() {
 		this.ddzCard.sendCards();
 		//发送到客户端
 		{
@@ -264,7 +276,7 @@ public class DdzDesk extends TableDesk{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public PushRobLandlordCmd robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
+	public synchronized PushRobLandlordCmd robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.sended) {
 			throw new BizException("不是发完牌状态，无法进行抢地主");
 		}
@@ -281,7 +293,7 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	
-	public PushPlayCardCmd playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
+	public synchronized PushPlayCardCmd playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行出牌");
 		}
@@ -305,7 +317,7 @@ public class DdzDesk extends TableDesk{
 	}
 	
 
-	public PushReadyNextCmd readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
+	public synchronized PushReadyNextCmd readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.ready) {
 			throw new BizException("不是准备状态，无法进行出牌");
 		}
@@ -325,7 +337,7 @@ public class DdzDesk extends TableDesk{
 	 * @param playerId
 	 * @param position
 	 */
-	public PushSurrenderCmd surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
+	public synchronized PushSurrenderCmd surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行投降");
 		}
@@ -351,17 +363,17 @@ public class DdzDesk extends TableDesk{
 	/***
 	 * 游戏结算
 	 */
-	public void settle() {
-		if(currentProgress != GameProgress.gameover || currentProgress != GameProgress.surrender) {
+	private void settle() {
+		if(currentProgress != GameProgress.gameover && currentProgress != GameProgress.surrender) {
 			logger.error("游戏出现严重的bug，状态不对就调用了");
 			throw new BizException("游戏还未结束");
 		}
 		
 		GameResultRecord gameResultRecord = null;
-		if(currentProgress != GameProgress.gameover) {
+		if(currentProgress == GameProgress.gameover) {
 			handleNormalResult();
 		}
-		else if(currentProgress != GameProgress.surrender) {
+		else if(currentProgress == GameProgress.surrender) {
 			handleSurrenderResult();
 		}
 		
@@ -393,20 +405,20 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//要处罚了(系统一份，另外两个玩家各一份)
-			CoinManager.changeCoin(gameSeat.getMaster().player, -record.getSingleResult()*3, record.getBatchNo(), "逃跑处罚！");
+			CoinManager.changeCoin(gameSeat.getMaster().get().player, -record.getSingleResult()*3, record.getBatchNo(), "逃跑处罚！");
 			
 			String reason = String.format("%s号位，逃跑处罚！", position);
 			if(position == 1) {
-				CoinManager.changeCoin(this.seatPlayingMap.get(2).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
-				CoinManager.changeCoin(this.seatPlayingMap.get(3).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(2).getMaster().get().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(3).getMaster().get().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
 			}
 			else if(position == 2) {
-				CoinManager.changeCoin(this.seatPlayingMap.get(1).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
-				CoinManager.changeCoin(this.seatPlayingMap.get(3).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(1).getMaster().get().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(3).getMaster().get().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
 			}
 			else {
-				CoinManager.changeCoin(this.seatPlayingMap.get(1).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
-				CoinManager.changeCoin(this.seatPlayingMap.get(2).getMaster().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(1).getMaster().get().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
+				CoinManager.changeCoin(this.seatPlayingMap.get(2).getMaster().get().getPlayer(), record.getSingleResult(), record.getBatchNo(), reason);
 			}
 		}
 	}
@@ -430,21 +442,21 @@ public class DdzDesk extends TableDesk{
 		
 		if(landlordPosition == 1) {
 			{
-				Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+				Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult * 2) : -(singleResult * 2);
 				String reason = landlordWin ? "当地主赢了" : "当地主输了";
 				CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), reason);
 				gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 			}
 			{
-				Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+				Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult) : -(singleResult);
 				String reason = landlordWin ? "当农民输了" : "当农民赢了";
 				CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), reason);
 				gameResultRecord.getMap().put(2, new ResultItem(second.getId(), coin));
 			}
 			{
-				Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+				Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult) : -(singleResult);
 				String reason = landlordWin ? "当农民输了" : "当农民赢了";
 				CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), reason);
@@ -453,21 +465,21 @@ public class DdzDesk extends TableDesk{
 		}
 		else if(landlordPosition == 2) {
 			{
-				Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+				Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult * 2) : -(singleResult * 2);
 				String reason = landlordWin ? "当地主赢了" : "当地主输了";
 				CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), reason);
 				gameResultRecord.getMap().put(2, new ResultItem(second.getId(), coin));
 			}
 			{
-				Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+				Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult) : -(singleResult);
 				String reason = landlordWin ? "当农民输了" : "当农民赢了";
 				CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), reason);
 				gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 			}
 			{
-				Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+				Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult) : -(singleResult);
 				String reason = landlordWin ? "当农民输了" : "当农民赢了";
 				CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), reason);
@@ -476,21 +488,21 @@ public class DdzDesk extends TableDesk{
 		}
 		else{
 			{
-				Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+				Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult * 2) : -(singleResult * 2);
 				String reason = landlordWin ? "当地主赢了" : "当地主输了";
 				CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), reason);
 				gameResultRecord.getMap().put(3, new ResultItem(third.getId(), coin));
 			}
 			{
-				Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+				Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult) : -(singleResult);
 				String reason = landlordWin ? "当农民输了" : "当农民赢了";
 				CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), reason);
 				gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 			}
 			{
-				Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+				Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 				long coin = landlordWin ? (singleResult) : -(singleResult);
 				String reason = landlordWin ? "当农民输了" : "当农民赢了";
 				CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), reason);
@@ -519,13 +531,13 @@ public class DdzDesk extends TableDesk{
 		if(landlordWin) {
 			if(landlordPosition == 1) {
 				{
-					Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+					Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 					long coin = (singleResult * 2);
 					CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), "当地主赢了,对方有投降");
 					gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 				}
 				{
-					Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+					Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 					if(surrenderPosition == 2) {
 						long coin = -(singleResult * 2);
 						CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), "当农民输了,我投降了");
@@ -533,7 +545,7 @@ public class DdzDesk extends TableDesk{
 					}
 				}
 				{
-					Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+					Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 					if(surrenderPosition == 3) {
 						long coin = -(singleResult * 2);
 						CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), "当农民输了,我投降了");
@@ -543,13 +555,13 @@ public class DdzDesk extends TableDesk{
 			}
 			else if(landlordPosition == 2) {
 				{
-					Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+					Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 					long coin = (singleResult * 2);
 					CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), "当地主赢了,对方有投降");
 					gameResultRecord.getMap().put(2, new ResultItem(second.getId(), coin));
 				}
 				{
-					Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+					Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 					if(surrenderPosition == 1) {
 						long coin = -(singleResult * 2);
 						CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), "当农民输了,我投降了");
@@ -557,7 +569,7 @@ public class DdzDesk extends TableDesk{
 					}
 				}
 				{
-					Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+					Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 					if(surrenderPosition == 3) {
 						long coin = -(singleResult * 2);
 						CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), "当农民输了,我投降了");
@@ -567,13 +579,13 @@ public class DdzDesk extends TableDesk{
 			}
 			else{
 				{
-					Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+					Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 					long coin = (singleResult * 2);
 					CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), "当地主赢了,对方有投降");
 					gameResultRecord.getMap().put(3, new ResultItem(third.getId(), coin));
 				}
 				{
-					Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+					Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 					if(surrenderPosition == 1) {
 						long coin = -(singleResult * 2);
 						CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), "当农民输了,我投降了");
@@ -581,7 +593,7 @@ public class DdzDesk extends TableDesk{
 					}
 				}
 				{
-					Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+					Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 					if(surrenderPosition == 2) {
 						long coin = -(singleResult * 2);
 						CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), "当农民输了,我投降了");
@@ -596,19 +608,19 @@ public class DdzDesk extends TableDesk{
 			//当地主输了
 			if(landlordPosition == 1) {
 				{
-					Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+					Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 					long coin = -(singleResult * 2);
 					CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), "当地主输了,我投降了");
 					gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 				}
 				{
-					Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+					Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 					long coin = singleResult;
 					CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), "当农民赢了,对方有投降");
 					gameResultRecord.getMap().put(2, new ResultItem(second.getId(), coin));
 				}
 				{
-					Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+					Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 					long coin = singleResult;
 					CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), "当农民赢了,对方有投降");
 					gameResultRecord.getMap().put(3, new ResultItem(third.getId(), coin));
@@ -616,19 +628,19 @@ public class DdzDesk extends TableDesk{
 			}
 			else if(landlordPosition == 2) {
 				{
-					Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+					Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 					long coin = -(singleResult * 2);
 					CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), "当地主输了,我投降了");
 					gameResultRecord.getMap().put(2, new ResultItem(second.getId(), coin));
 				}
 				{
-					Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+					Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 					long coin = singleResult;
 					CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), "当农民赢了,对方有投降");
 					gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 				}
 				{
-					Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+					Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 					long coin = singleResult;
 					CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), "当农民赢了,对方有投降");
 					gameResultRecord.getMap().put(3, new ResultItem(third.getId(), coin));
@@ -636,19 +648,19 @@ public class DdzDesk extends TableDesk{
 			}
 			else{
 				{
-					Player third = this.seatPlayingMap.get(3).getMaster().getPlayer();
+					Player third = this.seatPlayingMap.get(3).getMaster().get().getPlayer();
 					long coin = -(singleResult * 2);
 					CoinManager.changeCoin(third, coin, gameResultRecord.getBatchNo(), "当地主输了,我投降了");
 					gameResultRecord.getMap().put(3, new ResultItem(third.getId(), coin));
 				}
 				{
-					Player first = this.seatPlayingMap.get(1).getMaster().getPlayer();
+					Player first = this.seatPlayingMap.get(1).getMaster().get().getPlayer();
 					long coin = singleResult;
 					CoinManager.changeCoin(first, coin, gameResultRecord.getBatchNo(), "当农民赢了,对方有投降");
 					gameResultRecord.getMap().put(1, new ResultItem(first.getId(), coin));
 				}
 				{
-					Player second = this.seatPlayingMap.get(2).getMaster().getPlayer();
+					Player second = this.seatPlayingMap.get(2).getMaster().get().getPlayer();
 					long coin = singleResult;
 					CoinManager.changeCoin(second, coin, gameResultRecord.getBatchNo(), "当农民赢了,对方有投降");
 					gameResultRecord.getMap().put(2, new ResultItem(second.getId(), coin));
@@ -664,15 +676,17 @@ public class DdzDesk extends TableDesk{
 		if(gameSeat == null) {
 			throw new BizException("无效的请求");
 		}
-		if(gameSeat.getMaster().getPlayer().getId() == playerId) {
-			return gameSeat.getMaster(); 
+		if(gameSeat.getMaster().get() == null) {
+			throw new BizException("主席位空缺不能操作"); 
 		}
-		for(SeatPlayer seatPlayer : gameSeat.getAssistantList()) {
-			if(seatPlayer.getPlayer().getId() == playerId) {
-				return seatPlayer; 
-			}
+		if(gameSeat.getMaster().get().getPlayer().getId() == playerId) {
+			return gameSeat.getMaster().get(); 
 		}
-		throw new BizException("旁观人员不能操作");
+		SeatPlayer seatPlayer = gameSeat.getAssistantMap().get(playerId);
+		if(seatPlayer == null) {
+			throw new BizException("旁观人员不能操作");
+		}
+		return seatPlayer;
 	}
 	
 	

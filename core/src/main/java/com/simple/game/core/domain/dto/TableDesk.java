@@ -2,6 +2,7 @@ package com.simple.game.core.domain.dto;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ import lombok.ToString;
 public class TableDesk extends BaseDesk{
 	private static Logger logger = LoggerFactory.getLogger(TableDesk.class);
 	/****管理员***/
-	private Player manager;
+	protected final AtomicReference<Player> manager = new AtomicReference<Player>();
 	
 	/***
 	 * 正在进行席位
@@ -139,21 +140,24 @@ public class TableDesk extends BaseDesk{
 		if(seatPlayer.getSeatPost() == SeatPost.onlooker) {
 			throw new BizException(String.format("%s旁观人员，不可以同意申请直播", playerId));
 		}
+		if(manager.get() == null) {
+			throw new BizException(String.format("没有管理员，不可以同意申请直播"));
+		}
 		
 		outParam.setParam(seatPlayer);
 		if(seatPlayer.getGameSeat().isBroadcasting()) {
 			throw new BizException(String.format("该主席位已经是直播了，不可以再申请直播！！"));
 		}
 		
-		if(manager.getId() == playerId) {
+		if(manager.get().getId() == playerId) {
 			seatPlayer.getGameSeat().broadcasting = true;
 			seatPlayer.getGameSeat().applyBroadcasted = false ;
 			return seatPlayer.toPushApplyBroadcastLiveCmd();
 		}
 
 		PushApplyBroadcastLiveCmd pushCmd = seatPlayer.toPushApplyBroadcastLiveCmd();
-		manager.getOnline().push(pushCmd);
-		logger.info("{}向管理员{}发送主播申请", seatPlayer.getPlayer().getNickname(), manager.getNickname());
+		manager.get().getOnline().push(pushCmd);
+		logger.info("{}向管理员{}发送主播申请", seatPlayer.getPlayer().getNickname(), manager.get().getNickname());
 		return null;
 	}
 	
@@ -176,21 +180,21 @@ public class TableDesk extends BaseDesk{
 		seatPlayer.getGameSeat().broadcasting = false;
 		seatPlayer.getGameSeat().applyBroadcasted = false;
 
-		logger.info("{}已取消直播", seatPlayer.getPlayer().getNickname(), manager.getNickname());
+		logger.info("{}已取消直播", seatPlayer.getPlayer().getNickname(), manager.get().getNickname());
 		return seatPlayer.toPushCancelBroadcastLiveCmd();
 	}
 	
 	
 
 	public PushApproveBroadcastLiveCmd approveBroadcastLive(long managerId, int position, OutParam<Player> outParam) {
-		if(manager == null) {
+		if(manager.get() == null) {
 			throw new BizException(String.format("还没设置管理员"));
 		}
-		if(manager.getId() != managerId) {
+		if(manager.get().getId() != managerId) {
 			throw new BizException(String.format("%s不是管理员", managerId));
 		}
 
-		outParam.setParam(manager);
+		outParam.setParam(manager.get());
 		GameSeat gameSeat = this.seatPlayingMap.get(position);
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s席位没有人入座", position));
@@ -204,7 +208,7 @@ public class TableDesk extends BaseDesk{
 		gameSeat.broadcasting = true;
 		gameSeat.applyBroadcasted = false;
 		
-		return gameSeat.getMaster().toPushApproveBroadcastLiveCmd();
+		return gameSeat.getMaster().get().toPushApproveBroadcastLiveCmd();
 	}
 
 	public PushBroadcastLiveCmd broadcastLive(long playerId, byte[] data, OutParam<SeatPlayer> outParam) {
@@ -227,31 +231,35 @@ public class TableDesk extends BaseDesk{
 		}
 		
 		outParam.setParam(player);
-		if(manager != null) {
-			if(manager.getId() == playerId) {
+		if(manager.get() != null) {
+			if(manager.get().getId() == playerId) {
 				throw new BizException(String.format("%s已是管理员, 不可再申请", playerId));
 			}
 			
 			//向这管理员发送告知
 			PushNotifyApplyManagerCmd pushCmd = player.toPushNotifyApplyManagerCmd();
-			manager.getOnline().push(pushCmd);
-			logger.info("{}向管理员{}发送更换管理员申请", player.getNickname(), manager.getNickname());
+			manager.get().getOnline().push(pushCmd);
+			logger.info("{}向管理员{}发送更换管理员申请", player.getNickname(), manager.get().getNickname());
 			return null;
 		}
+		
+		if(manager.compareAndSet(null, player)) {
+			manager.set(player);
+			return player.toPushApplyManagerCmd();
+		}
 
-		manager = playerMap.get(playerId);
-		return manager.toPushApplyManagerCmd();
+		throw new BizException(String.format("管理员之位已被%s强走了，请重试吧", manager.get().getNickname()));
 	}
 
 	public PushChangeManagerCmd changeManager(long managerId, Long playerId, OutParam<Player> outParam) {
-		if(manager == null) {
+		if(manager.get() == null) {
 			throw new BizException(String.format("还没设置管理员"));
 		}
-		if(manager.getId() != managerId) {
+		if(manager.get().getId() != managerId) {
 			throw new BizException(String.format("%s不是管理员", playerId));
 		}
 		
-		outParam.setParam(manager);
+		outParam.setParam(manager.get());
 		if(playerId != null && managerId == playerId) {
 			throw new BizException(String.format("管理员不可以将自己改为管理员"));
 		}
@@ -263,11 +271,11 @@ public class TableDesk extends BaseDesk{
 			if(player == null) {
 				throw new BizException(String.format("非法请求，不在游戏桌中"));
 			}
-			manager = player;
+			manager.set(player);
 		}
 		else {
 			//取消管理员之位
-			manager = null;
+			manager.set(null);
 		}
 		return outParam.getParam().toPushChangeManagerCmd(playerId);
 	}
@@ -281,10 +289,10 @@ public class TableDesk extends BaseDesk{
 	}
 	
 	public Long getManagerId() {
-		if(manager == null) {
+		if(manager.get() == null) {
 			return null;
 		}
-		return manager.getId();
+		return manager.get().getId();
 	}
 
 
@@ -306,10 +314,6 @@ public class TableDesk extends BaseDesk{
 			seatPlayer.getGameSeat().standUp(seatPlayer.getPlayer());
 		}
 		return super.left(playerId, out);
-	}
-
-	public ConcurrentHashMap<Integer, GameSeat> getSeatPlayingMap() {
-		return seatPlayingMap;
 	}
 
 
