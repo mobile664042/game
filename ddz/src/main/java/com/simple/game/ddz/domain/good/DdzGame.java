@@ -9,16 +9,14 @@ import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
-import com.simple.game.core.domain.dto.config.DeskItem;
-import com.simple.game.core.domain.dto.config.GameItem;
 import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.exception.BizException;
-import com.simple.game.ddz.domain.cmd.push.PushPlayCardCmd;
-import com.simple.game.ddz.domain.cmd.push.PushReadyNextCmd;
-import com.simple.game.ddz.domain.cmd.push.PushRobLandlordCmd;
-import com.simple.game.ddz.domain.cmd.push.PushSurrenderCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
+import com.simple.game.ddz.domain.dto.config.DdzGameItem;
 
 import lombok.ToString;
 
@@ -31,32 +29,25 @@ import lombok.ToString;
 @ToString
 public class DdzGame extends TableGame{
 	private static Logger logger = LoggerFactory.getLogger(DdzGame.class);
-	
-	@Override
-	protected void preInit(GameItem gameItem, DeskItem deskItem) {
-		if(gameItem == null || deskItem == null) {
-			throw new BizException("无效的参数");
-		}
+	public DdzGame(DdzGameItem gameItem, DdzDeskItem deskItem) {
+		super(gameItem, deskItem);
 	}
 	
 	@Override
-	/***游戏初使化****/
 	protected BaseDesk buildDesk(){
 		return new DdzDesk(this);
 	}
-	
 	
 	/***
 	 * 当前轮结束，准备下一轮
 	 * @param playerId
 	 * @param position
 	 */
-	public void readyNext(long playerId, int position) {
+	public void readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
 		PushReadyNextCmd result = getDdzDesk().readyNext(playerId, position, outParam);
 		this.broadcast(result, playerId);
-		logger.info("{}已准备进行一轮了,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}已准备进行一轮了,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	@Override
 	protected void preQuickSitdown(long playerId) {
@@ -93,14 +84,10 @@ public class DdzGame extends TableGame{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public void robLandlord(long playerId, int position, int score) {
+	public void robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushRobLandlordCmd result = getDdzDesk().robLandlord(playerId, position, score, outParam);
-		if(result != null) {
-			this.broadcast(result, playerId);
-		}
-		logger.info("{}抢地主,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		getDdzDesk().robLandlord(playerId, position, score, outParam);
+		logger.info("{}抢地主,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	
 	/***
@@ -109,12 +96,11 @@ public class DdzGame extends TableGame{
 	 * @param position
 	 * @param cards
 	 */
-	public void playCard(long playerId, int position, List<Integer> cards) {
+	public void playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
 		PushPlayCardCmd result = getDdzDesk().playCard(playerId, position, cards, outParam);
 		this.broadcast(result, playerId);
-		logger.info("{}出牌,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}出牌,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	
 
@@ -124,12 +110,11 @@ public class DdzGame extends TableGame{
 	 * @param playerId
 	 * @param position
 	 */
-	public void surrender(long playerId, int position) {
+	public void surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
 		PushSurrenderCmd result = getDdzDesk().surrender(playerId, position, outParam);
 		this.broadcast(result, playerId);
-		logger.info("{}投降认输,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}投降认输,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	
 	

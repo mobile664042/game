@@ -10,8 +10,8 @@ import lombok.Data;
  */
 @Data
 public class DeskItem {
-	/***游戏桌号从1号开始****/
-	private int number;
+	/***玩法类型(唯一标识，用来确定其他字段)**/
+	private int playKind;
 	
 	/***最多人员个数****/
 	private int maxPersion = 1000;

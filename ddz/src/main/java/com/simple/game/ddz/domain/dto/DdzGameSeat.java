@@ -4,12 +4,12 @@ package com.simple.game.ddz.domain.dto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simple.game.core.domain.cmd.rtn.RtnGameSeatCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.exception.BizException;
-import com.simple.game.ddz.domain.cmd.push.PushReadyNextCmd;
-import com.simple.game.ddz.domain.cmd.rtn.RtnDdzGameSeatCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 
 import lombok.Getter;
@@ -70,13 +70,17 @@ public class DdzGameSeat extends GameSeat{
 	@Override
 	protected void doSitdownMaster() {
 		this.ready = true;
-		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.get().getPlayer().getNickname(), this.desk.getCurrentGame().getGameItem().getName(), this.desk.getCurrentGame().getDeskItem().getNumber(), this.getPosition());
+		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.get().getPlayer().getNickname(), this.desk.getCurrentGame().getGameItem().getName(), this.desk.getAddrNo(), this.getPosition());
 	}
 	
-	
-	public RtnGameSeatCmd getRtnGameSeatCmd() {
-		//TODO 
-		return new RtnDdzGameSeatCmd();
+	@Override
+	public RtnGameSeatInfoCmd getGameSeatInfo() {
+		RtnDdzGameSeatCmd rtnCmd = new RtnDdzGameSeatCmd();
+		rtnCmd.copy(super.getGameSeatInfo());
+		rtnCmd.setReady(ready);
+		rtnCmd.setSkipCount(skipCount);
+		rtnCmd.setTimeoutCount(timeoutCount);
+		return rtnCmd;
 	}
 	
 	/***

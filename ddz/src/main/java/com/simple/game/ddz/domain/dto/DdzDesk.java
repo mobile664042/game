@@ -8,26 +8,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.PushLeftCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnGameInfoCmd;
+import com.simple.game.core.domain.cmd.push.game.PushLeftCmd;
+import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
-import com.simple.game.core.domain.service.CoinManager;
+import com.simple.game.core.domain.manager.CoinManager;
 import com.simple.game.core.exception.BizException;
-import com.simple.game.ddz.domain.cmd.push.PushPlayCardCmd;
-import com.simple.game.ddz.domain.cmd.push.PushReadyNextCmd;
-import com.simple.game.ddz.domain.cmd.push.PushRobLandlordCmd;
-import com.simple.game.ddz.domain.cmd.push.PushSurrenderCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.DoubleKind;
 import com.simple.game.ddz.domain.dto.constant.ddz.GameProgress;
 import com.simple.game.ddz.domain.good.DdzGame;
-import com.simple.game.ddz.domain.good.service.GameResultRecord;
-import com.simple.game.ddz.domain.good.service.ResultManager;
-import com.simple.game.ddz.domain.good.service.GameResultRecord.ResultItem;
+import com.simple.game.ddz.domain.manager.GameResultRecord;
+import com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem;
+import com.simple.game.ddz.domain.manager.ResultManager;
 import com.simple.game.ddz.domain.ruler.DdzCard;
 
 import lombok.ToString;
@@ -129,8 +128,13 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//强制下线
-			PushLeftCmd pushCmd = this.left(lastGameOverTime, OutParam.build());
-			this.broadcast(pushCmd);
+			this.left(lastGameOverTime, OutParam.build());
+			PushLeftCmd pushCmd = new PushLeftCmd();
+			//TODO 
+			//pushCmd.setPlayKind(playKind);
+			pushCmd.setDeskNo(this.getAddrNo());
+			pushCmd.setPlayerId(player.getId());
+			this.broadcast(pushCmd, true);
 		}
 	}
 	
@@ -185,7 +189,7 @@ public class DdzDesk extends TableDesk{
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
 		pushCmd.setPosition(position);
 		pushCmd.getCards().addAll(outCards);
-		this.broadcast(pushCmd);
+		this.broadcast(pushCmd, true);
 		return true;
 	}
 	
@@ -280,7 +284,7 @@ public class DdzDesk extends TableDesk{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public synchronized PushRobLandlordCmd robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
+	public synchronized void robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.sended) {
 			throw new BizException("不是发完牌状态，无法进行抢地主");
 		}
@@ -290,10 +294,6 @@ public class DdzDesk extends TableDesk{
 		currentProgress = GameProgress.robbedLandlord;
 		
 		outParam.setParam(seatPlayer);
-		PushRobLandlordCmd pushCmd = new PushRobLandlordCmd();
-		pushCmd.setPosition(position);
-		pushCmd.getCards().addAll(this.ddzCard.getCommonCards());
-		return pushCmd;
 	}
 	
 	

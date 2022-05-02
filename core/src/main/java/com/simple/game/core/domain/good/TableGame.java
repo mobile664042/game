@@ -1,34 +1,23 @@
 package com.simple.game.core.domain.good;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.PushApplyBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushApproveBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushBootAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushBootOnlookerCmd;
-import com.simple.game.core.domain.cmd.push.PushBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushCancelBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushChangeManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushChatCmd;
-import com.simple.game.core.domain.cmd.push.PushNotifyApplyAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushRewardCmd;
-import com.simple.game.core.domain.cmd.push.PushSetSeatSuccessorCmd;
-import com.simple.game.core.domain.cmd.push.PushSitdownCmd;
-import com.simple.game.core.domain.cmd.push.PushStandupCmd;
-import com.simple.game.core.domain.cmd.push.PushStopAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushStopOnlookerCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnGameSeatCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnSeatInfoListCmd;
+import com.simple.game.core.domain.cmd.push.game.PushApplyManagerCmd;
+import com.simple.game.core.domain.cmd.push.game.PushChangeManagerCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
+import com.simple.game.core.domain.dto.config.DeskItem;
+import com.simple.game.core.domain.dto.config.GameItem;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.ext.Gift;
 import com.simple.game.core.exception.BizException;
@@ -40,7 +29,12 @@ import com.simple.game.core.exception.BizException;
  *
  */
 public abstract class TableGame extends BaseGame{
-	private static Logger logger = LoggerFactory.getLogger(TableGame.class);
+	private final static Logger logger = LoggerFactory.getLogger(TableGame.class);
+	
+	public TableGame(GameItem gameItem, DeskItem deskItem) {
+		super(gameItem, deskItem);
+	}
+
 	@Override
 	protected BaseDesk buildDesk(){
 		return new TableDesk(this);
@@ -52,7 +46,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param position
 	 */
-	public final RtnGameSeatCmd sitdown(long playerId, int position) {
+	public final RtnGameSeatInfoCmd sitdown(long playerId, int position, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -64,21 +58,37 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
 		
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushSitdownCmd pushCmd = gameSeat.sitdown(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
+		gameSeat.sitdown(player);
+		outParam.setParam(player);
 		
-		logger.info("{}进入{}游戏:并在游戏桌{},席位{}坐下", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), position);
-		return outParam.getParam().getGameSeat().getRtnGameSeatCmd();
+		logger.info("{}进入{}游戏:并在游戏桌{},席位{}坐下", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
+		return gameSeat.getGameSeatInfo();
 	}
 	
-	public RtnSeatInfoListCmd getRtnSeatInfoListCmd(int position) {
+	/***
+	 * 获取桌位玩家
+	 * 需要页面这个接口的访问频率
+	 */
+	public List<SeatPlayer> getSeatPlayerList(int position, int fromPage) {
 		GameSeat gameSeat = getGameDesk().getGameSeat(position);
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
-		return gameSeat.getRtnSeatInfoListCmd();
+		List<SeatPlayer> list = gameSeat.getSeatPlayerList();
+		List<SeatPlayer> result = new ArrayList<SeatPlayer>();
+		int fromIndex = fromPage * PAGE_SIZE;
+		int toIndex = fromIndex + PAGE_SIZE;
+		for(int i=fromIndex; i<list.size() && i<toIndex; i++) {
+			result.add(list.get(i));
+		}
+		return result;
+	}
+	public List<SeatPlayer> getAssistantList(int position) {
+		GameSeat gameSeat = getGameDesk().getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}
+		return gameSeat.getAssistantList();
 	}
 
 	/***
@@ -86,7 +96,7 @@ public abstract class TableGame extends BaseGame{
 	 * 
 	 * @param player
 	 */
-	public final RtnGameSeatCmd quickSitdown(long playerId) {
+	public final RtnGameSeatInfoCmd quickSitdown(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		preQuickSitdown(playerId);
 		Player player = getGameDesk().getPlayer(playerId);
@@ -98,12 +108,10 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("已经没有空闲的席位了"));
 		}
 		
-		PushSitdownCmd pushCmd = gameSeat.sitdown(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		
-		logger.info("{}进入{}游戏:并在游戏桌{},抢到{}席位并坐下", player.getNickname(), gameItem.getName(), deskItem.getNumber(), gameSeat.getPosition());
-		return gameSeat.getRtnGameSeatCmd();
+		outParam.setParam(player);
+		gameSeat.sitdown(player);
+		logger.info("{}进入{}游戏:并在游戏桌{},抢到{}席位并坐下", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), gameSeat.getPosition());
+		return gameSeat.getGameSeatInfo();
 	}
 	protected void preQuickSitdown(long playerId) {}
 	
@@ -111,7 +119,7 @@ public abstract class TableGame extends BaseGame{
 	 * 申请辅助
 	 * @param playerId
 	 */
-	public void applyAssistant(long playerId, int position) {
+	public void applyAssistant(long playerId, int position, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		
 		Player player = getGameDesk().getPlayer(playerId);
@@ -125,7 +133,8 @@ public abstract class TableGame extends BaseGame{
 		
 		//是否有进入的限制条件
 		gameSeat.applyAssistant(player);
-		logger.info("{}在游戏席位: {}--{}--{}申请辅助", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		outParam.setParam(player);
+		logger.info("{}在游戏席位: {}--{}--{}申请辅助", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 		//等待主席位应答
 	}
 	
@@ -134,7 +143,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param id
 	 */
-	public void approveApplyAssistant(long masterId, int position, long playerId) {
+	public void approveApplyAssistant(long masterId, int position, long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Player master = getGameDesk().getPlayer(masterId);
 		if(master == null) {
@@ -149,10 +158,9 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("已经没有空闲的席位了"));
 		}
 		
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushNotifyApplyAssistantCmd pushCmd = gameSeat.approveApplyAssistant(master, player);
-		this.broadcast(pushCmd, masterId);
-		logger.info("{}同意席位:{}--{}--{}的{}成为辅助", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition(), playerId);
+		gameSeat.approveApplyAssistant(master, player);
+		outParam.setParam(player);
+		logger.info("{}同意席位:{}--{}--{}的{}成为辅助", master.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position, playerId);
 	}
 	protected abstract void onApproveApplyAssistant(SeatPlayer player);
 	
@@ -160,7 +168,7 @@ public abstract class TableGame extends BaseGame{
 	 * 从席位中站起来
 	 * @param player
 	 */
-	public final void standUp(long playerId, int position) {
+	public final void standUp(long playerId, int position, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Player player = getGameDesk().getPlayer(playerId);
 		if(player == null) {
@@ -171,10 +179,9 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
 		
-		PushStandupCmd pushCmd = gameSeat.standUp(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}站起来了", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		gameSeat.standUp(player);
+		outParam.setParam(player);
+		logger.info("{}在席位:{}--{}--{}站起来了", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	
 	
@@ -188,10 +195,8 @@ public abstract class TableGame extends BaseGame{
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
-		PushStopAssistantCmd pushCmd = gameSeat.stopAssistant(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}停止申请助手", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		gameSeat.stopAssistant(player);
+		logger.info("{}在席位:{}--{}--{}停止申请助手", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	public void stopOnlooker(long playerId, int position) {
 		this.operatorVerfy();
@@ -203,10 +208,8 @@ public abstract class TableGame extends BaseGame{
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
-		PushStopOnlookerCmd pushCmd = gameSeat.stopOnlooker(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}停止申请旁观者", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		gameSeat.stopOnlooker(player);
+		logger.info("{}在席位:{}--{}--{}停止申请旁观者", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	public void bootAssistant(long playerId, int position) {
 		this.operatorVerfy();
@@ -218,10 +221,8 @@ public abstract class TableGame extends BaseGame{
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
-		PushBootAssistantCmd pushCmd = gameSeat.bootAssistant(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}开启申请助手", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		gameSeat.bootAssistant(player);
+		logger.info("{}在席位:{}--{}--{}开启申请助手", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 
 	}
 	public void bootOnlooker(long playerId, int position) {
@@ -234,10 +235,8 @@ public abstract class TableGame extends BaseGame{
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
-		PushBootOnlookerCmd pushCmd = gameSeat.bootOnlooker(player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}开启申请旁观者", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		gameSeat.bootOnlooker(player);
+		logger.info("{}在席位:{}--{}--{}开启申请旁观者", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	
 	/***
@@ -259,10 +258,8 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
 		
-		PushSetSeatSuccessorCmd pushCmd = gameSeat.setSeatSuccessor(master, player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}将主席位继任者传给{}成功", player.getNickname(), gameItem.getName(), deskItem.getNumber(), position, playerId);
+		gameSeat.setSeatSuccessor(master, player);
+		logger.info("{}在席位:{}--{}--{}将主席位继任者传给{}成功", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position, playerId);
 	}
 	
 	/***
@@ -270,7 +267,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param masterId
 	 * @param playerId
 	 */
-	public void forceStandUp(long masterId, int position, long playerId) {
+	public void forceStandUp(long masterId, int position, long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Player master = getGameDesk().getPlayer(masterId);
 		if(master == null) {
@@ -285,48 +282,45 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("已经没有空闲的席位了"));
 		}
 		
-		PushStandupCmd pushCmd = gameSeat.forceStandUp(master, player);
-		//广播进入信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}在席位:{}--{}--{}请 {}站起", master.getNickname(), gameItem.getName(), deskItem.getNumber(), position, playerId);
+		gameSeat.forceStandUp(master, player);
+		outParam.setParam(player);
+		logger.info("{}在席位:{}--{}--{}请 {}站起", master.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position, playerId);
 	}
 	
-	/***
+	/***TODO
 	 * 在席位中对某个席位进行打赏
 	 * @param player
 	 */
-	public void reward(long playerId, List<Integer> positionList, Gift gift) {
+	public void reward(long playerId, List<Integer> positionList, Gift gift, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		List<PushRewardCmd> result = getGameDesk().reward(playerId, positionList, gift, outParam);
-		for(PushRewardCmd pushCmd : result) {
-			this.broadcast(pushCmd, playerId);
-		}
-		logger.info("{}对席位:{}--{}--{}打赏{}礼物", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber(), positionList, gift.getKind());
+//		OutParam<Player> outParam = OutParam.build();
+//		List<PushRewardCmd> result = getGameDesk().reward(playerId, positionList, gift, outParam);
+//		for(PushRewardCmd pushCmd : result) {
+//			this.broadcast(pushCmd, playerId);
+//		}
+		logger.info("{}对席位:{}--{}--{}打赏{}礼物", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), positionList, gift.getKind());
 	}
 	
 	
-	/***聊天****/
-	public void chat(long playerId, List<Integer> positionList, Chat message) {
+	/*** TODO 聊天****/
+	public void chat(long playerId, List<Integer> positionList, Chat message, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		List<PushChatCmd> result = getGameDesk().chat(playerId, positionList, message, outParam);
-		for(PushChatCmd pushCmd : result) {
-			this.broadcast(pushCmd, playerId);
-		}
-		logger.info("{}在游戏桌:{}--{},对席位{}聊天{}", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber(), positionList, message.getKind());
+//		OutParam<Player> outParam = OutParam.build();
+//		List<PushChatCmd> result = getGameDesk().chat(playerId, positionList, message, outParam);
+//		for(PushChatCmd pushCmd : result) {
+//			this.broadcast(pushCmd, playerId);
+//		}
+		logger.info("{}在游戏桌:{}--{},对席位{}聊天{}", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), positionList, message.getKind());
 	}
 	
 
 	/***申请直播****/
-	public void applyBroadcastLive(long playerId) {
+	public boolean applyBroadcastLive(long playerId) {
 		this.operatorVerfy();
 		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushApplyBroadcastLiveCmd result = getGameDesk().applyBroadcastLive(playerId, outParam);
-		if(result != null) {
-			this.broadcast(result, playerId);
-		}
-		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		boolean result = getGameDesk().applyBroadcastLive(playerId, outParam);
+		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
+		return result;
 	}
 	/***取消直播****/
 	public void cancleBroadcastLive(long playerId) {
@@ -336,7 +330,7 @@ public abstract class TableGame extends BaseGame{
 		if(result != null) {
 			this.broadcast(result, playerId);
 		}
-		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	/***直播****/
 	public void broadcastLive(long playerId, byte[] data) {
@@ -344,7 +338,7 @@ public abstract class TableGame extends BaseGame{
 		OutParam<SeatPlayer> outParam = OutParam.build();
 		PushBroadcastLiveCmd pushCmd = getGameDesk().broadcastLive(playerId, data, outParam);
 		this.broadcast(pushCmd, playerId);
-		logger.info("{}正在直播:席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), deskItem.getNumber(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}正在直播:席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	/***
 	 * 管理员同意XXX的直播
@@ -353,10 +347,8 @@ public abstract class TableGame extends BaseGame{
 	 */
 	public void approveBroadcastLive(long managerId, int position) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushApproveBroadcastLiveCmd pushCmd = getGameDesk().approveBroadcastLive(managerId, position, outParam);
-		this.broadcast(pushCmd, managerId);
-		logger.info("{}同意席位:{}--{}--{}的的直播", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber(), position);
+		getGameDesk().approveBroadcastLive(managerId, position);
+		logger.info("{}同意席位:{}--{}--{}的的直播", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	
 	/***
@@ -373,7 +365,7 @@ public abstract class TableGame extends BaseGame{
 		PushApplyManagerCmd result = getGameDesk().applyManager(playerId, outParam);
 		if(result != null) {
 			this.broadcast(result, playerId);
-			logger.info("{}在游戏桌:{}--{},申请管理员", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber());
+			logger.info("{}在游戏桌:{}--{},申请管理员", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo());
 		}
 	}
 	
@@ -387,7 +379,7 @@ public abstract class TableGame extends BaseGame{
 		OutParam<Player> outParam = OutParam.build();
 		PushChangeManagerCmd result = getGameDesk().changeManager(managerId, playerId, outParam);
 		this.broadcast(result, managerId);
-		logger.info("{}在游戏桌:{}--{},将管理员之位传给:{}", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber(), playerId);
+		logger.info("{}在游戏桌:{}--{},将管理员之位传给:{}", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), playerId);
 	}
 	
 	/***
@@ -414,7 +406,7 @@ public abstract class TableGame extends BaseGame{
 			PushStandupCmd pushCmd = seatPlayer.getGameSeat().standUp(seatPlayer.getPlayer());
 			//广播进入信息
 			this.broadcast(pushCmd, playerId);
-			logger.info("强制在席位:{}--{}--{},将{}踢走", gameItem.getName(), deskItem.getNumber(), seatPlayer.getGameSeat().getPosition(), seatPlayer.getPlayer().getNickname());
+			logger.info("强制在席位:{}--{}--{},将{}踢走", gameItem.getName(), baseDesk.getAddrNo(), seatPlayer.getGameSeat().getPosition(), seatPlayer.getPlayer().getNickname());
 		}
 	}
 	

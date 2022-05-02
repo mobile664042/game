@@ -1,18 +1,6 @@
 package com.simple.game.core.domain.dto;
 
-import java.util.List;
-
-import com.simple.game.core.domain.cmd.push.PushApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushChangeManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushChatCmd;
-import com.simple.game.core.domain.cmd.push.PushConnectedCmd;
-import com.simple.game.core.domain.cmd.push.PushDisconnectCmd;
-import com.simple.game.core.domain.cmd.push.PushJoinedCmd;
-import com.simple.game.core.domain.cmd.push.PushLeftCmd;
-import com.simple.game.core.domain.cmd.push.PushNotifyApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushRewardCmd;
-import com.simple.game.core.domain.ext.Chat;
-import com.simple.game.core.domain.ext.Gift;
+import com.simple.game.core.domain.cmd.vo.PlayerVo;
 
 import lombok.Data;
 import lombok.ToString;
@@ -59,55 +47,17 @@ public class Player {
 		return bcoin;
 	}
 	
-	public PushJoinedCmd toPushJoinedCmd() {
-		//TODO 
-		return null;
+	public PlayerVo valueOfPlayerVo() {
+		PlayerVo vo = new PlayerVo();
+		vo.setId(id);
+		vo.setNickname(nickname);;
+		vo.setGameLevel(gameLevel);
+		vo.setExpValue(expValue);
+		vo.setVipLevel(vipLevel);
+		vo.setHeadPic(headPic);
+		return vo;
 	}
 	
-	public PushLeftCmd toPushLeftCmd() {
-		//TODO 
-		return null;
-	}
-	
-	public PushChatCmd toPushChatCmd(Chat message) {
-		
-		//TODO 
-		return null;
-	}
-	public List<PushChatCmd> toPushChatCmd(List<Integer> positionList, Chat message) {
-		
-		//TODO 
-		return null;
-	}
-	
-	
-
-	public List<PushRewardCmd> toPushRewardCmd(List<Integer> positionList, Gift gift) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public PushApplyManagerCmd toPushApplyManagerCmd() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-
-	public PushNotifyApplyManagerCmd toPushNotifyApplyManagerCmd() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	public PushChangeManagerCmd toPushChangeManagerCmd(Long playerId) {
-		return null;
-	}
-	
-	public PushDisconnectCmd toPushDisconnectCmd() {
-		return null;
-	}
-	
-	public PushConnectedCmd toPushConnectedCmd() {
-		return null;
-	}
 	
 
 	public OnlineUserInfo toOnlineUserInfo() {

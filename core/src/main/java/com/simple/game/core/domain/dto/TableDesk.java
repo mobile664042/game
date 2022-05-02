@@ -10,14 +10,12 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.PushApplyBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.PushApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushApproveBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.PushBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.PushCancelBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.PushChangeManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushChatCmd;
-import com.simple.game.core.domain.cmd.push.PushLeftCmd;
-import com.simple.game.core.domain.cmd.push.PushNotifyApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushRewardCmd;
+import com.simple.game.core.domain.cmd.push.game.PushChatCmd;
+import com.simple.game.core.domain.cmd.push.game.PushRewardCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplyManagerCmd;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.ext.Gift;
@@ -132,7 +130,7 @@ public class TableDesk extends BaseDesk{
 	}
 
 
-	public PushApplyBroadcastLiveCmd applyBroadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
+	public boolean applyBroadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
 		SeatPlayer seatPlayer = this.getSeatPlayer(playerId);
 		if(seatPlayer == null) {
 			throw new BizException(String.format("%s不在席位上，不可以同意申请直播", playerId));
@@ -152,13 +150,13 @@ public class TableDesk extends BaseDesk{
 		if(manager.get().getId() == playerId) {
 			seatPlayer.getGameSeat().broadcasting = true;
 			seatPlayer.getGameSeat().applyBroadcasted = false ;
-			return seatPlayer.toPushApplyBroadcastLiveCmd();
+			return true;
 		}
 
 		PushApplyBroadcastLiveCmd pushCmd = seatPlayer.toPushApplyBroadcastLiveCmd();
 		manager.get().getOnline().push(pushCmd);
 		logger.info("{}向管理员{}发送主播申请", seatPlayer.getPlayer().getNickname(), manager.get().getNickname());
-		return null;
+		return false;
 	}
 	
 	public PushCancelBroadcastLiveCmd cancelBroadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
@@ -186,7 +184,7 @@ public class TableDesk extends BaseDesk{
 	
 	
 
-	public PushApproveBroadcastLiveCmd approveBroadcastLive(long managerId, int position, OutParam<Player> outParam) {
+	public void approveBroadcastLive(long managerId, int position) {
 		if(manager.get() == null) {
 			throw new BizException(String.format("还没设置管理员"));
 		}
@@ -194,7 +192,6 @@ public class TableDesk extends BaseDesk{
 			throw new BizException(String.format("%s不是管理员", managerId));
 		}
 
-		outParam.setParam(manager.get());
 		GameSeat gameSeat = this.seatPlayingMap.get(position);
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s席位没有人入座", position));
@@ -208,7 +205,7 @@ public class TableDesk extends BaseDesk{
 		gameSeat.broadcasting = true;
 		gameSeat.applyBroadcasted = false;
 		
-		return gameSeat.getMaster().get().toPushApproveBroadcastLiveCmd();
+//		return gameSeat.getMaster().get().toPushApproveBroadcastLiveCmd();
 	}
 
 	public PushBroadcastLiveCmd broadcastLive(long playerId, byte[] data, OutParam<SeatPlayer> outParam) {
@@ -308,12 +305,12 @@ public class TableDesk extends BaseDesk{
 
 
 	@Override
-	public PushLeftCmd left(long playerId, OutParam<Player> out) {
+	public void left(long playerId, OutParam<Player> out) {
 		SeatPlayer seatPlayer = this.getSeatPlayer(playerId);
 		if(seatPlayer != null) {
 			seatPlayer.getGameSeat().standUp(seatPlayer.getPlayer());
 		}
-		return super.left(playerId, out);
+		super.left(playerId, out);
 	}
 
 

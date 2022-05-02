@@ -8,19 +8,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simple.game.core.domain.cmd.push.PushBootAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushBootOnlookerCmd;
 import com.simple.game.core.domain.cmd.push.PushCancelSeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.PushChangeSeatMasterCmd;
 import com.simple.game.core.domain.cmd.push.PushCmd;
-import com.simple.game.core.domain.cmd.push.PushNotifyApplyAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushSetSeatSuccessorCmd;
-import com.simple.game.core.domain.cmd.push.PushSitdownCmd;
-import com.simple.game.core.domain.cmd.push.PushStandupCmd;
-import com.simple.game.core.domain.cmd.push.PushStopAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushStopOnlookerCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnGameSeatCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnSeatInfoListCmd;
+import com.simple.game.core.domain.cmd.push.seat.notify.PushNotifyApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.SimpleUtil;
@@ -133,7 +125,7 @@ public class GameSeat implements AddressNo{
 	
 	protected void preSitdown(Player player) {}
 	
-	public PushSitdownCmd sitdown(Player player) {
+	public void sitdown(Player player) {
 		preSitdown(player);
 		//判断是否经坐下
 		SeatPlayer old = seatPlayerMap.get(player.getId());
@@ -165,7 +157,6 @@ public class GameSeat implements AddressNo{
 		
 		seatPlayerMap.put(player.getId(), seatPlayer);
 		player.setAddress(this);
-		return seatPlayer.toPushSitdownCmd();
 	}
 	
 	protected void doSitdownMaster() {
@@ -178,9 +169,11 @@ public class GameSeat implements AddressNo{
 	 * @param position
 	 * @return
 	 */
-	public RtnSeatInfoListCmd getRtnSeatInfoListCmd() {
-		//TODO 
-		return new RtnSeatInfoListCmd();
+	public List<SeatPlayer> getSeatPlayerList() {
+		return new ArrayList<SeatPlayer>(seatPlayerMap.values());
+	}
+	public List<SeatPlayer> getAssistantList() {
+		return new ArrayList<SeatPlayer>(assistantMap.values());
 	}
 	protected SeatPlayer buildSeatPlayer(Player player, SeatPost seatPost){
 		return new SeatPlayer(player, this, seatPost);
@@ -220,7 +213,7 @@ public class GameSeat implements AddressNo{
 	}
 	
 
-	public PushNotifyApplyAssistantCmd approveApplyAssistant(Player master, Player player) {
+	public void approveApplyAssistant(Player master, Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(master.getId());
 
 		SeatPlayer other = this.seatPlayerMap.get(player.getId());
@@ -238,7 +231,7 @@ public class GameSeat implements AddressNo{
 		other.seatPost = SeatPost.assistant;
 		other.applyAssistanted = false;
 		
-		return other.toPushNotifyApplyAssistantCmd();
+//		return other.toPushNotifyApplyAssistantCmd();
 	}
 
 
@@ -254,26 +247,22 @@ public class GameSeat implements AddressNo{
 		return seartMaster;
 	}
 
-	public PushStopOnlookerCmd stopOnlooker(Player player) {
+	public void stopOnlooker(Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(player.getId());
 		seartMaster.getGameSeat().stopOnlooker = true;
-		return seartMaster.toPushStopOnlookerCmd();
 	}
-	public PushStopAssistantCmd stopAssistant(Player player) {
+	public void stopAssistant(Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(player.getId());
 		seartMaster.getGameSeat().stopAssistant = true;
-		return seartMaster.toPushStopAssistantCmd();
 	}
 
-	public PushBootOnlookerCmd bootOnlooker(Player player) {
+	public void bootOnlooker(Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(player.getId());
 		seartMaster.getGameSeat().stopOnlooker = false;
-		return seartMaster.toPushBootOnlookerCmd();
 	}
-	public PushBootAssistantCmd bootAssistant(Player player) {
+	public void bootAssistant(Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(player.getId());
 		seartMaster.getGameSeat().stopAssistant = false;
-		return seartMaster.toPushBootAssistantCmd();
 	}
 	public SeatPlayer preStandUp(long masterId, long playerId) {
 		if(masterId == playerId) {
@@ -286,7 +275,7 @@ public class GameSeat implements AddressNo{
 		}
 		return master;
 	}
-	public PushSetSeatSuccessorCmd setSeatSuccessor(Player master, Player player) {
+	public void setSeatSuccessor(Player master, Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(master.getId());
 
 		SeatPlayer other = this.seatPlayerMap.get(player.getId());
@@ -301,9 +290,6 @@ public class GameSeat implements AddressNo{
 		}
 		
 		this.nextMaster = other;
-
-		// 与 standUp(对应)
-		return this.toPushSetSeatSuccessorCmd();
 	}
 	
 	/***
@@ -314,7 +300,7 @@ public class GameSeat implements AddressNo{
 	protected void doStandUpMaster() {
 	}
 	
-	public PushStandupCmd standUp(Player player) {
+	public void standUp(Player player) {
 		SeatPlayer seatPlayer = this.seatPlayerMap.get(player.getId());
 		if(seatPlayer == null) {
 			throw new BizException(String.format("%s不在席位上，不可以站起", player.getId()));
@@ -326,8 +312,6 @@ public class GameSeat implements AddressNo{
 			this.clear();
 			
 			//广播
-			PushStandupCmd pushCmd = this.toPushStandupCmd();
-			this.desk.getCurrentGame().broadcast(pushCmd, player.getId());
 			logger.info("{}席位的全体同仁都站起来了");
 		}
 		else if(seatPlayer.getSeatPost() == SeatPost.assistant) {
@@ -338,7 +322,6 @@ public class GameSeat implements AddressNo{
 		else {
 			seatPlayerMap.remove(player.getId());
 		}
-		return seatPlayer.toPushStandupCmd();
 	}
 	
 	private void clear() {
@@ -353,7 +336,7 @@ public class GameSeat implements AddressNo{
 		this.applyBroadcasted = false;
 	}
 
-	public PushStandupCmd forceStandUp(Player master, Player player) {
+	public void forceStandUp(Player master, Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(master.getId());
 
 		SeatPlayer other = this.seatPlayerMap.get(player.getId());
@@ -367,33 +350,25 @@ public class GameSeat implements AddressNo{
 			throw new BizException(String.format("不可以对自己进行强制站起"));
 		}
 		
-		return this.standUp(player);
+		this.standUp(player);
 	}
 	
-	public PushSetSeatSuccessorCmd toPushSetSeatSuccessorCmd() {
-		//TODO 
-		return null;
+	public RtnGameSeatInfoCmd getGameSeatInfo() {
+		RtnGameSeatInfoCmd rtnCmd = new RtnGameSeatInfoCmd();
+		if(master.get() != null) {
+			rtnCmd.setMaster(master.get().player.valueOfPlayerVo());
+		}
+		if(nextMaster != null) {
+			rtnCmd.setNextMaster(nextMaster.player.valueOfPlayerVo());
+		}
+		rtnCmd.setPosition(position);
+		rtnCmd.setStopOnlooker(stopOnlooker);
+		rtnCmd.setStopAssistant(stopAssistant);
+		rtnCmd.setBroadcasting(broadcasting);
+		rtnCmd.setApplyBroadcasted(applyBroadcasted);
+		return rtnCmd;
 	}
 	
-	public RtnGameSeatCmd getRtnGameSeatCmd() {
-		//TODO 
-		return new RtnGameSeatCmd();
-	}
-	
-	public PushStandupCmd toPushStandupCmd() {
-		//TODO 
-		return new PushStandupCmd();
-	}
-	
-	public PushCancelSeatSuccessorCmd toPushCancelSeatSuccessorCmd() {
-		//TODO 
-		return new PushCancelSeatSuccessorCmd();
-	}
-	
-	public PushChangeSeatMasterCmd toPushChangeSeatMasterCmd() {
-		//TODO 
-		return new PushChangeSeatMasterCmd();
-	}
 	
 	public SeatPlayer getSeatPlayer(long playerId) {
 		return seatPlayerMap.get(playerId);

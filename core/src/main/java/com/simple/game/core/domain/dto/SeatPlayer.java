@@ -1,24 +1,7 @@
 package com.simple.game.core.domain.dto;
 
-import java.util.List;
-
-import com.simple.game.core.domain.cmd.push.PushApplyBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushApproveBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushBootAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushBootOnlookerCmd;
-import com.simple.game.core.domain.cmd.push.PushBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushCancelBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushChatCmd;
-import com.simple.game.core.domain.cmd.push.PushNotifyApplyAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushRewardCmd;
-import com.simple.game.core.domain.cmd.push.PushSetSeatSuccessorCmd;
-import com.simple.game.core.domain.cmd.push.PushSitdownCmd;
-import com.simple.game.core.domain.cmd.push.PushStandupCmd;
-import com.simple.game.core.domain.cmd.push.PushStopAssistantCmd;
-import com.simple.game.core.domain.cmd.push.PushStopOnlookerCmd;
+import com.simple.game.core.domain.cmd.vo.SeatPlayerVo;
 import com.simple.game.core.domain.dto.constant.SeatPost;
-import com.simple.game.core.domain.ext.Chat;
-import com.simple.game.core.domain.ext.Gift;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -53,74 +36,18 @@ public class SeatPlayer {
 		
 	}
 	
-	public PushSitdownCmd toPushSitdownCmd() {
-		//TODO 
-		return null;
-	}
-	public PushStopAssistantCmd toPushStopAssistantCmd() {
-		//TODO 
-		return null;
-	}
-	public PushStopOnlookerCmd toPushStopOnlookerCmd() {
-		//TODO 
-		return null;
-	}
-	public PushBootAssistantCmd toPushBootAssistantCmd() {
-		//TODO 
-		return null;
-	}
-	public PushBootOnlookerCmd toPushBootOnlookerCmd() {
-		//TODO 
-		return null;
-	}
-	
-	public PushStandupCmd toPushStandupCmd() {
-		//TODO 
-		return null;
-	}
-	
-	public PushSetSeatSuccessorCmd toPushRobSeatMasterCmd() {
-		//TODO 
-		return null;
-	}
-//	
-	public PushApproveBroadcastLiveCmd toPushApproveBroadcastLiveCmd() {
-		//TODO 
-		return null;
-	}
-	
-	public PushApplyBroadcastLiveCmd toPushApplyBroadcastLiveCmd() {
-		//TODO 
-		return null;
-	}
-
-	public PushCancelBroadcastLiveCmd toPushCancelBroadcastLiveCmd() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public PushBroadcastLiveCmd toPushBroadcastLiveCmd(byte[] data) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public List<PushRewardCmd> toPushRewardCmd(List<Integer> positionList, Gift gift) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public List<PushChatCmd> toPushChatCmd(List<Integer> positionList, Chat message) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	public PushNotifyApplyAssistantCmd toPushNotifyApplyAssistantCmd() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public PushChatCmd toPushChatCmd(Chat message) {
-		// TODO Auto-generated method stub
-		return null;
+	public SeatPlayerVo valueOfSeatPlayerVo() {
+		SeatPlayerVo vo = new SeatPlayerVo();
+		vo.setId(player.getId());
+		vo.setNickname(player.getNickname());
+		vo.setGameLevel(player.getGameLevel());
+		vo.setExpValue(player.getExpValue());
+		vo.setVipLevel(player.getVipLevel());
+		vo.setHeadPic(player.getHeadPic());
+		
+		vo.setPosition(gameSeat.getPosition());
+		vo.setSeatPost(seatPost);
+		return vo;
 	}
 	
 }

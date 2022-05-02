@@ -1,15 +1,14 @@
 package com.simple.game.core.domain.good;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.PushCmd;
-import com.simple.game.core.domain.cmd.push.PushDisconnectCmd;
-import com.simple.game.core.domain.cmd.push.PushLeftCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnGameInfoCmd;
-import com.simple.game.core.domain.cmd.rtn.RtnOnlineListCmd;
+import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.dto.AddressNo;
 import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.Player;
@@ -33,6 +32,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public abstract class BaseGame implements AddressNo{
+	protected static final int PAGE_SIZE = 20;
 	private static Logger logger = LoggerFactory.getLogger(BaseGame.class);
 	private long lastLogTime = System.currentTimeMillis();
 	
@@ -55,10 +55,9 @@ public abstract class BaseGame implements AddressNo{
 	}
 	
 	/***游戏初使化****/
-	public final synchronized void init(GameItem gameItem, DeskItem deskItem){
-		//状态判断
-		if(gameStatus != null) {
-			throw new BizException("游戏已经初使化过了！！！");
+	public BaseGame(GameItem gameItem, DeskItem deskItem){
+		if(gameItem == null || deskItem == null) {
+			throw new BizException("无效的参数");
 		}
 		logger.info("游戏准备初使化");
 		long startTime = System.currentTimeMillis();
@@ -75,7 +74,7 @@ public abstract class BaseGame implements AddressNo{
 		return new BaseDesk(this);
 	}
 	
-	/***游戏运行(每隔300毫秒中扫描一次，推动游戏一直运行)****/
+	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)****/
 	public final synchronized void scan() {
 		if(gameStatus == null || gameStatus == GameStatus.finished) {
 			return;
@@ -100,7 +99,7 @@ public abstract class BaseGame implements AddressNo{
 			logger.error("游戏计算异场", e);
 		}
 	}
-	/***游戏运行(每隔300毫秒中扫描一次，推动游戏一直运行)(需要打印日志时返回true或有变化时返回true)****/
+	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)(需要打印日志时返回true或有变化时返回true)****/
 	protected abstract boolean onScan();
 	
 	/***中止游戏,强制结算,强退所有人员，销毁游戏****/
@@ -156,23 +155,40 @@ public abstract class BaseGame implements AddressNo{
 	 */
 	public final RtnGameInfoCmd join(Player player) {
 		this.operatorVerfy();
-		
 		//是否有进入的限制条件
 		this.preJoin(player);
-		RtnGameInfoCmd rtnCmd = this.baseDesk.join(player);
-		//广播进入信息
-		this.broadcast(player.toPushJoinedCmd(), player.getId());
-		logger.info("{}进入{}游戏:当前游戏桌{}", player.getNickname(), gameItem.getName(), deskItem.getNumber());
-		return rtnCmd;
+		this.baseDesk.join(player);
+		logger.info("{}进入{}游戏:当前游戏桌{}", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo());
+		return getGameInfo();
 	}
 	protected void preJoin(Player player) {};
 	
 	
+	protected RtnGameInfoCmd getGameInfo() {
+		RtnGameInfoCmd rtnCmd = new RtnGameInfoCmd();
+		long pauseMs = System.currentTimeMillis() - this.getPauseTime();
+		if(pauseMs > 0) {
+			rtnCmd.setPauseMs(pauseMs);
+		}
+		return rtnCmd;
+	}
+	
+	
 	/***
 	 * 获取游戏在线玩家
+	 * 需要页面这个接口的访问频率
 	 */
-	public final RtnOnlineListCmd getRtnOnlineListCmd() {
-		return this.baseDesk.getRtnOnlineListCmd();
+	public List<Player> getOnlineList(int fromPage) {
+		List<Player> list = this.baseDesk.getOnlineList();
+		
+		List<Player> result = new ArrayList<Player>();
+		int fromIndex = fromPage * PAGE_SIZE;
+		int toIndex = fromIndex + PAGE_SIZE;
+		for(int i=fromIndex; i<list.size() && i<toIndex; i++) {
+			result.add(list.get(i));
+		}
+		
+		return result;
 	}
 	
 	/***
@@ -181,32 +197,31 @@ public abstract class BaseGame implements AddressNo{
 	 * @param excludeIds
 	 */
 	public final void broadcast(PushCmd cmd, long ...excludeIds){
+		broadcast(cmd, true, excludeIds);
+	}
+	
+	public final void broadcast(PushCmd cmd, boolean async, long ...excludeIds){
 		this.operatorVerfy();
-		this.baseDesk.broadcast(cmd, excludeIds);
+		this.baseDesk.broadcast(cmd, async, excludeIds);
 	}
 	
 	/***
 	 * 离开游戏
 	 */
-	public final void left(long playerId) {
+	public final void left(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		this.preLeft(playerId);
-		OutParam<Player> outParam = OutParam.build();
-		PushLeftCmd pushCmd = this.baseDesk.left(playerId, outParam);
-		//广播离开信息
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}离开{}游戏:当前游戏桌{}", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber());
+		this.baseDesk.left(playerId, outParam);
+		logger.info("{}离开{}游戏:当前游戏桌{}", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo());
 	}
 	protected void preLeft(long playerId) {}
 	
 	
 	/***聊天****/
-	public final void chat(long playerId, Chat message) {
+	public final void chat(long playerId, Chat message, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushChatCmd result = this.baseDesk.chat(playerId, message, outParam);
-		this.broadcast(result, playerId);
-		logger.info("{}在游戏桌:{}--{},发送:{}聊天", outParam.getParam().getNickname(), gameItem.getName(), deskItem.getNumber(), message.getKind());
+		this.baseDesk.chat(playerId, message, outParam);
+		logger.info("{}在游戏桌:{}--{},发送:{}聊天", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), message.getKind());
 	}
 
 	/***系统强制踢人***/
@@ -214,26 +229,21 @@ public abstract class BaseGame implements AddressNo{
 		this.operatorVerfy();
 		this.preLeft(playerId);
 		OutParam<Player> outParam = OutParam.build();
-		PushLeftCmd pushCmd = this.baseDesk.left(playerId, outParam);
-		this.broadcast(pushCmd, playerId);
-		logger.info("强制在游戏桌:{}--{},将{}踢走", gameItem.getName(), deskItem.getNumber(), outParam.getParam().getNickname());
+		this.baseDesk.left(playerId, outParam);
+		logger.info("强制在游戏桌:{}--{},将{}踢走", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
 	}
 	
 	/***断网，掉线***/
-	public final void disconnect(long playerId) {
+	public final void disconnect(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushDisconnectCmd pushCmd = this.baseDesk.disconnect(playerId, outParam);
-		this.broadcast(pushCmd, playerId);
-		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), deskItem.getNumber(), outParam.getParam().getNickname());
+		this.baseDesk.disconnect(playerId, outParam);
+		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
 	}
 	
 	/***掉线重连***/
-	public final void connected(long playerId) {
+	public final void connect(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushDisconnectCmd pushCmd = this.baseDesk.disconnect(playerId, outParam);
-		this.broadcast(pushCmd, playerId);
-		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), deskItem.getNumber(), outParam.getParam().getNickname());
+		this.baseDesk.disconnect(playerId, outParam);
+		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
 	}
 }
