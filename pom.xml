@@ -1,20 +1,102 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">  
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.7</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 
-    <modelVersion>4.0.0</modelVersion>  
-    <groupId>com.simple.game</groupId>  
-    <artifactId>parent</artifactId>  
-    <packaging>pom</packaging>  
-    <version>0.0.1-SNAPSHOT</version>  
-    <modules>  
-        <module>core</module>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.simple.game</groupId>
+	<artifactId>parent</artifactId>
+	<packaging>pom</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+	<properties>
+		<!-- <spring-boot.version>2.6.7</spring-boot.version> -->
+		<spring-boot.version>2.2.0.RELEASE</spring-boot.version>
+		<java.version>1.8</java.version>
+	</properties>
+	<modules>
+		<module>core</module>
 		<module>ddz</module>
-    </modules>  
+		<module>server</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-logging</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-websocket</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+			
+			<dependency>
+			    <groupId>com.google.guava</groupId>
+			    <artifactId>guava</artifactId>
+			    <version>30.1.1-jre</version>
+			</dependency>
+			<dependency>
+			    <groupId>com.alibaba</groupId>
+			    <artifactId>fastjson</artifactId>
+			    <version>1.2.76</version>
+			</dependency>
+
+			<!-- jackson -->
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.11.2</version>
+			</dependency>
+			<!-- MySQL 连接驱动依赖 -->
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>8.0.19</version>
+			</dependency>
+			<!-- mysql数据库连接池 pool -->
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>druid-spring-boot-starter</artifactId>
+				<version>1.1.23</version>
+			</dependency>
+			<!-- Spring Boot Mybatis 依赖 -->
+			<dependency>
+				<groupId>org.mybatis.spring.boot</groupId>
+				<artifactId>mybatis-spring-boot-starter</artifactId>
+				<version>2.1.3</version>
+			</dependency>
+
+			<!--swagger-->
+			<dependency>
+				<groupId>io.springfox</groupId>
+				<artifactId>springfox-swagger2</artifactId>
+				<version>2.8.0</version>
+			</dependency>
+			<!-- 请求地址为:http://localhost:8080/doc.html -->
+			<dependency>
+				<groupId>com.github.xiaoymin</groupId>
+				<artifactId>swagger-bootstrap-ui</artifactId>
+				<version>1.9.6</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>1.18.24</version>
+				<optional>true</optional>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>  

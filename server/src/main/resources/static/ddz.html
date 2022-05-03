@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ddz斗地主</title>
+<style type="text/css">
+hr {
+	border:0px;
+	border-bottom:1px solid grey;
+}
+</style>
+</head>
+<body>
+	<div>
+		<table>
+			<tr>
+				<td>
+				
+					<fieldset style="width: 900px">
+						<legend>登录游戏</legend>
+						<input type="text" style="height:30px" width="80px" id="playerId" placeholder="填写你的playerId" />
+						<input type="text" style="height:30px" width="80px" id="nickname" placeholder="填写你的昵称" />
+						<input type="text" style="height:30px" width="80px" id="bcoin" placeholder="填写你的游戏币数量" />
+						<button id="start">登录游戏</button>
+					</fieldset>
+					
+					<fieldset style="width: 900px">
+						<legend>进入游戏</legend>
+						<label style="height:30px;">游戏类型:</label>
+						<select style="height:30px; width:100px" id="playerKind" title="游戏类型" >
+							<option>底注10块</option>
+							<option>底注100块</option>
+							<option>底注1000块</option>
+						</select>
+						
+						<label style="height:30px;">桌号:</label>
+						<select style="height:30px; width:100px" id="deskNo" title="桌号" >
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+							<option>5</option>
+							<option>6</option>
+							<option>7</option>
+						</select>
+						<button id="join">进入游戏</button>
+						<button id="left">离开</button>
+						<br/><br/>
+						
+						<label style="height:30px;">席位:</label>
+						<select style="height:30px; width:100px" id="deskNo" title="席位" >
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+						</select>
+						<button id="sitdown">坐下</button>
+						<button id="sitdown">快速坐下</button>
+						<button id="standup">站起</button>
+					</fieldset><br/>
+					
+					<fieldset style="width: 900px">
+						<legend>桌面</legend>
+						<div>
+							<table style="height: 100%">
+								<tr>
+									<td style="padding-top: 5px; padding-left: 5px; width: 800px" rowspan="2">
+										 已出的牌 ↓
+										<div id="deskPanel" style="height: 350px; overflow: auto; border: 1px solid red; ">
+											<span style="background-color: yellow; margin-right:20px">
+												<img alt="1" width="27px" height="27px" src="/img/head/1.jpeg">张三 
+											</span>
+											<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
+											<img alt="4" width="50px" height="65px" src="/img/pk/31.png">
+											<img alt="5" width="50px" height="65px" src="/img/pk/33.png">
+											<hr/>
+											
+											<span style="background-color: yellow; margin-right:20px">
+												<img alt="1" width="27px" height="27px" src="/img/head/2.jpeg">李四 
+											</span>
+											<img alt="J" width="50px" height="65px" src="/img/pk/110.png">
+											<img alt="Q" width="50px" height="65px" src="/img/pk/111.png">
+											<img alt="K" width="50px" height="65px" src="/img/pk/112.png">
+											<hr/>
+											
+											<span style="background-color: yellow; margin-right:20px">
+												<img alt="1" width="27px" height="27px" src="/img/head/2.jpeg">李四 
+											</span>
+											<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
+											<img alt="4" width="50px" height="65px" src="/img/pk/41.png">
+											<img alt="5" width="50px" height="65px" src="/img/pk/52.png">
+											<img alt="6" width="50px" height="65px" src="/img/pk/61.png">
+											<img alt="7" width="50px" height="65px" src="/img/pk/70.png">
+											<img alt="8" width="50px" height="65px" src="/img/pk/83.png">
+											<img alt="9" width="50px" height="65px" src="/img/pk/92.png">
+											<img alt="10" width="50px" height="65px" src="/img/pk/103.png">
+											<img alt="J" width="50px" height="65px" src="/img/pk/113.png">
+											<img alt="Q" width="50px" height="65px" src="/img/pk/121.png">
+											<img alt="K" width="50px" height="65px" src="/img/pk/130.png">
+											<img alt="A" width="50px" height="65px" src="/img/pk/10.png">
+											<hr/>
+											
+											<span style="background-color: orange; margin-right:20px">
+												<img alt="1" width="27px" height="27px" src="/img/head/3.jpeg">王二 
+											</span>
+											<img alt="3" width="50px" height="65px" src="/img/pk/200.png">
+											<img alt="4" width="50px" height="65px" src="/img/pk/201.png">
+										</div> 
+									</td>
+									<td style="vertical-align: middle; text-align: center;width: 90px">
+									 	<label style="height:30px;">底牌:</label>
+									 	<label style="height:30px;">
+									 		<img alt="Q" width="50px" height="65px" src="/img/pk/200.png">
+											<img alt="K" width="50px" height="65px" src="/img/pk/41.png">
+											<img alt="A" width="50px" height="65px" src="/img/pk/201.png">
+										</label><br/><br/><br/>
+									 	
+									 	<label style="height:30px;">倍数:</label><br/>
+									 	<label style="height:30px;">120</label>
+									 </td>
+								</tr>
+							</table>
+						</div>
+					</fieldset>	
+				
+					<fieldset style="width: 900px">
+						<legend>打牌</legend>
+						<div>
+							<div>
+							 	剩余的手牌--&gt;  
+							 	<div style="padding-bottom: 15px">
+									<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
+									<img alt="4" width="50px" height="65px" src="/img/pk/41.png">
+									<img alt="5" width="50px" height="65px" src="/img/pk/52.png">
+									<img alt="6" width="50px" height="65px" src="/img/pk/61.png">
+									<img alt="7" width="50px" height="65px" src="/img/pk/70.png">
+									<img alt="8" width="50px" height="65px" src="/img/pk/83.png">
+									<img alt="9" width="50px" height="65px" src="/img/pk/92.png">
+									<img alt="10" width="50px" height="65px" src="/img/pk/103.png">
+									<img alt="J" width="50px" height="65px" src="/img/pk/113.png">
+									<img alt="Q" width="50px" height="65px" src="/img/pk/121.png">
+									<img alt="K" width="50px" height="65px" src="/img/pk/130.png">
+									<img alt="A" width="50px" height="65px" src="/img/pk/10.png">
+									<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
+									<img alt="4" width="50px" height="65px" src="/img/pk/41.png">
+									<img alt="5" width="50px" height="65px" src="/img/pk/52.png">
+									<img alt="6" width="50px" height="65px" src="/img/pk/61.png">
+									<img alt="7" width="50px" height="65px" src="/img/pk/70.png">
+									<img alt="8" width="50px" height="65px" src="/img/pk/83.png">
+									<img alt="9" width="50px" height="65px" src="/img/pk/92.png">
+									<img alt="10" width="50px" height="65px" src="/img/pk/103.png">
+									<img alt="J" width="50px" height="65px" src="/img/pk/113.png">
+									<img alt="Q" width="50px" height="65px" src="/img/pk/121.png">
+									<img alt="K" width="50px" height="65px" src="/img/pk/130.png">
+									<img alt="A" width="50px" height="65px" src="/img/pk/10.png">
+								</div>
+							</div>
+							 
+							<div>
+								准备出的牌--&gt; <input type="text" value="120, 121, 123, 123, 123, 123, 123" style="height:30px; width: 330px" id="bcoin" placeholder="填写你要出的牌！" />
+								<button id="start">出牌</button>
+								(尾号)花色规则：
+								0:♠  1:<font color="red" style="font-size: large;">♥</font>  2:♣  3:<font color="red" style="font-size: large;">♦</font>
+								201:大王
+								200:小王
+							</div>
+							<div>
+								<button id="start">要不起</button>
+								<button id="start">抢地主</button>
+								<button id="start">不抢地主</button>
+								<button id="start">准备</button>
+								<button id="start">投降</button>
+								<button id="start">加倍</button>
+								<button id="start">明牌</button>
+							</div>
+						</div>
+					</fieldset>	
+					
+					<fieldset style="width: 900px">
+						<legend>其他操作</legend>
+						<div>
+							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写playId" /> 
+							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写position" /> 
+							<br/>
+			
+							<button id="start">暂停</button>
+							<button id="start">恢复</button>
+							<button id="start">踢走</button>
+							<button id="start">获取在线玩家</button>
+							<button id="start">获取席位粉丝</button>
+							<button id="start">获取席位辅助</button>
+							<button id="start">设置席位继承人</button>
+							<button id="start">申请席位继承人</button>
+							<button id="start">申请管理员</button>
+							<button id="start">申请辅助</button>
+							<button id="start">同意成为辅助</button>
+							<button id="start">申请直播</button>
+							<button id="start">取消直播</button>
+							<button id="start">同意直播</button>
+							<button id="start">更换管理员</button>
+							<button id="start">打賞</button>
+			
+							<button id="start">取消旁观</button>
+							<button id="start">开启旁观</button>
+							<button id="start">送花</button>
+							<button id="start">送爱心</button>
+						</div>
+					</fieldset>	
+				</td>
+			
+			
+				<td style="vertical-align: bottom;">
+					<fieldset style="width: 350px">
+						<legend>聊天</legend>
+						<div>
+							<table>
+								<tr>
+									<td style="padding-top: 5px; padding-left: 5px; width: 800px" rowspan="2">
+										 历史留言 ↓
+										<div id="deskPanel" style="height: 480px; overflow: auto; border: 1px solid red; "></div> 
+										
+										<input type="text" style="height:30px; width: 250px" id="bcoin" placeholder="填写你的发送内容！" />
+										<button id="start">发送聊天</button>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</fieldset>	
+					<fieldset style="width: 350px; height:222px;">
+						<legend>信息展示</legend>
+						<div>
+						</div>
+					</fieldset>	
+				</td>
+			</tr>
+		</table>
+		
+		
+	</div>
+	
+	
+	<div style="width: 100%;">
+		<div id="messages" style="border: 5px solid red; width: 50%; height: 300px; margin-top: 20px; overflow: auto;"></div>
+	</div>
+	<div style="width: 100%; margin-top: 20px;">
+		<div id="sends"
+			style="float: left; width: 50%; height: 50px; margin-right: 20px;">
+			<input type="text" id="MessageUN" style="width: 100%; height: 48px;" />
+		</div>
+		<button style="float: left; width: 10%; height: 50px;" id="sendMessage">发送</button>
+	</div>
+
+
+	<script type="text/javascript">
+		var button = document.getElementById("start");
+		button.onclick = function() {
+
+			var name = document.getElementById("yourName");
+			console.log(name.value);
+			var websocketAdd = "ws://127.0.0.1:1997/ws/chat/" + name.value;
+			var webSocket = new WebSocket(websocketAdd);
+
+			function onMessage(event) {
+				document.getElementById('messages').innerHTML += '<br />'
+						+ event.data;
+			}
+
+			function onOpen(event) {
+				document.getElementById('messages').innerHTML = 'Connection established';
+				//一旦链接开始，尝试发出一条通讯消息
+				start();
+				alert("消息通道开启，可以发送消息了");
+				//确认链接开始，就可以开始消息的发送了
+				//首先绑定一个点击事件
+				var sendMessage = document.getElementById("sendMessage");
+				sendMessage.onclick = function() {
+					var message = document.getElementById('MessageUN').value;
+					//我们之前会有一个唯一的标识符，就是在click to start之前的标识符
+					webSocket.send(message);
+					//上边一部完成之后，会自动触发onmessage事件
+				}
+
+			}
+
+			function start() {
+				webSocket.send(name.value + " : " + 'hello');
+			}
+
+			function onError(event) {
+				alert(event.data);
+			}
+
+			webSocket.onerror = function(event) {
+				onError(event)
+			};
+
+			webSocket.onopen = function(event) {
+				onOpen(event)
+			};
+
+			webSocket.onmessage = function(event) {
+				onMessage(event)
+			};
+
+		}
+	</script>
+</body>
+</html>

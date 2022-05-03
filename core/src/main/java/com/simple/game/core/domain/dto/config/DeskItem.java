@@ -13,7 +13,7 @@ public class DeskItem {
 	/***玩法类型(唯一标识，用来确定其他字段)**/
 	private int playKind;
 	
-	/***最多人员个数****/
+	/***一张桌子最多人员个数****/
 	private int maxPersion = 1000;
 	
 	/***最小席位号(席位号从1开始)****/
@@ -22,7 +22,7 @@ public class DeskItem {
 	/***最大席位号(席位号从1开始)****/
 	private int maxPosition = 3;
 	
-//	/***扩展属性****/
-//	private Object extConfig;
+	/***介绍****/
+	private String desc = "最基本的玩法";
 	
 }

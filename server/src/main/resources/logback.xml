@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+	<!-- 定义参数常量 -->
+	<!-- TRACE<DEBUG<INFO<WARN<ERROR -->
+	<!-- logger.trace("msg") logger.debug... -->
+	<property name="log.level" value="debug" />
+	<property name="log.maxHistory" value="30" />
+	<property name="log.filePath" value="logs" />
+	<!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+	<property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n" />
+	<!-- 控制台设置 -->
+	<appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>${log.pattern}</pattern>
+		</encoder>
+	</appender>
+	<!-- 按照每天生成日志文件 -->
+	<!-- RollingFileAppender 用于滚动记录文件,先将日志记录到指定文件,当符合某个条件时,将日志记录到其他文件 -->
+	<!-- 没有设置file属性：当天（分钟/时/月）的日志输出到fileNamePattern指向的日志。
+		 设置file属性：当天（分钟/时/月）的日志输出到file指向的日志，第二天凌晨日志输出到fileNamePattern指向的日志-->
+	
+	<!-- 日志记录器，日期滚动记录 -->
+	<!-- DEBUG -->
+	<appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 正在记录的日志文件的路径及文件名 -->
+		<file>${log.filePath}/debug.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- 归档的日志文件的路径，
+				 例如今天是2021-12-1日志，当前写的日志文件路径为file节点指定，可以将此文件与file指定文件路径设置为不同路径，从而将当前日志文件或归档日志文件置不同的目录。
+				 而2021-12-1的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
+			<!-- yyyy-MM-dd 按天生成 yyyy-MM-dd-HH 按小时生成 -->
+			<fileNamePattern>${log.filePath}/debug/debug.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			 <!-- 归档的日志文件的路径，例如今天是2013-12-21日志，当前写的日志文件路径为file节点指定，可以将此文件与file指定文件路径设置为不同路径，从而将当前日志文件或归档日志文件置不同的目录。
+            而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
+            <fileNamePattern>${LOG_PATH}/${APPDIR}/warn/log-warn-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始，
+            命名日志文件，例如debug.2021-12-1.0.log.gz -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>2MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+			<!-- 文件最大保存历史数量 -->
+			<maxHistory>${log.maxHistory}</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${log.pattern}</pattern>
+            <charset>utf-8</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>DEBUG</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+	</appender>
+	<!-- INFO -->
+	<appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- 文件路径 -->
+		<file>${log.filePath}/info.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- 文件名称 -->
+			<fileNamePattern>${log.filePath}/info/info.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+			<!-- 文件最大保存历史数量 -->
+			<maxHistory>${log.maxHistory}</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${log.pattern}</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+	</appender>
+	<!-- ERROR -->
+	<appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- 文件路径 -->
+		<file>${log.filePath}/erorr.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- 文件名称 -->
+			<fileNamePattern>${log.filePath}/error/error.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+			<!-- 文件最大保存历史数量 -->
+			<maxHistory>${log.maxHistory}</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${log.pattern}</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+	</appender>
+	<logger name="com.simple.game" level="${log.level}" additivity="true">
+		<appender-ref ref="debugAppender"/>
+		<appender-ref ref="infoAppender"/>
+		<appender-ref ref="errorAppender"/>
+	</logger>
+	<root level="info">
+		<appender-ref ref="consoleAppender"/>
+	</root>
+</configuration>

@@ -46,16 +46,16 @@ public abstract class GameManager {
 	protected HashMap<Integer, DeskItem> deskItemMap = new HashMap<Integer, DeskItem>();
 
 	public void init() {
-		gameItem = loadGameItem();
-		List<DeskItem> deskItemLst = loadDeskItem();
+		gameItem = getGameItem();
+		List<DeskItem> deskItemLst = getDeskItemList();
 		for(DeskItem deskItem : deskItemLst) {
 			deskItemMap.put(deskItem.getPlayKind(), deskItem);
 		}
 		boot();
 	}
 	
-	public abstract GameItem loadGameItem();
-	public abstract List<DeskItem> loadDeskItem();
+	public abstract GameItem getGameItem();
+	public abstract List<DeskItem> getDeskItemList();
 	public abstract BaseGame newInstanceload(GameItem gameItem, DeskItem deskItem);
 	
 	
