@@ -1,26 +1,28 @@
 package com.simple.game.server.controller.socket;
 
-import javax.websocket.Session;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.simple.game.core.domain.cmd.req.ReqCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqConnectCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
 import com.simple.game.ddz.domain.service.DdzService;
+import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.filter.OnlineAccount;
+import com.simple.game.server.filter.OnlineAccount.GameOnlineInfo;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 public class WebGameDispatcher {
-	private static final String DDZ = "ddz";
+	
 	
 	
 	@Autowired
@@ -34,7 +36,7 @@ public class WebGameDispatcher {
 	 * @param onlineAccount
 	 */
 	public void onMessage(String gameCode, String message, OnlineAccount onlineAccount) {
-		if(DDZ.equals(gameCode)) {
+		if(MyConstant.DDZ.equals(gameCode)) {
 			ReqCmd reqCmd = parseAndCheck(message);
 			if(reqCmd instanceof ReqJoinCmd) {
 				doDdzJoin((ReqJoinCmd)reqCmd, onlineAccount);
@@ -57,6 +59,8 @@ public class WebGameDispatcher {
 			
 		case 101004:
 			return JSON.parseObject(message, ReqGetOnlineListCmd.class);
+			
+			//TODO 
 		
 		}
 		throw new BizException("无效的参数3：" + message);
@@ -93,11 +97,17 @@ public class WebGameDispatcher {
 		reqJoinCmd.setHeadPic(onlineAccount.getUser().getHeadPic());
 		//TODO 
 		reqJoinCmd.setBcoin(100000);
-		Session session = onlineAccount.getOnlineWebSocket().get(DDZ);
-		GameSession gameSession = new MyGameSession(session);
+//		Session session = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+		GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+		
+		
+		GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
 		reqJoinCmd.setSession(gameSession);
 		
-		ddzService.join(reqJoinCmd);
+		//TODO
+		RtnGameInfo2Cmd rtnGameInfoCmd = ddzService.join(reqJoinCmd);
+		gameOnlineInfo.setPlayKind(reqJoinCmd.getPlayKind());
+		gameOnlineInfo.setDeskNo(reqJoinCmd.getDeskNo());
 	}
 	
 	private static ReqCmd parseAndCheck(String message) {
@@ -118,6 +128,34 @@ public class WebGameDispatcher {
 		reqCmd.checkParam();
 		return reqCmd;
     }
+
+	public void onClose(String gameCode, OnlineAccount onlineAccount) {
+		if(MyConstant.DDZ.equals(gameCode)) {
+			GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+			ReqDisconnectCmd reqCmd = new ReqDisconnectCmd();
+			reqCmd.setPlayKind(gameOnlineInfo.getPlayKind());
+			reqCmd.setDeskNo(gameOnlineInfo.getDeskNo());
+			reqCmd.setPlayerId(onlineAccount.getUser().getId());
+			
+			//TODO 
+			ddzService.disconnect(reqCmd);
+    	}			
+	}
+
+	public void onReOpen(String gameCode, OnlineAccount onlineAccount) {
+		if(MyConstant.DDZ.equals(gameCode)) {
+			GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+			GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
+			
+			ReqConnectCmd reqCmd = new ReqConnectCmd();
+			reqCmd.setPlayKind(gameOnlineInfo.getPlayKind());
+			reqCmd.setDeskNo(gameOnlineInfo.getDeskNo());
+			reqCmd.setPlayerId(onlineAccount.getUser().getId());
+			reqCmd.setSession(gameSession);
+			
+			ddzService.connected(reqCmd);
+    	}				
+	}
 	
 	
 	

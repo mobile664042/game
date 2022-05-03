@@ -1,9 +1,12 @@
 package com.simple.game.core.domain.service.admin;
 
 import com.simple.game.core.domain.cmd.OutParam;
+import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.push.game.PushLeftCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushDestroyCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushSysChatCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqAdminPauseCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqAdminResumeCmd;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.good.BaseGame;
@@ -64,6 +67,26 @@ public abstract class AdminService{
 		pushCmd.setChat(message);
 		outParam.getParam().getOnline().push(pushCmd);
 	}
+	
+	/***系统给游戏暂停****/
+	public void pause(ReqAdminPauseCmd reqCmd) {
+		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		if(reqCmd.getSeconds() <= 0) {
+			throw new BizException("暂停时长不能小于或等于0");
+		}
+		baseGame.pause(reqCmd.getSeconds());
+
+		PushCmd pushCmd = reqCmd.valueOfPushPauseCmd();
+		baseGame.broadcast(pushCmd);
+	}
+	/***系统给游戏取消暂停(恢复正常)****/
+	public void resume(ReqAdminResumeCmd reqCmd) {
+		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		baseGame.resume();
+		PushCmd pushCmd = reqCmd.valueOfPushResumeCmd();
+		baseGame.broadcast(pushCmd);
+	}
+	
 	
 	public void buildGameDesk(int playKind, int count) {
 		gameManager.buildGameDesk(playKind, count);

@@ -16,6 +16,11 @@ public class UserCacheDao extends BaseCacheDao<Long, User> {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
+	public User getById(Long param) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	
 	

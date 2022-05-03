@@ -1,5 +1,6 @@
 package com.simple.game.server.cmd.req.user;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -34,7 +35,7 @@ public class AddReq {
 
     @NotNull
 	@Min(1)
-	@Min(2)
+	@Max(2)
 	@ApiModelProperty(value = "性别: 1男 2女", required = true)
     private Integer sex;
     
@@ -45,7 +46,7 @@ public class AddReq {
     
     @NotNull
 	@Min(1)
-	@Min(200)
+    @Max(200)
 	@ApiModelProperty(value = "头像索引", required = true)
     private int headPic;
     

@@ -6,6 +6,7 @@ import javax.websocket.Session;
 
 import com.simple.game.server.dbEntity.User;
 
+import lombok.Data;
 import lombok.Getter;
 
 @Getter
@@ -17,9 +18,13 @@ public class OnlineAccount{
 	/***
 	 * 已连接的webSocket(游戏)
 	 * key 		gameCode
-	 * value 	WebSocketSession
+	 * value 	GameOnlineInfo
 	 */
-	private final ConcurrentHashMap<String, Session> onlineWebSocket = new ConcurrentHashMap<String, Session>();
+	private final ConcurrentHashMap<String, GameOnlineInfo> onlineWebSocket = new ConcurrentHashMap<String, GameOnlineInfo>();
+	
+	
+	
+	
 	
 	private OnlineAccount() {};
 	
@@ -41,5 +46,12 @@ public class OnlineAccount{
 
 	public static OnlineAccount get() {
 		return LOGIN_CACHE.get();
+	}
+	
+	@Data
+	public static class GameOnlineInfo{
+		Session session;
+	    int playKind;
+		int deskNo;
 	}
 }

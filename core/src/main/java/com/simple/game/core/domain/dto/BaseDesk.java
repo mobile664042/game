@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.PushCmd;
-import com.simple.game.core.domain.cmd.push.PushConnectedCmd;
-import com.simple.game.core.domain.cmd.push.PushDisconnectCmd;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.good.BaseGame;
 import com.simple.game.core.exception.BizException;
@@ -171,8 +169,6 @@ public class BaseDesk implements AddressNo{
 		}
 		outParam.setParam(player);
 		offlineMap.remove(playerId);
-		//TODO
-		player.getOnline().setSession(null);
 	}
 	
 	public List<Player> getOnlineList() {

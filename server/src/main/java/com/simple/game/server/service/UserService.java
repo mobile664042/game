@@ -1,5 +1,8 @@
 package com.simple.game.server.service;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,8 +15,16 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.ddz.domain.service.DdzAdminService;
+import com.simple.game.server.cmd.req.BaseReq;
+import com.simple.game.server.cmd.req.PageReq;
 import com.simple.game.server.cmd.req.user.AddReq;
+import com.simple.game.server.cmd.req.user.ChatReq;
+import com.simple.game.server.cmd.req.user.KickoutReq;
 import com.simple.game.server.cmd.req.user.LoginReq;
+import com.simple.game.server.cmd.rtn.RtnResult;
+import com.simple.game.server.cmd.rtn.user.DetailRtn;
+import com.simple.game.server.cmd.rtn.user.EntityRtn;
 import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.dbEntity.User;
 import com.simple.game.server.filter.OnlineAccount;
@@ -24,6 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class UserService{
+	/***
+	 * key --> playerId
+	 * value -->online_cache.key
+	 */
+	private static final ConcurrentHashMap<Long, String> online_id_map = new ConcurrentHashMap<Long, String>();
+	/***
+	 * key -->loginToken
+	 */
 	private static final LoadingCache<String, OnlineAccount> online_cache = CacheBuilder.newBuilder()
             //设置并发级别为8，并发级别是指可以同时写缓存的线程数
             .concurrencyLevel(8)
@@ -37,6 +56,8 @@ public class UserService{
             .refreshAfterWrite(13, TimeUnit.SECONDS)
             //设置缓存的移除通知
             .removalListener(notification -> {
+            	OnlineAccount onlineAccount = (OnlineAccount)notification.getValue();
+            	online_id_map.remove(onlineAccount.getUser().getId());
             	log.info(notification.getKey() + " 被移除,原因:" + notification.getCause());
             })
             //build方法中可以指定CacheLoader，在缓存不存在时通过CacheLoader的实现自动加载缓存
@@ -50,6 +71,9 @@ public class UserService{
 	
 	@Autowired
 	private UserCacheDao userCacheDao;
+	
+	@Autowired
+	private DdzAdminService ddzAdminService;
 	
 	public Long register(AddReq req) {
 		User old = userCacheDao.getByUsername(req.getUsername());
@@ -81,6 +105,7 @@ public class UserService{
 		request.getSession().setAttribute(MyConstant.SESSION_KEY, onlineAccount);
 		
 		online_cache.put(loginToken, onlineAccount);
+		online_id_map.put(onlineAccount.getUser().getId(), loginToken);
 		log.info("{}用户登录了,loginToken={}", req.getUsername(), loginToken);
 		return loginToken;
 	}
@@ -89,6 +114,7 @@ public class UserService{
 		OnlineAccount onlineAccount = (OnlineAccount)httpSession.getAttribute(MyConstant.SESSION_KEY);
 		if(onlineAccount != null) {
 			online_cache.invalidate(onlineAccount.getLoginToken());
+			//online_id_map.remove(onlineAccount.getUser().getId());
 			httpSession.removeAttribute(MyConstant.SESSION_KEY);
 			log.info("{}用户走了,loginToken={}", onlineAccount.getUser().getUsername(), onlineAccount.getLoginToken());
 		}
@@ -104,4 +130,71 @@ public class UserService{
 			return null;
 		}
 	}
+
+	public RtnResult<List<EntityRtn>> searchPage(PageReq<String> req) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/***
+	 * 踢下线，
+	 * 将来还需要考虑不只有一个参数的情况
+	 * @param req
+	 */
+	public void kickout(KickoutReq req) {
+		String loginToken = online_id_map.get(req.getPlayerId());
+		if(loginToken == null) {
+			throw new BizException("用户不在线啊！");
+		}
+		OnlineAccount onlineAccount = getOnlineAccount(loginToken);
+		if(onlineAccount == null) {
+			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
+			throw new BizException("用户不在线啊2！");
+		}
+		if(MyConstant.DDZ.equals(req.getGameCode())) {
+			ddzAdminService.kickout(req.getPlayKind(), req.getDeskNo(), req.getPlayerId());
+		}
+	}
+	
+	public void chat(ChatReq req) {
+		String loginToken = online_id_map.get(req.getPlayerId());
+		if(loginToken == null) {
+			throw new BizException("用户不在线啊！");
+		}
+		OnlineAccount onlineAccount = getOnlineAccount(loginToken);
+		if(onlineAccount == null) {
+			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
+			throw new BizException("用户不在线啊2！");
+		}
+		if(MyConstant.DDZ.equals(req.getGameCode())) {
+			ddzAdminService.chat(req.getPlayKind(), req.getDeskNo(), req.getPlayerId(), req.getChat());
+		}
+	}
+
+
+	public DetailRtn getDetail(BaseReq<Long> req) {
+		User old = userCacheDao.getById(req.getParam());
+		if(old == null) {
+			return null;
+		}
+		
+		DetailRtn rtn = new DetailRtn();
+		rtn.setEntityRtn(EntityRtn.valueOfUser(old));
+		
+		String loginToken = online_id_map.get(req.getParam());
+		if(loginToken == null) {
+			return rtn;
+		}
+		OnlineAccount onlineAccount = getOnlineAccount(loginToken);
+		if(onlineAccount == null) {
+			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
+			return rtn;
+		}
+		List<String> gameList = new ArrayList<String>(onlineAccount.getOnlineWebSocket().keySet());
+		rtn.setGameCodes(gameList);
+		
+		return rtn;
+	}
+
+
 }

@@ -7,7 +7,9 @@ import javax.websocket.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.filter.OnlineAccount;
+import com.simple.game.server.filter.OnlineAccount.GameOnlineInfo;
 import com.simple.game.server.service.UserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,7 @@ public class WebSocketHandler {
 	 */
 	private final ConcurrentHashMap<String, OnlineAccount> gameOnlineAccountMap = new ConcurrentHashMap<String, OnlineAccount>();
 	
-	private final String supportGameCode = "ddz";
+	private final String supportGameCode = MyConstant.DDZ;
 	@Autowired
     private UserService userService;
 	
@@ -40,9 +42,18 @@ public class WebSocketHandler {
     		log.warn("不好意思，loginToken={}已失效", loginToken);
     		return; 
     	}
-    	onlineAccount.getOnlineWebSocket().put(gameCode, session);
-    	String onlineKey = buildOnlineKey(gameCode, session);
-    	gameOnlineAccountMap.put(onlineKey, onlineAccount);
+    	GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);
+    	if(old != null) {
+    		old.setSession(session);
+    		webGameDispatcher.onReOpen(gameCode, onlineAccount);
+    	}
+    	else {
+    		GameOnlineInfo gameOnlineInfo = new GameOnlineInfo();
+    		gameOnlineInfo.setSession(session);
+    		onlineAccount.getOnlineWebSocket().put(gameCode, gameOnlineInfo);
+    		String onlineKey = buildOnlineKey(gameCode, session);
+    		gameOnlineAccountMap.put(onlineKey, onlineAccount);
+    	}
     	
     	log.info("好棒哦，{}登录了游戏，gameCode={}, loginToken={}", onlineAccount.getUser().getUsername(), gameCode, loginToken);
     }
@@ -57,6 +68,7 @@ public class WebSocketHandler {
     		return; 
     	}
     	onlineAccount.getOnlineWebSocket().remove(gameCode);
+    	webGameDispatcher.onClose(gameCode, onlineAccount);
     	log.info("{}用户离开了{}游戏,loginToken={}", onlineAccount.getUser().getUsername(), gameCode, onlineAccount.getLoginToken());
 	}
 

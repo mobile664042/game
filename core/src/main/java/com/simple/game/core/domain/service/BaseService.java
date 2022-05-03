@@ -21,10 +21,12 @@ import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
+import com.simple.game.core.domain.dto.OnlineInfo;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.good.BaseGame;
 import com.simple.game.core.domain.manager.GameManager;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.core.util.GameSession;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -89,6 +91,7 @@ public abstract class BaseService{
 		player.setTelphone(reqCmd.getTelphone());
 		player.setHeadPic(String.valueOf(reqCmd.getHeadPic()));
 		player.setBcoin(reqCmd.getBcoin());
+		changeSession(player, reqCmd.getSession());
 		
 		RtnGameInfoCmd rtnCmd = baseGame.join(player);
 		
@@ -97,6 +100,18 @@ public abstract class BaseService{
 		pushCmd.setPlayer(player.valueOfPlayerVo());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 		return rtnCmd;
+	}
+	
+	private void changeSession(Player player, GameSession session) {
+		OnlineInfo onlineInfo = player.getOnline();
+		if(onlineInfo == null) {
+			onlineInfo = new OnlineInfo();
+			player.setOnline(onlineInfo);
+		}
+		onlineInfo.setLastIp(session.getRemoteAddr());
+		onlineInfo.setLoginTime(System.currentTimeMillis());
+		onlineInfo.setLoginIp(session.getRemoteAddr());
+		onlineInfo.setSession(session);
 	}
 	
 	/***
@@ -155,6 +170,7 @@ public abstract class BaseService{
 		//广播离开信息
 		PushDisconnectCmd pushCmd = reqCmd.valueOfPushDisconnectCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	
@@ -163,9 +179,13 @@ public abstract class BaseService{
 		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
 		OutParam<Player> outParam = OutParam.build();
 		baseGame.connect(reqCmd.getPlayerId(), outParam);
+		//重新更改session
+		changeSession(outParam.getParam(), reqCmd.getSession());
 		
-		//广播离开信息
+		//广播重连信息
 		PushConnectCmd pushCmd = reqCmd.valueOfPushConnectCmd();
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 }

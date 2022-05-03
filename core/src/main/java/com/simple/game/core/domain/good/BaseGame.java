@@ -243,7 +243,7 @@ public abstract class BaseGame implements AddressNo{
 	/***掉线重连***/
 	public final void connect(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		this.baseDesk.disconnect(playerId, outParam);
+		this.baseDesk.connect(playerId, outParam);
 		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
 	}
 }

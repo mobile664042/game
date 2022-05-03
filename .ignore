@@ -5,3 +5,7 @@ bin/
 *.class
 *.jar
 *.zip
+*.log
+*.prefs
+*.project
+*.classpath

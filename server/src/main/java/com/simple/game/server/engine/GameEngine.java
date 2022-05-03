@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.simple.game.ddz.domain.manager.DdzGameManager;
+import com.simple.game.ddz.domain.service.DdzAdminService;
 import com.simple.game.ddz.domain.service.DdzService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,5 +26,11 @@ public class GameEngine {
     public DdzService ddzService(@Autowired DdzGameManager ddzGameManager) {
         return new DdzService(ddzGameManager);
     }
+	
+	@Bean
+	public DdzAdminService ddzAdminService(@Autowired DdzGameManager ddzGameManager) {
+		return new DdzAdminService(ddzGameManager);
+	}
+	
 	
 }

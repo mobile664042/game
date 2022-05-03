@@ -1,11 +1,13 @@
 package com.simple.game.core.domain.cmd.req.game;
 
 import com.simple.game.core.domain.cmd.push.game.PushConnectCmd;
+import com.simple.game.core.util.GameSession;
 
 import lombok.Data;
 
 @Data
 public class ReqConnectCmd extends ReqGameCmd{
+	private GameSession session;
 	@Override
 	public int getCode() {
 		return 101008;
