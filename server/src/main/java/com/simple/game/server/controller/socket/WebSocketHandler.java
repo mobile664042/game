@@ -67,8 +67,8 @@ public class WebSocketHandler {
     		log.warn("不好意思，onlineKey={}已提前失效了", onlineKey);
     		return; 
     	}
-    	onlineAccount.getOnlineWebSocket().remove(gameCode);
     	webGameDispatcher.onClose(gameCode, onlineAccount);
+    	onlineAccount.getOnlineWebSocket().remove(gameCode);
     	log.info("{}用户离开了{}游戏,loginToken={}", onlineAccount.getUser().getUsername(), gameCode, onlineAccount.getLoginToken());
 	}
 

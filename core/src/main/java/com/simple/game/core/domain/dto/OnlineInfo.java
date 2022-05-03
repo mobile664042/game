@@ -1,12 +1,5 @@
 package com.simple.game.core.domain.dto;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.util.GameSession;
 
@@ -21,7 +14,6 @@ import lombok.ToString;
 //@Data
 @ToString
 public class OnlineInfo {
-	private static Logger logger = LoggerFactory.getLogger(OnlineInfo.class);
 
 	/** 最后访问时间戳 ***/
 	private long lastReqeustTime;
@@ -48,15 +40,7 @@ public class OnlineInfo {
 
 	/** 推送消息 ***/
 	public void push(PushCmd pushCmd) {
-		String message = JSON.toJSONString(pushCmd);
-		try {
-			byte[] data = message.getBytes("utf-8");
-			session.write(data);
-		} catch (UnsupportedEncodingException e) {
-			logger.error("使用utf-8失敗", e);
-		} catch (IOException e) {
-			logger.error("寫入數據失敗", e);
-		}
+		session.write(pushCmd);
 	}
 
 	public long getLastReqeustTime() {

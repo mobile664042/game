@@ -5,8 +5,13 @@ import java.nio.ByteBuffer;
 
 import javax.websocket.Session;
 
+import com.alibaba.fastjson.JSON;
+import com.simple.game.core.domain.cmd.Cmd;
 import com.simple.game.core.util.GameSession;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MyGameSession implements GameSession {
 	private Session session;
 	
@@ -43,6 +48,17 @@ public class MyGameSession implements GameSession {
 	public void write(byte[] data) throws IOException{
 		ByteBuffer buff = ByteBuffer.wrap(data);
 		session.getBasicRemote().sendBinary(buff);
+	}
+	
+	@Override
+	public void write(Cmd cmd){
+		String json = JSON.toJSONString(cmd);
+		try {
+			byte[] data = json.getBytes("utf-8");
+			this.write(data);
+		} catch (Exception e) {
+			log.error("写入{}失败", json, e);
+		}
 	}
 
 }

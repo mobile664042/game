@@ -2,6 +2,8 @@ package com.simple.game.core.util;
 
 import java.io.IOException;
 
+import com.simple.game.core.domain.cmd.Cmd;
+
 /***
  * 参考 webSocketSession
  * 
@@ -37,4 +39,6 @@ public interface GameSession {
     
     /****發送數據**/
     void write(byte[] data)throws IOException;
+    
+    void write(Cmd data);
 }

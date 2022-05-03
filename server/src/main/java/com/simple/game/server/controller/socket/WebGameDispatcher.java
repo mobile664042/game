@@ -10,6 +10,7 @@ import com.simple.game.core.domain.cmd.req.game.ReqConnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
+import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
 import com.simple.game.ddz.domain.service.DdzService;
@@ -97,17 +98,16 @@ public class WebGameDispatcher {
 		reqJoinCmd.setHeadPic(onlineAccount.getUser().getHeadPic());
 		//TODO 
 		reqJoinCmd.setBcoin(100000);
-//		Session session = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
 		GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
-		
-		
 		GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
 		reqJoinCmd.setSession(gameSession);
 		
-		//TODO
-		RtnGameInfo2Cmd rtnGameInfoCmd = ddzService.join(reqJoinCmd);
+		RtnGameInfoCmd rtnGameInfoCmd = ddzService.join(reqJoinCmd);
 		gameOnlineInfo.setPlayKind(reqJoinCmd.getPlayKind());
 		gameOnlineInfo.setDeskNo(reqJoinCmd.getDeskNo());
+		
+		//把结果写回给用户
+		gameSession.write(rtnGameInfoCmd);
 	}
 	
 	private static ReqCmd parseAndCheck(String message) {
