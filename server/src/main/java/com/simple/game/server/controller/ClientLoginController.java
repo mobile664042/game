@@ -28,15 +28,15 @@ public class ClientLoginController {
 	@ResponseBody
 	@ApiOperation(value="登录",notes="登录")
     public RtnResult<String> login(HttpServletRequest request, @RequestBody LoginReq req) {
-    	userService.login(request, req);
-        return RtnResult.success("ok");
+    	String loginToken = userService.login(request, req);
+        return RtnResult.success(loginToken);
     }
 
     @RequestMapping(value="/client/user/logout",method=RequestMethod.POST)
 	@ResponseBody
 	@ApiOperation(value="退出",notes="退出")
     public RtnResult<String> logout(HttpServletRequest request){
-    	userService.logout(request);
+    	userService.logout(request.getSession());
         return RtnResult.success("ok");
     }
 

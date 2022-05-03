@@ -1,5 +1,7 @@
 package com.simple.game.server.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,8 +12,6 @@ import com.simple.game.server.dbEntity.MsgInfo;
 import com.simple.game.server.dbEntity.SessionList;
 import com.simple.game.server.mapper.MsgInfoMapper;
 import com.simple.game.server.mapper.SeesionListMapper;
-
-import java.util.List;
 
 @RestController
 public class MsgInfoController {

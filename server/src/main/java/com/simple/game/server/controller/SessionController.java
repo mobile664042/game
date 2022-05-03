@@ -1,15 +1,17 @@
 package com.simple.game.server.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.simple.game.server.common.bean.AjaxResult;
 import com.simple.game.server.dbEntity.SessionList;
 import com.simple.game.server.dbEntity.User;
 import com.simple.game.server.mapper.SeesionListMapper;
 import com.simple.game.server.mapper.UserMapper;
-
-import java.util.List;
 
 @RestController
 public class SessionController {

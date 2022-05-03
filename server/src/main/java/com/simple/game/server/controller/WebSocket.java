@@ -1,5 +1,16 @@
 package com.simple.game.server.controller;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,14 +23,6 @@ import com.simple.game.server.dbEntity.User;
 import com.simple.game.server.mapper.MsgInfoMapper;
 import com.simple.game.server.mapper.SeesionListMapper;
 import com.simple.game.server.mapper.UserMapper;
-
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
-import java.util.*;
 
 @Component
 @ServerEndpoint("/websocket/{userId}/{sessionId}")

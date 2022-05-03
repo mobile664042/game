@@ -77,17 +77,18 @@ public abstract class BaseService{
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 
-	/***TODO
+	/***
 	 * 进入游戏
 	 */
 	public RtnGameInfoCmd join(ReqJoinCmd reqCmd) {
 		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		
-		//TODO 
 		Player player = new Player();
 		player.setId(reqCmd.getPlayerId());
-		player.setNickname("nickname_" + reqCmd.getPlayerId());
-		player.setBcoin(100000);
+		player.setNickname(reqCmd.getNickname());
+		player.setSex(reqCmd.getSex());
+		player.setTelphone(reqCmd.getTelphone());
+		player.setHeadPic(String.valueOf(reqCmd.getHeadPic()));
+		player.setBcoin(reqCmd.getBcoin());
 		
 		RtnGameInfoCmd rtnCmd = baseGame.join(player);
 		

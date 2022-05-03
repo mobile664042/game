@@ -24,6 +24,9 @@ public class Player {
 	/**vip等级***/
 	private int vipLevel;
 	
+    private int sex;
+    private String telphone;
+    
 	/**头像***/
 	private String headPic;
 	

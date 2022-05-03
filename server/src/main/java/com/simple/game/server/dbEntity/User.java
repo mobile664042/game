@@ -29,6 +29,11 @@ public class User implements Serializable {
      * 用户名
      */
     private String username;
+    
+    /**
+     * 密码
+     */
+    private String password;
 
     /**
      * 性别
@@ -44,4 +49,8 @@ public class User implements Serializable {
      * 头像
      */
     private int headPic;
+    
+    
+	/**银行已存入币(库存，变动次数少)***/
+	private long bankCoin;
 }

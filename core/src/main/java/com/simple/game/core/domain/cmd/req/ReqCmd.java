@@ -12,4 +12,6 @@ public abstract class ReqCmd extends Cmd{
 	public void setPlayerId(long playerId) {
 		this.playerId = playerId;
 	}
+	
+	public void checkParam() {};
 }
