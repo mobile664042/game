@@ -132,7 +132,7 @@ public class DdzDesk extends TableDesk{
 			PushLeftCmd pushCmd = new PushLeftCmd();
 			//TODO 
 			//pushCmd.setPlayKind(playKind);
-			pushCmd.setDeskNo(this.getAddrNo());
+			pushCmd.setDeskNo(this.getDeskNo());
 			pushCmd.setPlayerId(player.getId());
 			this.broadcast(pushCmd, true);
 		}
@@ -337,7 +337,7 @@ public class DdzDesk extends TableDesk{
 	
 	/***
 	 * 投降认输
-	 * 直接参考@com.simple.game.core.domain.dto.config.ddz.ExtGameItem.punishSurrenderDoubleCount处理
+	 * 直接参考@com.simple.game.ddz.domain.dto.config.DdzGameItem.punishSurrenderDoubleCount处理
 	 * @param playerId
 	 * @param position
 	 */
@@ -516,6 +516,10 @@ public class DdzDesk extends TableDesk{
 		ResultManager.save(gameResultRecord);
 	}
 	
+	/***
+	 * 投降者赔偿当前的损失，并且加倍偿还
+	 * @return
+	 */
 	private GameResultRecord handleSurrenderResult() {
 		int doubleCount = this.ddzCard.getDoubleCount() + this.getDdzGameItem().getPunishSurrenderDoubleCount();
 		if(this.ddzCard.isSpring()) {

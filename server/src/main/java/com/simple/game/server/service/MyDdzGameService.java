@@ -15,7 +15,6 @@ import com.simple.game.server.cmd.req.desk.PauseReq;
 import com.simple.game.server.cmd.req.desk.ResumeReq;
 import com.simple.game.server.cmd.rtn.game.KindRtn;
 
-//@Slf4j
 @Service
 public class MyDdzGameService{
 	

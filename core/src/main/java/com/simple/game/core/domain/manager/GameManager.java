@@ -18,7 +18,7 @@ import com.simple.game.core.util.MyThreadFactory;
 /***
  * 抽象的游戏管理
  * 
- * @author Administrator
+ * @author zhibozhang
  *
  */
 public abstract class GameManager {
@@ -72,8 +72,8 @@ public abstract class GameManager {
 			if(deskMap == null) {
 				gameDeskMap.put(kind, deskMap);
 			}
-			deskMap.put(baseGame.getAddrNo(), baseGame);
-			logger.info("创建kind={}, 游戏桌编号={}完成", kind, baseGame.getAddrNo());
+			deskMap.put(baseGame.getDeskNo(), baseGame);
+			logger.info("创建kind={}, 游戏桌编号={}完成", kind, baseGame.getDeskNo());
 		}
 		
 		logger.info("创建kind={}, 总量={}完成, 耗时:{}", kind, count, (System.currentTimeMillis() - startTime));
@@ -97,7 +97,7 @@ public abstract class GameManager {
 		if(deskMap.size() == 0) {
 			gameDeskMap.remove(kind);
 		}
-		logger.info("已销毁{}类型桌子编号为{}的游戏桌", kind, baseGame.getAddrNo());
+		logger.info("已销毁{}类型桌子编号为{}的游戏桌", kind, baseGame.getDeskNo());
 	}
 	
 	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)****/

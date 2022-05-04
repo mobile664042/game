@@ -14,7 +14,9 @@ import com.simple.game.server.service.UserService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController(MyConstant.SESSION_PATH_PREFIX)
 @Api(tags = "用户接口")
 public class UserController {
@@ -26,6 +28,7 @@ public class UserController {
 	@ResponseBody
 	@ApiOperation(value="注册",notes="注册")
     public RtnResult<Long> register(@RequestBody AddReq req) {
+    	log.info("收到请求:{}", req);
         Long result = userService.register(req);
         return RtnResult.success(result);
     }

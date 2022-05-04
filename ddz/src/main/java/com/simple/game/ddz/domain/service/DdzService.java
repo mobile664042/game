@@ -18,9 +18,8 @@ import lombok.Getter;
 import lombok.ToString;
 
 /***
- * 游戏基础包装组件
+ * 斗地主对外服务
  * 
- * 游戏中最基础的组件部分
  * 
  * @author zhibozhang
  *
@@ -86,7 +85,8 @@ public class DdzService extends TableService{
 
 	/***
 	 * 投降认输
-	 * 直接参考@com.simple.game.core.domain.dto.config.ddz.ExtGameItem.punishSurrenderDoubleCount处理
+	 * 提前结束游戏
+	 * 处理方式按com.simple.game.ddz.domain.dto.config.DdzGameItem.punishSurrenderDoubleCount
 	 * @param playerId
 	 * @param position
 	 */

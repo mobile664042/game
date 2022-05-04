@@ -72,8 +72,8 @@ public class GameSeat implements AddressNo{
 		this.position = position;
 	}
 	
-	public int getAddrNo() {
-		return position;
+	public String getAddrNo() {
+		return desk.getAddrNo() + "@" + position;
 	}
 	
 	public boolean isIdle(){

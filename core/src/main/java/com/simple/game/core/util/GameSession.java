@@ -7,7 +7,7 @@ import com.simple.game.core.domain.cmd.Cmd;
 /***
  * 参考 webSocketSession
  * 
- * @author Administrator
+ * @author zhibozhang
  *
  */
 public interface GameSession {

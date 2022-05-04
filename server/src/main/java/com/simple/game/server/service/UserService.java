@@ -133,8 +133,17 @@ public class UserService{
 	}
 
 	public RtnResult<List<EntityRtn>> searchPage(PageReq<String> req) {
-		// TODO Auto-generated method stub
-		return null;
+		RtnResult<List<User>> temp = userCacheDao.searchPage(req);
+		
+		RtnResult<List<EntityRtn>> out = new RtnResult<List<EntityRtn>>();
+		List<EntityRtn> list = new ArrayList<EntityRtn>();
+		for(User user: temp.getData()) {
+			list.add(EntityRtn.valueOfUser(user));
+		}
+		out.setData(list);
+		out.setTotal(temp.getTotal());
+		
+		return out;
 	}
 
 	/***
@@ -170,12 +179,12 @@ public class UserService{
 			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
 			throw new BizException("用户不在线啊2！");
 		}
+		
 		if(MyConstant.DDZ.equals(req.getGameCode())) {
 			GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
 			if(gameOnlineInfo != null) {
 				ddzAdminService.chat(gameOnlineInfo.getPlayKind(), gameOnlineInfo.getDeskNo(), req.getPlayerId(), req.getChat());
 			}
-			
 		}
 	}
 

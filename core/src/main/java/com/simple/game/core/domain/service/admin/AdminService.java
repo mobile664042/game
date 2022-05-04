@@ -90,11 +90,6 @@ public abstract class AdminService{
 	
 	public void buildGameDesk(int playKind, int count) {
 		gameManager.buildGameDesk(playKind, count);
-		
-		//TODO 先不广播了
-//		PushBuildCmd pushCmd = new PushBuildCmd();
-//		pushCmd.setPlayKind(playKind);
-//		baseGame.broadcast(pushCmd, false);
 	}
 	
 	/***系统强制踢人***/
@@ -107,6 +102,8 @@ public abstract class AdminService{
 		pushCmd.setPlayKind(playKind);
 		pushCmd.setDeskNo(deskNo);
 		pushCmd.setPlayerId(playerId);
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		baseGame.broadcast(pushCmd);
 	}
 }

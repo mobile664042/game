@@ -18,6 +18,8 @@ import lombok.Getter;
 /***
  * 斗地主的游戏管理
  * 
+ * 创建或销毁游戏桌
+ * 
  * @author zhibozhang
  *
  */

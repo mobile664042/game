@@ -6,11 +6,6 @@ import lombok.Data;
 
 @Data
 public class RtnDdzGameSeatCmd extends RtnGameSeatInfoCmd{
-//	@Override
-//	public int getCode() {
-//		return 0;
-//	}
-
 	private boolean ready = true;
 	
 	/***当前轮的跳过次数****/

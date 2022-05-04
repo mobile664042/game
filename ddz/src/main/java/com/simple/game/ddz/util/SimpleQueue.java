@@ -1,5 +1,11 @@
 package com.simple.game.ddz.util;
 
+/***
+ * 最简的队列，用在游戏计算中
+ * @author zhibozhang
+ *
+ * @param <T>
+ */
 public class SimpleQueue<T> {
 	private final  T[] data;
 	private int index = 0;

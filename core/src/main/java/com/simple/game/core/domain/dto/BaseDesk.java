@@ -26,17 +26,20 @@ import lombok.ToString;
 /***
  * 游戏桌
  * 
- * 与游戏本身最基础的
+ * BaseGame与BaseDesk基本等同，但是BaseGame更注重游戏部分，BaseDesk更多相当于容器
+ * 
+ * 设计的目的是减少个单个类的功能
  * 
  * 检测失败抛异常
  * 
  * @author zhibozhang
  *
  */
-//@Data
 @Getter
 @ToString
 public class BaseDesk implements AddressNo{
+	protected final static AtomicInteger INDEX = new AtomicInteger(100);
+	
 	private final static Logger logger = LoggerFactory.getLogger(BaseDesk.class);
 	private static final int coreSize = Runtime.getRuntime().availableProcessors();
 	private final static ThreadPoolExecutor pool = new ThreadPoolExecutor(1, coreSize,
@@ -50,7 +53,7 @@ public class BaseDesk implements AddressNo{
 	/***
 	 * 桌号
 	 */
-	private final int number;
+	private final int deskNo;
 	
 	/***
 	 * 进入的玩家
@@ -72,10 +75,10 @@ public class BaseDesk implements AddressNo{
 
 	public BaseDesk(BaseGame game) {
 		this.currentGame = game;
-		number = NUMBER_INDEX.getAndIncrement();
+		deskNo = NUMBER_INDEX.getAndIncrement();
 	} 
-	public int getAddrNo() {
-		return number;
+	public String getAddrNo() {
+		return "@" + currentGame.getDeskItem().getPlayKind()  + "@" +  deskNo;
 	}
 	
 	/***

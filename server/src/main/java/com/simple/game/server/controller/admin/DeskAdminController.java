@@ -16,7 +16,9 @@ import com.simple.game.server.service.MyDdzGameService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController(MyConstant.SESSION_PATH_PREFIX)
 @Api(tags = "游戏桌管理接口")
 public class DeskAdminController {
@@ -28,6 +30,7 @@ public class DeskAdminController {
 	@ResponseBody
 	@ApiOperation(value = "创建斗地主游戏桌", notes = "创建斗地主游戏桌")
 	public RtnResult<String> buildDdzDesk(BuildReq req) {
+		log.info("收到请求{}", req);
 		myDdzGameService.buildDdzDesk(req);
 		return RtnResult.success("ok");
 	}
@@ -36,6 +39,7 @@ public class DeskAdminController {
 	@ResponseBody
 	@ApiOperation(value = "销毁斗地主游戏桌", notes = "销毁斗地主游戏桌")
 	public RtnResult<String> destroyDdzDesk(DestroyReq req) {
+		log.info("收到请求{}", req);
 		myDdzGameService.destroyDesk(req);
 		return RtnResult.success("ok");
 	}
@@ -45,6 +49,7 @@ public class DeskAdminController {
 	@ResponseBody
 	@ApiOperation(value = "暂停斗地主游戏桌", notes = "暂停销毁斗地主游戏桌")
 	public RtnResult<String> pauseDdzDesk(PauseReq req) {
+		log.info("收到请求{}", req);
 		myDdzGameService.pauseDdzDesk(req);
 		return RtnResult.success("ok");
 	}
@@ -53,6 +58,7 @@ public class DeskAdminController {
 	@ResponseBody
 	@ApiOperation(value = "恢复斗地主游戏桌", notes = "恢复斗地主游戏桌")
 	public RtnResult<String> resumeDdzDesk(ResumeReq req) {
+		log.info("收到请求{}", req);
 		myDdzGameService.resumeDdzDesk(req);
 		return RtnResult.success("ok");
 	}

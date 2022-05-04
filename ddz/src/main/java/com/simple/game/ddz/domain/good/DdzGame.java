@@ -47,7 +47,7 @@ public class DdzGame extends TableGame{
 		this.operatorVerfy();
 		PushReadyNextCmd result = getDdzDesk().readyNext(playerId, position, outParam);
 		this.broadcast(result, playerId);
-		logger.info("{}已准备进行一轮了,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}已准备进行新一轮了,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	@Override
 	protected void preQuickSitdown(long playerId) {
@@ -87,7 +87,7 @@ public class DdzGame extends TableGame{
 	public void robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
 		getDdzDesk().robLandlord(playerId, position, score, outParam);
-		logger.info("{}抢地主,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}抢地主,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	
 	/***
@@ -100,7 +100,7 @@ public class DdzGame extends TableGame{
 		this.operatorVerfy();
 		PushPlayCardCmd result = getDdzDesk().playCard(playerId, position, cards, outParam);
 		this.broadcast(result, playerId);
-		logger.info("{}出牌,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
+		logger.info("{}出牌,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	
 

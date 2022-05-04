@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
-import com.simple.game.core.domain.dto.AddressNo;
 import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.config.DeskItem;
@@ -24,6 +23,11 @@ import lombok.ToString;
 /***
  * 游戏
  * 
+ * BaseGame与BaseDesk基本等同，但是BaseGame更注重游戏部分，BaseDesk更多相当于容器
+ * 
+ * 设计的目的是减少个单个类的功能
+ * 
+ * 
  * 游戏中最基础的组件部分
  * 
  * @author zhibozhang
@@ -31,7 +35,7 @@ import lombok.ToString;
  */
 @Getter
 @ToString
-public abstract class BaseGame implements AddressNo{
+public abstract class BaseGame{
 	protected static final int PAGE_SIZE = 20;
 	private static Logger logger = LoggerFactory.getLogger(BaseGame.class);
 	private long lastLogTime = System.currentTimeMillis();
@@ -50,10 +54,6 @@ public abstract class BaseGame implements AddressNo{
 	/***暂停结束时间****/
 	private long pauseEndTime;
 	
-	public int getAddrNo() {
-		return this.gameItem.getNo();
-	}
-	
 	/***游戏初使化****/
 	public BaseGame(GameItem gameItem, DeskItem deskItem){
 		if(gameItem == null || deskItem == null) {
@@ -69,6 +69,10 @@ public abstract class BaseGame implements AddressNo{
 		logger.info("游戏初使化完成, 耗时:{}", (System.currentTimeMillis() - startTime));
 	}
 	protected void preInit(GameItem gameItem, DeskItem deskItem) {};
+	
+	public int getDeskNo() {
+		return this.baseDesk.getDeskNo();
+	}
 	
 	protected BaseDesk buildDesk(){
 		return new BaseDesk(this);
@@ -118,17 +122,6 @@ public abstract class BaseGame implements AddressNo{
 	}
 	protected void onDestroy() {};
 	
-//	/***游戏暂停****/
-//	public final synchronized void pause(int seconds) {
-//		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
-//		logger.info("游戏准备暂停{}秒", seconds);
-//	}
-//	/***游戏取消暂停(恢复正常)****/
-//	public final synchronized void resume() {
-//		pauseEndTime = 0; 
-//		logger.info("游戏恢复正常");
-//	}
-	
 	/***游戏暂停多久时间(毫秒)(小于等于0表示游戏没有暂停)****/
 	public final long getPauseTime() {
 		if(pauseEndTime == 0) {
@@ -155,6 +148,11 @@ public abstract class BaseGame implements AddressNo{
 	 */
 	public final RtnGameInfoCmd join(Player player) {
 		this.operatorVerfy();
+		if(player.getAddress() != null) {
+			logger.info("{}重新进入{}游戏:所在位置{}, 请求游戏桌{}", player.getNickname(), gameItem.getName(), player.getAddress(), baseDesk.getAddrNo());
+			return rejoin(player);
+		}
+		
 		//是否有进入的限制条件
 		this.preJoin(player);
 		this.baseDesk.join(player);
@@ -164,12 +162,23 @@ public abstract class BaseGame implements AddressNo{
 	protected void preJoin(Player player) {};
 	
 	
+	protected RtnGameInfoCmd rejoin(Player player) {
+		if(!player.getAddress().getAddrNo().startsWith(baseDesk.getAddrNo())) {
+			throw new BizException(String.format("已在%s, 不可以再进入%s", player.getAddress().getAddrNo(), baseDesk.getAddrNo()));
+		}
+		
+		RtnGameInfoCmd rtnCmd = getGameInfo();
+		rtnCmd.setAddress(player.getAddress().getAddrNo());
+		return rtnCmd;
+	}
+	
 	protected RtnGameInfoCmd getGameInfo() {
 		RtnGameInfoCmd rtnCmd = new RtnGameInfoCmd();
 		long pauseMs = System.currentTimeMillis() - this.getPauseTime();
 		if(pauseMs > 0) {
 			rtnCmd.setPauseMs(pauseMs);
 		}
+		rtnCmd.setAddress(baseDesk.getAddrNo());
 		return rtnCmd;
 	}
 	
@@ -187,7 +196,6 @@ public abstract class BaseGame implements AddressNo{
 		for(int i=fromIndex; i<list.size() && i<toIndex; i++) {
 			result.add(list.get(i));
 		}
-		
 		return result;
 	}
 	

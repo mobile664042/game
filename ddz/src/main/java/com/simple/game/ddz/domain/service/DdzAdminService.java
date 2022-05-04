@@ -17,14 +17,9 @@ import lombok.ToString;
 @Getter
 @ToString
 public class DdzAdminService extends AdminService{
-//	private final static Logger logger = LoggerFactory.getLogger(DdzAdminService.class);
 	
 	public DdzAdminService(DdzGameManager gameManager) {
 		super(gameManager);
 	}
 
-
-
-	
-	
 }
