@@ -7,6 +7,7 @@ public class PushApplyBroadcastLiveCmd extends PushSeatCmd{
 	public final static int CODE = 1102014;
 	private long playerId;
 	private String nickname;
+	private String headPic;
 	
 	@Override
 	public int getCode() {

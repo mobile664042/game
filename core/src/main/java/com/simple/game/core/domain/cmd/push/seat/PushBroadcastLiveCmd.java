@@ -8,6 +8,7 @@ public class PushBroadcastLiveCmd extends PushSeatCmd{
 	
 	private long playerId;
 	private String nickname;
+	private String headPic;
 	
 	@Override
 	public int getCode() {

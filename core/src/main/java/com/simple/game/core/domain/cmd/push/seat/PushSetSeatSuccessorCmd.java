@@ -6,6 +6,8 @@ import lombok.Data;
 public class PushSetSeatSuccessorCmd extends PushSeatCmd{
 	public final static int CODE = 1102012;
 	private long playerId;
+	private String nickname;
+	private String headPic;
 	@Override
 	public int getCode() {
 		return CODE;
