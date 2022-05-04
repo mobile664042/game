@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.GameSeat;
@@ -331,8 +330,7 @@ public abstract class TableGame extends BaseGame{
 	public void broadcastLive(long playerId, byte[] data) {
 		this.operatorVerfy();
 		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushBroadcastLiveCmd pushCmd = getGameDesk().broadcastLive(playerId, data, outParam);
-		this.broadcast(pushCmd, playerId);
+		getGameDesk().broadcastLive(playerId, outParam);
 		logger.info("{}正在直播:席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	/***
@@ -342,7 +340,8 @@ public abstract class TableGame extends BaseGame{
 	 */
 	public void approveBroadcastLive(long managerId, int position) {
 		this.operatorVerfy();
-		getGameDesk().approveBroadcastLive(managerId, position);
+		OutParam<Player> outParam = OutParam.build();
+		getGameDesk().approveBroadcastLive(managerId, position, outParam);
 		logger.info("{}同意席位:{}--{}--{}的的直播", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
 	}
 	
@@ -392,7 +391,7 @@ public abstract class TableGame extends BaseGame{
 	public void pause(long managerId, int seconds, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		getGameDesk().checkAndGetManager(managerId, outParam);
-		super.pause(managerId, seconds);
+		super.pause(seconds);
 		
 		logger.info("{}在游戏桌:{}--{},暂停游戏{}秒", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), managerId);
 	}
@@ -400,7 +399,7 @@ public abstract class TableGame extends BaseGame{
 	public void resume(long managerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		getGameDesk().checkAndGetManager(managerId, outParam);
-		super.resume(managerId);
+		super.resume();
 		logger.info("{}在游戏桌:{}--{},恢复游戏", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), managerId);
 	}
 	
@@ -408,9 +407,7 @@ public abstract class TableGame extends BaseGame{
 	protected void preLeft(long playerId) {
 		SeatPlayer seatPlayer = getGameDesk().getSeatPlayer(playerId);
 		if(seatPlayer != null) {
-			PushStandupCmd pushCmd = seatPlayer.getGameSeat().standUp(seatPlayer.getPlayer());
-			//广播进入信息
-			this.broadcast(pushCmd, playerId);
+			seatPlayer.getGameSeat().standUp(seatPlayer.getPlayer());
 			logger.info("强制在席位:{}--{}--{},将{}踢走", gameItem.getName(), baseDesk.getAddrNo(), seatPlayer.getGameSeat().getPosition(), seatPlayer.getPlayer().getNickname());
 		}
 	}

@@ -8,9 +8,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simple.game.core.domain.cmd.push.PushCancelSeatSuccessorCmd;
-import com.simple.game.core.domain.cmd.push.PushChangeSeatMasterCmd;
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyChangeSeatMasterCmd;
 import com.simple.game.core.domain.cmd.push.seat.notify.PushNotifyApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.constant.SeatPost;
@@ -89,17 +88,27 @@ public class GameSeat implements AddressNo{
 		try {
 			//判断游戏币是否足够
 			this.preSitdown(nextMaster.player);
-			PushChangeSeatMasterCmd pushCmd = this.toPushChangeSeatMasterCmd();
-			this.getDesk().broadcast(pushCmd);
-			logger.info("{}的主席位由{}担任", this.position, nextMaster.player.getId());
-			nextMaster = null;
-		}
-		catch(BizException e) {
-			logger.warn("playerId={}, 不满足{}主席位重新坐下条件！", nextMaster.player.getId(), this.position, e);
+			master.set(nextMaster);
 			nextMaster = null;
 			
-			PushCancelSeatSuccessorCmd pushCmd = this.toPushCancelSeatSuccessorCmd();
-			this.getDesk().broadcast(pushCmd);
+			PushNotifyChangeSeatMasterCmd pushCmd = new PushNotifyChangeSeatMasterCmd();
+			pushCmd.setPlayerId(master.get().getPlayer().getId());
+			pushCmd.setNickname(master.get().getPlayer().getNickname());
+			pushCmd.setHeadPic(master.get().getPlayer().getHeadPic());
+			this.getDesk().broadcast(pushCmd, true);
+			logger.info("{}的主席位由{}担任", this.position, master.get().player.getId());
+		}
+		catch(BizException e) {
+			SeatPlayer old = nextMaster;
+			nextMaster = null;
+			
+			PushNotifyChangeSeatMasterCmd pushCmd = new PushNotifyChangeSeatMasterCmd();
+			pushCmd.setPlayerId(old.getPlayer().getId());
+			pushCmd.setNickname(old.getPlayer().getNickname());
+			pushCmd.setHeadPic(old.getPlayer().getHeadPic());
+			this.getDesk().broadcast(pushCmd, true);
+			logger.warn("playerId={}, 不满足{}主席位重新坐下条件！", old.player.getId(), this.position, e);
+			
 		}
 	}
 	
@@ -207,7 +216,10 @@ public class GameSeat implements AddressNo{
 		
 		//发送到主席位中去
 		SeatPlayer master = target.getGameSeat().getMaster().get();
-		PushNotifyApplyAssistantCmd pushCmd = target.toPushNotifyApplyAssistantCmd();
+		PushNotifyApplyAssistantCmd pushCmd = new PushNotifyApplyAssistantCmd();
+		pushCmd.setPlayerId(position);
+		pushCmd.setNickname(player.getNickname());
+		pushCmd.setHeadPic(player.getHeadPic());
 		master.getPlayer().getOnline().push(pushCmd);
 		logger.info("{}向主席位{}发送辅助申请", target.getPlayer().getNickname(), master.getPlayer().getNickname());
 	}

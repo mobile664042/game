@@ -233,13 +233,13 @@ public abstract class BaseGame implements AddressNo{
 	}
 	
 	/***游戏暂停****/
-	public final void pause(long playerId, int seconds) {
+	public final void pause(int seconds) {
 		this.operatorVerfy();
 		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
 		logger.info("游戏准备暂停{}秒", seconds);
 	}
 	/***游戏取消暂停(恢复正常)****/
-	public final void resume(long playerId) {
+	public final void resume() {
 		this.operatorVerfy();
 		pauseEndTime = 0; 
 		logger.info("游戏恢复正常");

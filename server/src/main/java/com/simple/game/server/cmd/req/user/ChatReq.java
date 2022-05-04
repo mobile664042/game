@@ -19,12 +19,6 @@ public class ChatReq {
 	
 	@ApiModelProperty(value = "在哪个游中")
     private String gameCode;
-    
-	@ApiModelProperty(value = "哪种玩法")
-    private Integer playKind;
-	
-	@ApiModelProperty(value = "哪个游戏桌")
-	private Integer deskNo;
 	
 	@ApiModelProperty(value = "聊天内容")
 	private Chat chat;

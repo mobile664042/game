@@ -24,10 +24,12 @@ import com.simple.game.server.cmd.req.user.KickoutReq;
 import com.simple.game.server.cmd.req.user.LoginReq;
 import com.simple.game.server.cmd.rtn.RtnResult;
 import com.simple.game.server.cmd.rtn.user.DetailRtn;
+import com.simple.game.server.cmd.rtn.user.DetailRtn.GameItemInfo;
 import com.simple.game.server.cmd.rtn.user.EntityRtn;
 import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.dbEntity.User;
 import com.simple.game.server.filter.OnlineAccount;
+import com.simple.game.server.filter.OnlineAccount.GameOnlineInfo;
 import com.simple.game.server.repository.UserCacheDao;
 
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +124,6 @@ public class UserService{
 	
 	public OnlineAccount getOnlineAccount(String loginToken) {
 		try {
-			//online_cache.refresh(loginToken);
 			return online_cache.get(loginToken);
 		}
 		catch(Exception e) {
@@ -152,7 +153,10 @@ public class UserService{
 			throw new BizException("用户不在线啊2！");
 		}
 		if(MyConstant.DDZ.equals(req.getGameCode())) {
-			ddzAdminService.kickout(req.getPlayKind(), req.getDeskNo(), req.getPlayerId());
+			GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+			if(gameOnlineInfo != null) {
+				ddzAdminService.kickout(gameOnlineInfo.getPlayKind(), gameOnlineInfo.getDeskNo(), req.getPlayerId());
+			}
 		}
 	}
 	
@@ -167,7 +171,11 @@ public class UserService{
 			throw new BizException("用户不在线啊2！");
 		}
 		if(MyConstant.DDZ.equals(req.getGameCode())) {
-			ddzAdminService.chat(req.getPlayKind(), req.getDeskNo(), req.getPlayerId(), req.getChat());
+			GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+			if(gameOnlineInfo != null) {
+				ddzAdminService.chat(gameOnlineInfo.getPlayKind(), gameOnlineInfo.getDeskNo(), req.getPlayerId(), req.getChat());
+			}
+			
 		}
 	}
 
@@ -190,9 +198,17 @@ public class UserService{
 			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
 			return rtn;
 		}
-		List<String> gameList = new ArrayList<String>(onlineAccount.getOnlineWebSocket().keySet());
-		rtn.setGameCodes(gameList);
-		
+		List<GameItemInfo> gameList = new ArrayList<GameItemInfo>();
+		rtn.setGameList(gameList);
+		for(String gameCode : onlineAccount.getOnlineWebSocket().keySet()) {
+			GameItemInfo itemInfo = new GameItemInfo();
+			gameList.add(itemInfo);
+			
+			GameOnlineInfo o = onlineAccount.getOnlineWebSocket().get(gameCode);
+			itemInfo.setGameCode(gameCode);
+			itemInfo.setDeskNo(o.getDeskNo());
+			itemInfo.setPlayKind(o.getPlayKind());
+		}
 		return rtn;
 	}
 

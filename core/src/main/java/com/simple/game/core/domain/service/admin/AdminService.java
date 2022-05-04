@@ -100,7 +100,8 @@ public abstract class AdminService{
 	/***系统强制踢人***/
 	public void kickout(int playKind, int deskNo, long playerId) {
 		BaseGame baseGame = checkAndGet(playKind, deskNo);
-		baseGame.kickout(playerId);
+		OutParam<Player> outParam = OutParam.build();
+		baseGame.kickout(playerId, outParam);
 		
 		PushLeftCmd pushCmd = new PushLeftCmd();
 		pushCmd.setPlayKind(playKind);

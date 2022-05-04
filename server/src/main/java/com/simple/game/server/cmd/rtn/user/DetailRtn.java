@@ -15,7 +15,7 @@ import lombok.Data;
 public class DetailRtn {
 	
 	@ApiModelProperty(value = "用户在线gameCode", required = true)
-    private List<String> gameCodes;
+    private List<GameItemInfo> gameList;
     
 	@ApiModelProperty(value = "用户基本信息", required = true)
     private EntityRtn entityRtn;
@@ -25,4 +25,17 @@ public class DetailRtn {
     	BeanUtils.copyProperties(user, o);
     	return o;
     }
+    
+    
+    
+    @Data
+	public static class GameItemInfo{
+    	@ApiModelProperty(value = "游戏", required = true)
+    	private String gameCode;
+    	@ApiModelProperty(value = "玩法", required = true)
+    	private int playKind;
+    	@ApiModelProperty(value = "桌号", required = true)
+    	private int deskNo;
+	}
+    
 }

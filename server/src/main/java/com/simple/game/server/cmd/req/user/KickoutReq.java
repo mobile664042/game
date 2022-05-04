@@ -17,10 +17,4 @@ public class KickoutReq {
 	
 	@ApiModelProperty(value = "在哪个游中")
     private String gameCode;
-    
-	@ApiModelProperty(value = "哪种玩法")
-    private Integer playKind;
-	
-	@ApiModelProperty(value = "哪个游戏桌")
-	private Integer deskNo;
 }

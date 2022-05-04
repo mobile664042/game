@@ -8,11 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.game.PushChatCmd;
-import com.simple.game.core.domain.cmd.push.game.PushRewardCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.seat.PushApplyBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.ext.Gift;
@@ -55,7 +51,7 @@ public class TableDesk extends BaseDesk{
 	 *聊天
 	 */
 	@Override
-	public PushChatCmd chat(long playerId, Chat message, OutParam<Player> outParam) {
+	public void chat(long playerId, Chat message, OutParam<Player> outParam) {
 		Player player = playerMap.get(playerId);
 		if(player == null) {
 			throw new BizException(String.format("非法请求，不在游戏桌中"));
@@ -63,13 +59,6 @@ public class TableDesk extends BaseDesk{
 		outParam.setParam(player);
 		
 		//TODO 需判断扣款
-		SeatPlayer seatPlayer = getSeatPlayer(playerId);
-		if(seatPlayer != null) {
-			return seatPlayer.toPushChatCmd(message);		
-		}
-		else {
-			return player.toPushChatCmd(message);		
-		}
 	}
 
 	public GameSeat getGameSeat(int position) {
@@ -90,7 +79,7 @@ public class TableDesk extends BaseDesk{
 		return new GameSeat(this, position);
 	}
 	
-	public List<PushRewardCmd> reward(long playerId, List<Integer> positionList, Gift gift, OutParam<Player> outParam) {
+	public void reward(long playerId, List<Integer> positionList, Gift gift, OutParam<Player> outParam) {
 		checkPosistion(positionList);
 		Player player = playerMap.get(playerId);
 		if(player == null) {
@@ -99,16 +88,10 @@ public class TableDesk extends BaseDesk{
 		outParam.setParam(player);
 		
 		//TODO 需判断扣款
-		SeatPlayer seatPlayer = getSeatPlayer(playerId);
-		if(seatPlayer != null) {
-			return seatPlayer.toPushRewardCmd(positionList, gift);		
-		}
-		else {
-			return player.toPushRewardCmd(positionList, gift);		
-		}
+		//SeatPlayer seatPlayer = getSeatPlayer(playerId);
 	}
 
-	public List<PushChatCmd> chat(long playerId, List<Integer> positionList, Chat message, OutParam<Player> outParam) {
+	public void chat(long playerId, List<Integer> positionList, Chat message, OutParam<Player> outParam) {
 		checkPosistion(positionList);
 		Player player = playerMap.get(playerId);
 		if(player == null) {
@@ -117,13 +100,7 @@ public class TableDesk extends BaseDesk{
 		outParam.setParam(player);
 		
 		//TODO 需判断扣款
-		SeatPlayer seatPlayer = getSeatPlayer(playerId);
-		if(seatPlayer != null) {
-			return seatPlayer.toPushChatCmd(positionList, message);		
-		}
-		else {
-			return player.toPushChatCmd(positionList, message);		
-		}
+		//SeatPlayer seatPlayer = getSeatPlayer(playerId);
 	}
 
 
@@ -183,7 +160,7 @@ public class TableDesk extends BaseDesk{
 	
 	
 
-	public void approveBroadcastLive(long managerId, int position) {
+	public void approveBroadcastLive(long managerId, int position, OutParam<Player> outParam) {
 		if(manager.get() == null) {
 			throw new BizException(String.format("还没设置管理员"));
 		}
@@ -203,11 +180,10 @@ public class TableDesk extends BaseDesk{
 		}
 		gameSeat.broadcasting = true;
 		gameSeat.applyBroadcasted = false;
-		
-//		return gameSeat.getMaster().get().toPushApproveBroadcastLiveCmd();
+		outParam.setParam(manager.get());
 	}
 
-	public PushBroadcastLiveCmd broadcastLive(long playerId, byte[] data, OutParam<SeatPlayer> outParam) {
+	public void broadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
 		SeatPlayer seatPlayer = this.getSeatPlayer(playerId);
 		if(seatPlayer == null) {
 			throw new BizException(String.format("%s不在席位上，不可以直播", playerId));
@@ -216,7 +192,6 @@ public class TableDesk extends BaseDesk{
 			throw new BizException(String.format("%s不是主席位，不可以直播", playerId));
 		}
 		outParam.setParam(seatPlayer);
-		return seatPlayer.toPushBroadcastLiveCmd(data);
 	}
 	
 	public boolean applyManager(long playerId, OutParam<Player> outParam) {
