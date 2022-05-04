@@ -7,10 +7,10 @@ import lombok.Data;
 
 @Data
 public class ReqReadyNextCmd extends ReqSeatCmd{
-	
+	public final static int CODE = 151001;
 	@Override
 	public int getCode() {
-		return 151001;
+		return CODE;
 	}
 
 	@Override

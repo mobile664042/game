@@ -6,11 +6,11 @@ import lombok.Data;
 
 @Data
 public class PushSurrenderCmd extends PushSeatCmd{
-	
+	public final static int CODE = 1151003;
 
 	@Override
 	public int getCode() {
-		return 1151003;
+		return CODE;
 	}
 
 	@Override

@@ -9,10 +9,11 @@ import lombok.Data;
 
 @Data
 public class ReqPlayCardCmd extends ReqSeatCmd{
+	public final static int CODE = 151003;
 	private List<Integer> cards;
 	@Override
 	public int getCode() {
-		return 151003;
+		return CODE;
 	}
 
 	@Override

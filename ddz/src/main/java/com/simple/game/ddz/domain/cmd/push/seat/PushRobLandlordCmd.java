@@ -6,11 +6,12 @@ import lombok.Data;
 
 @Data
 public class PushRobLandlordCmd extends PushSeatCmd{
+	public final static int CODE = 1151002;
 	private int score;
 
 	@Override
 	public int getCode() {
-		return 1151002;
+		return CODE;
 	}
 
 	@Override
