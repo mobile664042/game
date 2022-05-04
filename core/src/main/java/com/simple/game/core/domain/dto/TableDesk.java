@@ -8,14 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.PushApplyBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.PushBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushCancelBroadcastLiveCmd;
-import com.simple.game.core.domain.cmd.push.PushChangeManagerCmd;
 import com.simple.game.core.domain.cmd.push.game.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.game.PushRewardCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplyManagerCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushApplyBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.ext.Gift;
@@ -152,14 +149,17 @@ public class TableDesk extends BaseDesk{
 			seatPlayer.getGameSeat().applyBroadcasted = false ;
 			return true;
 		}
-
-		PushApplyBroadcastLiveCmd pushCmd = seatPlayer.toPushApplyBroadcastLiveCmd();
+		
+		PushNotifyApplyManagerCmd pushCmd = new PushNotifyApplyManagerCmd();
+		pushCmd.setPlayerId(playerId);
+		pushCmd.setNickname(seatPlayer.getPlayer().getNickname());
+		pushCmd.setHeadPic(seatPlayer.getPlayer().getHeadPic());
 		manager.get().getOnline().push(pushCmd);
 		logger.info("{}向管理员{}发送主播申请", seatPlayer.getPlayer().getNickname(), manager.get().getNickname());
 		return false;
 	}
 	
-	public PushCancelBroadcastLiveCmd cancelBroadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
+	public void cancelBroadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
 		SeatPlayer seatPlayer = this.getSeatPlayer(playerId);
 		if(seatPlayer == null) {
 			throw new BizException(String.format("%s不在席位上，不可以同意申请直播", playerId));
@@ -179,7 +179,6 @@ public class TableDesk extends BaseDesk{
 		seatPlayer.getGameSeat().applyBroadcasted = false;
 
 		logger.info("{}已取消直播", seatPlayer.getPlayer().getNickname(), manager.get().getNickname());
-		return seatPlayer.toPushCancelBroadcastLiveCmd();
 	}
 	
 	
@@ -220,7 +219,7 @@ public class TableDesk extends BaseDesk{
 		return seatPlayer.toPushBroadcastLiveCmd(data);
 	}
 	
-	public PushApplyManagerCmd applyManager(long playerId, OutParam<Player> outParam) {
+	public boolean applyManager(long playerId, OutParam<Player> outParam) {
 		//判断是否是在游戏桌中
 		Player player = playerMap.get(playerId);
 		if(player == null) {
@@ -234,29 +233,25 @@ public class TableDesk extends BaseDesk{
 			}
 			
 			//向这管理员发送告知
-			PushNotifyApplyManagerCmd pushCmd = player.toPushNotifyApplyManagerCmd();
+			PushNotifyApplyManagerCmd pushCmd = new PushNotifyApplyManagerCmd();
+			pushCmd.setPlayerId(playerId);
+			pushCmd.setHeadPic(player.getHeadPic());
+			pushCmd.setNickname(player.getNickname());
 			manager.get().getOnline().push(pushCmd);
 			logger.info("{}向管理员{}发送更换管理员申请", player.getNickname(), manager.get().getNickname());
-			return null;
+			return false;
 		}
 		
 		if(manager.compareAndSet(null, player)) {
 			manager.set(player);
-			return player.toPushApplyManagerCmd();
+			return true;
 		}
 
 		throw new BizException(String.format("管理员之位已被%s强走了，请重试吧", manager.get().getNickname()));
 	}
 
-	public PushChangeManagerCmd changeManager(long managerId, Long playerId, OutParam<Player> outParam) {
-		if(manager.get() == null) {
-			throw new BizException(String.format("还没设置管理员"));
-		}
-		if(manager.get().getId() != managerId) {
-			throw new BizException(String.format("%s不是管理员", playerId));
-		}
-		
-		outParam.setParam(manager.get());
+	public void changeManager(long managerId, Long playerId, OutParam<Player> outParam) {
+		checkAndGetManager(managerId, outParam);
 		if(playerId != null && managerId == playerId) {
 			throw new BizException(String.format("管理员不可以将自己改为管理员"));
 		}
@@ -274,7 +269,15 @@ public class TableDesk extends BaseDesk{
 			//取消管理员之位
 			manager.set(null);
 		}
-		return outParam.getParam().toPushChangeManagerCmd(playerId);
+	}
+	public void checkAndGetManager(long managerId, OutParam<Player> outParam) {
+		if(manager.get() == null) {
+			throw new BizException(String.format("还没设置管理员"));
+		}
+		if(manager.get().getId() != managerId) {
+			throw new BizException(String.format("%s不是管理员", managerId));
+		}
+		outParam.setParam(manager.get());
 	}
 
 	protected void checkPosistion(List<Integer> positionList) throws BizException{

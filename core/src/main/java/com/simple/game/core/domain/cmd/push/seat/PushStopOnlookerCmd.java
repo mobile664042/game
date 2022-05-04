@@ -1,13 +1,15 @@
 package com.simple.game.core.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStopOnlookerCmd;
+
 import lombok.Data;
 
 @Data
 public class PushStopOnlookerCmd extends PushSeatCmd{
-	public final static int CODE = 1102009;
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqStopOnlookerCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

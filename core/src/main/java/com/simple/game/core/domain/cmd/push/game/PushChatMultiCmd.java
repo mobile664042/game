@@ -2,13 +2,14 @@ package com.simple.game.core.domain.cmd.push.game;
 
 import java.util.List;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqChatMultiCmd;
 import com.simple.game.core.domain.ext.Chat;
 
 import lombok.Data;
 
 @Data
 public class PushChatMultiCmd extends PushGameCmd{
-	public final static int CODE = 1101010;
 	private long playerId;
 	private String nickname;
 	private String headPic;
@@ -17,7 +18,7 @@ public class PushChatMultiCmd extends PushGameCmd{
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqChatMultiCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

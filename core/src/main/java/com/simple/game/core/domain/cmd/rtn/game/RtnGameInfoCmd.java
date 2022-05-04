@@ -1,12 +1,12 @@
 package com.simple.game.core.domain.cmd.rtn.game;
 
+import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
 
 import lombok.Data;
 
 @Data
 public class RtnGameInfoCmd extends RtnCmd{
-	public final static int CODE = 101003;
 	/***
 	 * 暂停时长(毫秒)
 	 */
@@ -14,7 +14,7 @@ public class RtnGameInfoCmd extends RtnCmd{
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqJoinCmd.CODE;
 	}
 
 	@Override

@@ -118,16 +118,16 @@ public abstract class BaseGame implements AddressNo{
 	}
 	protected void onDestroy() {};
 	
-	/***游戏暂停****/
-	public final synchronized void pause(int seconds) {
-		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
-		logger.info("游戏准备暂停{}秒", seconds);
-	}
-	/***游戏取消暂停(恢复正常)****/
-	public final synchronized void resume() {
-		pauseEndTime = 0; 
-		logger.info("游戏恢复正常");
-	}
+//	/***游戏暂停****/
+//	public final synchronized void pause(int seconds) {
+//		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
+//		logger.info("游戏准备暂停{}秒", seconds);
+//	}
+//	/***游戏取消暂停(恢复正常)****/
+//	public final synchronized void resume() {
+//		pauseEndTime = 0; 
+//		logger.info("游戏恢复正常");
+//	}
 	
 	/***游戏暂停多久时间(毫秒)(小于等于0表示游戏没有暂停)****/
 	public final long getPauseTime() {
@@ -225,12 +225,24 @@ public abstract class BaseGame implements AddressNo{
 	}
 
 	/***系统强制踢人***/
-	public final void kickout(long playerId) {
+	public final void kickout(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		this.preLeft(playerId);
-		OutParam<Player> outParam = OutParam.build();
 		this.baseDesk.left(playerId, outParam);
 		logger.info("强制在游戏桌:{}--{},将{}踢走", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
+	}
+	
+	/***游戏暂停****/
+	public final void pause(long playerId, int seconds) {
+		this.operatorVerfy();
+		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
+		logger.info("游戏准备暂停{}秒", seconds);
+	}
+	/***游戏取消暂停(恢复正常)****/
+	public final void resume(long playerId) {
+		this.operatorVerfy();
+		pauseEndTime = 0; 
+		logger.info("游戏恢复正常");
 	}
 	
 	/***断网，掉线***/

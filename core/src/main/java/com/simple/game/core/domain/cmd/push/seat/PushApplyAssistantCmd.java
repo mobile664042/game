@@ -1,18 +1,19 @@
 package com.simple.game.core.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
+
 import lombok.Data;
 
 @Data
 public class PushApplyAssistantCmd extends PushSeatCmd{
-	public final static int CODE = 1102005;
-	
 	private long playerId;
 	private String nickname;
 	private String headPic;
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqApplyAssistantCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

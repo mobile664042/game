@@ -1,10 +1,12 @@
 package com.simple.game.core.domain.cmd.push.game;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqKickoutCmd;
+
 import lombok.Data;
 
 @Data
 public class PushKickoutCmd extends PushGameCmd{
-	public final static int CODE = 1101013;
 	
 	private long playerId;
 	private String nickname;
@@ -12,7 +14,7 @@ public class PushKickoutCmd extends PushGameCmd{
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqKickoutCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

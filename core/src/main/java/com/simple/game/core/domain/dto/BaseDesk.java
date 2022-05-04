@@ -150,9 +150,7 @@ public class BaseDesk implements AddressNo{
 		out.setParam(player);
 		player.setAddress(null);
 	}
-
 	
-
 	public void disconnect(long playerId, OutParam<Player> outParam) {
 		Player player = playerMap.get(playerId);
 		if(player == null) {

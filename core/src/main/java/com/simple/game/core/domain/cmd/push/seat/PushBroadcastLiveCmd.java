@@ -1,10 +1,12 @@
 package com.simple.game.core.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBroadcastLiveCmd;
+
 import lombok.Data;
 
 @Data
 public class PushBroadcastLiveCmd extends PushSeatCmd{
-	public final static int CODE = 1102016;
 	
 	private long playerId;
 	private String nickname;
@@ -12,7 +14,7 @@ public class PushBroadcastLiveCmd extends PushSeatCmd{
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqBroadcastLiveCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

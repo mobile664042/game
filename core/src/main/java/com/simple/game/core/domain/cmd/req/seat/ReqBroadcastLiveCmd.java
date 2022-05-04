@@ -5,7 +5,7 @@ import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
 import lombok.Data;
 
 @Data
-public class ReqBroadcastLiveLiveCmd extends ReqSeatCmd{
+public class ReqBroadcastLiveCmd extends ReqSeatCmd{
 	public final static int CODE = 102016;
 	@Override
 	public int getCode() {

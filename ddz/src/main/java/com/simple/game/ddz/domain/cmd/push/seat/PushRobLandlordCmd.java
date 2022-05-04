@@ -1,17 +1,18 @@
 package com.simple.game.ddz.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushSeatCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
 
 import lombok.Data;
 
 @Data
 public class PushRobLandlordCmd extends PushSeatCmd{
-	public final static int CODE = 1151002;
 	private int score;
 
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqRobLandlordCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

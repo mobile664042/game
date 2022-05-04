@@ -1,16 +1,16 @@
 package com.simple.game.ddz.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushSeatCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
 
 import lombok.Data;
 
 @Data
 public class PushSurrenderCmd extends PushSeatCmd{
-	public final static int CODE = 1151003;
-
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqSurrenderCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

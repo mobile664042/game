@@ -1,17 +1,17 @@
 package com.simple.game.core.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqCancleBroadcastLiveCmd;
+
 import lombok.Data;
 
 @Data
 public class PushCancleBroadcastLiveCmd extends PushSeatCmd{
-	public final static int CODE = 1102015;
 	private long playerId;
-	private String nickname;
-	private String headPic;
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqCancleBroadcastLiveCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

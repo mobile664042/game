@@ -1,5 +1,6 @@
 package com.simple.game.core.domain.cmd.rtn.seat;
 
+import com.simple.game.core.domain.cmd.req.seat.ReqSitdownCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
 
@@ -7,8 +8,6 @@ import lombok.Data;
 
 @Data
 public class RtnGameSeatInfoCmd extends RtnCmd{
-	public final static int CODE = 102001;
-	
 	/***席位主要人员****/
 	protected PlayerVo master;
 	
@@ -25,7 +24,7 @@ public class RtnGameSeatInfoCmd extends RtnCmd{
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqSitdownCmd.CODE;
 	}
 
 	@Override

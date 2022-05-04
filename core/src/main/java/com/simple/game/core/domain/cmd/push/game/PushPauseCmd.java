@@ -1,16 +1,17 @@
 package com.simple.game.core.domain.cmd.push.game;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqPauseCmd;
+
 import lombok.Data;
 
 @Data
 public class PushPauseCmd extends PushGameCmd{
-	public final static int CODE = 1101001;
-	
 	private int seconds;
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqPauseCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

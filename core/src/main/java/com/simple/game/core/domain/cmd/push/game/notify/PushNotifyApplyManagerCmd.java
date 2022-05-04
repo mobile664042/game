@@ -1,20 +1,19 @@
 package com.simple.game.core.domain.cmd.push.game.notify;
 
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqApplyManagerCmd;
 
 import lombok.Data;
 
 @Data
 public class PushNotifyApplyManagerCmd extends PushCmd{
-	public final static int CODE = 2101011;
-	
 	private long playerId;
 	private String nickname;
 	private String headPic;
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqApplyManagerCmd.CODE + PushCmd.NOTIFY_NUM;
 	}
 
 	@Override

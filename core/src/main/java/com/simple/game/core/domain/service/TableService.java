@@ -4,25 +4,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.simple.game.core.domain.cmd.OutParam;
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.push.game.PushApplyManagerCmd;
+import com.simple.game.core.domain.cmd.push.game.PushChangeManagerCmd;
 import com.simple.game.core.domain.cmd.push.game.PushChatMultiCmd;
+import com.simple.game.core.domain.cmd.push.game.PushKickoutCmd;
 import com.simple.game.core.domain.cmd.push.game.PushRewardCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushApplyBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushApproveApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushApproveBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushBootAssistantCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushBootOnlookerCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushCancleBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushSetSeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushSitdownCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushStandUpCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushStopAssistantCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushStopOnlookerCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqApplyManagerCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqChangeManagerCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqChatMultiCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqKickoutCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqPauseCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqRewardCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApplyBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApproveApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqBootAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqBootOnlookerCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqCancleBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqForceStandUpCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqGetAssistantListCmd;
@@ -146,6 +160,8 @@ public abstract class TableService extends BaseService{
 		OutParam<Player> outParam = OutParam.build();
 		tableGame.applyAssistant(reqCmd.getPlayerId(), reqCmd.getPosition(), outParam);
 		PushApplyAssistantCmd pushCmd = reqCmd.valueOfPushApplyAssistantCmd();
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
@@ -162,6 +178,8 @@ public abstract class TableService extends BaseService{
 		tableGame.approveApplyAssistant(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getOtherId(), outParam);
 		PushApproveApplyAssistantCmd pushCmd = reqCmd.valueOfPushApplyAssistantCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
@@ -177,6 +195,7 @@ public abstract class TableService extends BaseService{
 		tableGame.standUp(reqCmd.getPlayerId(), reqCmd.getPosition(), outParam);
 		PushStandUpCmd pushCmd = reqCmd.valueOfPushStandUpCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
@@ -227,9 +246,11 @@ public abstract class TableService extends BaseService{
 	 */
 	public final void setSeatSuccessor(ReqSetSeatSuccessorCmd reqCmd) {
 		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		
-		tableGame.setSeatSuccessor(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getOtherId());
+		OutParam<Player> outParam = OutParam.build();
+		tableGame.setSeatSuccessor(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getOtherId(), outParam);
 		PushSetSeatSuccessorCmd pushCmd = reqCmd.valueOfPushSetSeatSuccessorCmd();
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
@@ -246,6 +267,7 @@ public abstract class TableService extends BaseService{
 		tableGame.forceStandUp(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getOtherId(), outParam);
 		PushStandUpCmd pushCmd = reqCmd.valueOfPushStandUpCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
@@ -260,6 +282,7 @@ public abstract class TableService extends BaseService{
 		tableGame.reward(reqCmd.getPlayerId(), reqCmd.getPositionList(), reqCmd.getGift(), outParam);
 		PushRewardCmd pushCmd = reqCmd.valueOfPushRewardCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
@@ -276,6 +299,7 @@ public abstract class TableService extends BaseService{
 		tableGame.chat(reqCmd.getPlayerId(), reqCmd.getPositionList(), reqCmd.getChat(), outParam);
 		PushChatMultiCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
@@ -284,9 +308,12 @@ public abstract class TableService extends BaseService{
 	/***申请直播****/
 	public void applyBroadcastLive(ReqApplyBroadcastLiveCmd reqCmd) {
 		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		boolean result = tableGame.applyBroadcastLive(reqCmd.getPlayerId());
+		OutParam<SeatPlayer> outParam = OutParam.build();
+		boolean result = tableGame.applyBroadcastLive(reqCmd.getPlayerId(), outParam);
 		if(result) {
 			PushApplyBroadcastLiveCmd pushCmd = reqCmd.valueOfPushApplyBroadcastLiveCmd();
+			pushCmd.setNickname(outParam.getParam().getPlayer().getNickname());
+			pushCmd.setHeadPic(outParam.getParam().getPlayer().getHeadPic());
 			tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 		}
 	}
@@ -295,38 +322,31 @@ public abstract class TableService extends BaseService{
 		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
 		
 		tableGame.cancleBroadcastLive(reqCmd.getPlayerId());
-		PushSetSeatSuccessorCmd pushCmd = reqCmd.valueOfPushSetSeatSuccessorCmd();
+		PushCancleBroadcastLiveCmd pushCmd = reqCmd.valueOfPushCancleBroadcastLiveCmd();
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
-		
-		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushCancelBroadcastLiveCmd result = getGameDesk().cancelBroadcastLive(playerId, outParam);
-		if(result != null) {
-			this.broadcast(result, playerId);
-		}
-		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	/***直播****/
-	public void broadcastLive(long playerId, byte[] data) {
-		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushBroadcastLiveCmd pushCmd = getGameDesk().broadcastLive(playerId, data, outParam);
-		this.broadcast(pushCmd, playerId);
-		logger.info("{}正在直播:席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
+	public void broadcastLive(ReqBroadcastLiveCmd reqCmd, byte[] data) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		//TODO
+		tableGame.broadcastLive(reqCmd.getPlayerId(), data);
+		PushBroadcastLiveCmd pushCmd = reqCmd.valueOfPushBroadcastLiveCmd();
+		
+		//发送广播
+		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	/***
 	 * 管理员同意XXX的直播
 	 * @param player
 	 * @param id
 	 */
-	public void approveBroadcastLive(long managerId, int position) {
-		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushApproveBroadcastLiveCmd pushCmd = getGameDesk().approveBroadcastLive(managerId, position, outParam);
-		this.broadcast(pushCmd, managerId);
-		logger.info("{}同意席位:{}--{}--{}的的直播", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position);
+	public void approveBroadcastLive(ReqApproveBroadcastLiveCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		tableGame.approveBroadcastLive(reqCmd.getPlayerId(), reqCmd.getPosition());
+		PushApproveBroadcastLiveCmd pushCmd = reqCmd.valueOfPushApproveBroadcastLiveCmd();
+		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	
 	/***
@@ -337,13 +357,15 @@ public abstract class TableService extends BaseService{
 	 * @param player
 	 * @param position
 	 */
-	public void applyManager(long playerId) {
-		this.operatorVerfy();
+	public void applyManager(ReqApplyManagerCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
 		OutParam<Player> outParam = OutParam.build();
-		PushApplyManagerCmd result = getGameDesk().applyManager(playerId, outParam);
-		if(result != null) {
-			this.broadcast(result, playerId);
-			logger.info("{}在游戏桌:{}--{},申请管理员", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo());
+		boolean result = tableGame.applyManager(reqCmd.getPlayerId(), outParam);
+		if(result) {
+			PushApplyManagerCmd pushCmd = reqCmd.valueOfPushApplyManagerCmd();
+			pushCmd.setNickname(outParam.getParam().getNickname());
+			pushCmd.setHeadPic(outParam.getParam().getHeadPic());
+			tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 		}
 	}
 	
@@ -352,12 +374,15 @@ public abstract class TableService extends BaseService{
 	 * @param player
 	 * @param playerId 为空时，表示无管理人员
 	 */
-	public void changeManager(long managerId, Long playerId) {
-		this.operatorVerfy();
+	public void changeManager(ReqChangeManagerCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
 		OutParam<Player> outParam = OutParam.build();
-		PushChangeManagerCmd result = getGameDesk().changeManager(managerId, playerId, outParam);
-		this.broadcast(result, managerId);
-		logger.info("{}在游戏桌:{}--{},将管理员之位传给:{}", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), playerId);
+		tableGame.changeManager(reqCmd.getPlayerId(), reqCmd.getOtherId(), outParam);
+		
+		PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
+		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	
 	/***
@@ -365,16 +390,37 @@ public abstract class TableService extends BaseService{
 	 * @param player
 	 * @param id
 	 */
-	public void kickout(long managerId, long playerId) {
-		this.operatorVerfy();
-		Long oldManagerId = getGameDesk().getManagerId(); 
-		if(oldManagerId == null) {
-			throw new BizException(String.format("不存在管理员"));
-		}
-		if(managerId != oldManagerId) {
-			throw new BizException(String.format("%s不是管理员", managerId));
-		}
-		kickout(playerId);
+	public void kickout(ReqKickoutCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		OutParam<Player> outParam = OutParam.build();
+		tableGame.kickout(reqCmd.getPlayerId(), reqCmd.getOtherId(), outParam);
+		
+		PushKickoutCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
+		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
+		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	
+
+	/***游戏暂停****/
+	public void pause(ReqPauseCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		if(reqCmd.getSeconds() <= 0) {
+			throw new BizException("暂停时长不能小于或等于0");
+		}
+		OutParam<Player> outParam = OutParam.build();
+		tableGame.pause(reqCmd.getPlayerId(), reqCmd.getSeconds(), outParam);
+
+		PushCmd pushCmd = reqCmd.valueOfPushPauseCmd();
+		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+	}
+	
+	/***游戏取消暂停(恢复正常)****/
+	public void resume(ReqResumeCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		OutParam<Player> outParam = OutParam.build();
+		tableGame.resume(reqCmd.getPlayerId(), outParam);
+		PushCmd pushCmd = reqCmd.valueOfPushResumeCmd();
+		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+	}
 }

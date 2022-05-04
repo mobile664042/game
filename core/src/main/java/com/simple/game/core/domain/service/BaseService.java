@@ -60,24 +60,6 @@ public abstract class BaseService{
 		return baseGame;
 	}
 	
-	/***游戏暂停****/
-	public void pause(ReqPauseCmd reqCmd) {
-		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		if(reqCmd.getSeconds() <= 0) {
-			throw new BizException("暂停时长不能小于或等于0");
-		}
-		baseGame.pause(reqCmd.getSeconds());
-
-		PushCmd pushCmd = reqCmd.valueOfPushPauseCmd();
-		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
-	}
-	/***游戏取消暂停(恢复正常)****/
-	public void resume(ReqResumeCmd reqCmd) {
-		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		baseGame.resume();
-		PushCmd pushCmd = reqCmd.valueOfPushResumeCmd();
-		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
-	}
 
 	/***
 	 * 进入游戏
@@ -146,6 +128,7 @@ public abstract class BaseService{
 		//广播离开信息
 		PushLeftCmd pushCmd = reqCmd.valueOfPushLeftCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getNickname());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	
@@ -158,6 +141,7 @@ public abstract class BaseService{
 		//广播离开信息
 		PushChatCmd pushCmd = reqCmd.valueOfPushChatCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	

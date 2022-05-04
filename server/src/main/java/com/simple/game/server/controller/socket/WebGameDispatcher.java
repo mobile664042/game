@@ -6,13 +6,45 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.simple.game.core.domain.cmd.req.ReqCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqApplyManagerCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqChangeManagerCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqChatCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqChatMultiCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqConnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqKickoutCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqLeftCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqPauseCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqRewardCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplyBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApproveApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBootAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBootOnlookerCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqCancleBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqForceStandUpCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqGetAssistantListCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqGetSeatPlayerListCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqQuickSitdownCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqSetSeatSuccessorCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqSitdownCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStandUpCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStopAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStopOnlookerCmd;
+import com.simple.game.core.domain.cmd.rtn.RtnCmd;
+import com.simple.game.core.domain.cmd.rtn.RtnCommonCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
 import com.simple.game.ddz.domain.service.DdzService;
 import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.filter.OnlineAccount;
@@ -44,9 +76,180 @@ public class WebGameDispatcher {
 				return ;
 			}
 			else if(reqCmd instanceof ReqGetOnlineListCmd) {
-				ddzService.getOnlineList((ReqGetOnlineListCmd)reqCmd);
+				RtnCmd rtnCmd = ddzService.getOnlineList((ReqGetOnlineListCmd)reqCmd);
+				writeRtnCmd(rtnCmd, onlineAccount);
 				return ;
 			}
+			else if(reqCmd instanceof ReqLeftCmd) {
+				ddzService.left((ReqLeftCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqChatCmd) {
+				ddzService.chat((ReqChatCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqChatMultiCmd) {
+				ddzService.chat((ReqChatMultiCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqRewardCmd) {
+				ddzService.reward((ReqRewardCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqApplyManagerCmd) {
+				ddzService.applyManager((ReqApplyManagerCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqChangeManagerCmd) {
+				ddzService.changeManager((ReqChangeManagerCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqKickoutCmd) {
+				ddzService.kickout((ReqKickoutCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqResumeCmd) {
+				ddzService.resume((ReqResumeCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqPauseCmd) {
+				ddzService.pause((ReqPauseCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			
+			
+			else if(reqCmd instanceof ReqSitdownCmd) {
+				RtnCmd rtnCmd = ddzService.sitdown((ReqSitdownCmd)reqCmd);
+				//把结果写回给用户
+				GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+				GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
+				gameSession.write(rtnCmd);
+				return ;
+			}
+			else if(reqCmd instanceof ReqQuickSitdownCmd) {
+				RtnCmd rtnCmd = ddzService.quickSitdown((ReqQuickSitdownCmd)reqCmd);
+				//把结果写回给用户
+				GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+				GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
+				gameSession.write(rtnCmd);
+				return ;
+			}
+			else if(reqCmd instanceof ReqStandUpCmd) {
+				ddzService.standUp((ReqStandUpCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqForceStandUpCmd) {
+				ddzService.forceStandUp((ReqForceStandUpCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			
+			else if(reqCmd instanceof ReqGetSeatPlayerListCmd) {
+				RtnCmd rtnCmd = ddzService.getSeatPlayerList((ReqGetSeatPlayerListCmd)reqCmd);
+				writeRtnCmd(rtnCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqGetAssistantListCmd) {
+				RtnCmd rtnCmd = ddzService.getAssistantList((ReqGetAssistantListCmd)reqCmd);
+				writeRtnCmd(rtnCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqApplyAssistantCmd) {
+				ddzService.applyAssistant((ReqApplyAssistantCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqApproveApplyAssistantCmd) {
+				ddzService.approveApplyAssistant((ReqApproveApplyAssistantCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqStopAssistantCmd) {
+				ddzService.stopAssistant((ReqStopAssistantCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqBootAssistantCmd) {
+				ddzService.bootAssistant((ReqBootAssistantCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqStopOnlookerCmd) {
+				ddzService.stopOnlooker((ReqStopOnlookerCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqBootOnlookerCmd) {
+				ddzService.bootOnlooker((ReqBootOnlookerCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqSetSeatSuccessorCmd) {
+				ddzService.setSeatSuccessor((ReqSetSeatSuccessorCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			
+			else if(reqCmd instanceof ReqApplyBroadcastLiveCmd) {
+				ddzService.applyBroadcastLive((ReqApplyBroadcastLiveCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqApproveBroadcastLiveCmd) {
+				ddzService.approveBroadcastLive((ReqApproveBroadcastLiveCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqCancleBroadcastLiveCmd) {
+				ddzService.cancleBroadcastLive((ReqCancleBroadcastLiveCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqBroadcastLiveCmd) {
+				//TODO 需要获取直播数据
+				ddzService.broadcastLive((ReqBroadcastLiveCmd)reqCmd, null);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			
+
+			//具体的游戏部分
+			else if(reqCmd instanceof ReqPlayCardCmd) {
+				ddzService.playCard((ReqPlayCardCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqReadyNextCmd) {
+				ddzService.readyNext((ReqReadyNextCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqRobLandlordCmd) {
+				ddzService.robLandlord((ReqRobLandlordCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			else if(reqCmd instanceof ReqSurrenderCmd) {
+				ddzService.surrender((ReqSurrenderCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
+			
+			
+			
+			
+			
+			
     	}		
 	}
 	
@@ -55,13 +258,82 @@ public class WebGameDispatcher {
 		
 		int code = jsonObject.getIntValue("code");
 		switch(code) {
-		case 101003:
+		case ReqJoinCmd.CODE:
 			return JSON.parseObject(message, ReqJoinCmd.class);
-			
-		case 101004:
+		case ReqGetOnlineListCmd.CODE:
 			return JSON.parseObject(message, ReqGetOnlineListCmd.class);
+		case ReqLeftCmd.CODE:
+			return JSON.parseObject(message, ReqLeftCmd.class);
 			
-			//TODO 
+		case ReqChatCmd.CODE:
+			return JSON.parseObject(message, ReqChatCmd.class);
+		case ReqChatMultiCmd.CODE:
+			return JSON.parseObject(message, ReqChatMultiCmd.class);
+		case ReqRewardCmd.CODE:
+			return JSON.parseObject(message, ReqRewardCmd.class);
+			
+		case ReqApplyManagerCmd.CODE:
+			return JSON.parseObject(message, ReqApplyManagerCmd.class);
+		case ReqChangeManagerCmd.CODE:
+			return JSON.parseObject(message, ReqChangeManagerCmd.class);
+		case ReqKickoutCmd.CODE:
+			return JSON.parseObject(message, ReqKickoutCmd.class);
+		case ReqResumeCmd.CODE:
+			return JSON.parseObject(message, ReqResumeCmd.class);
+		case ReqPauseCmd.CODE:
+			return JSON.parseObject(message, ReqPauseCmd.class);
+			
+		
+		//桌位请求
+		case ReqSitdownCmd.CODE:
+			return JSON.parseObject(message, ReqSitdownCmd.class);
+		case ReqQuickSitdownCmd.CODE:
+			return JSON.parseObject(message, ReqQuickSitdownCmd.class);
+		case ReqStandUpCmd.CODE:
+			return JSON.parseObject(message, ReqStandUpCmd.class);
+		case ReqForceStandUpCmd.CODE:
+			return JSON.parseObject(message, ReqForceStandUpCmd.class);
+			
+		case ReqGetSeatPlayerListCmd.CODE:
+			return JSON.parseObject(message, ReqGetSeatPlayerListCmd.class);
+		case ReqGetAssistantListCmd.CODE:
+			return JSON.parseObject(message, ReqGetAssistantListCmd.class);
+		case ReqApplyAssistantCmd.CODE:
+			return JSON.parseObject(message, ReqApplyAssistantCmd.class);
+		case ReqApproveApplyAssistantCmd.CODE:
+			return JSON.parseObject(message, ReqApproveApplyAssistantCmd.class);
+		case ReqStopAssistantCmd.CODE:
+			return JSON.parseObject(message, ReqStopAssistantCmd.class);
+		case ReqBootAssistantCmd.CODE:
+			return JSON.parseObject(message, ReqBootAssistantCmd.class);
+		case ReqStopOnlookerCmd.CODE:
+			return JSON.parseObject(message, ReqStopOnlookerCmd.class);
+		case ReqBootOnlookerCmd.CODE:
+			return JSON.parseObject(message, ReqBootOnlookerCmd.class);
+		case ReqSetSeatSuccessorCmd.CODE:
+			return JSON.parseObject(message, ReqSetSeatSuccessorCmd.class);
+		
+		case ReqApplyBroadcastLiveCmd.CODE:
+			return JSON.parseObject(message, ReqApplyBroadcastLiveCmd.class);
+		case ReqApproveBroadcastLiveCmd.CODE:
+			return JSON.parseObject(message, ReqApproveBroadcastLiveCmd.class);
+		case ReqCancleBroadcastLiveCmd.CODE:
+			return JSON.parseObject(message, ReqCancleBroadcastLiveCmd.class);
+		case ReqBroadcastLiveCmd.CODE:
+			return JSON.parseObject(message, ReqBroadcastLiveCmd.class);
+			
+			
+			
+		//TODO 
+		case ReqPlayCardCmd.CODE:
+			return JSON.parseObject(message, ReqPlayCardCmd.class);
+		case ReqReadyNextCmd.CODE:
+			return JSON.parseObject(message, ReqReadyNextCmd.class);
+		case ReqRobLandlordCmd.CODE:
+			return JSON.parseObject(message, ReqRobLandlordCmd.class);
+		case ReqSurrenderCmd.CODE:
+			return JSON.parseObject(message, ReqSurrenderCmd.class);
+			
 		
 		}
 		throw new BizException("无效的参数3：" + message);
@@ -82,11 +354,17 @@ public class WebGameDispatcher {
 	
 	
 	
+	private void responseReq(ReqCmd reqCmd, OnlineAccount onlineAccount) {
+		RtnCommonCmd rtnCmd = reqCmd.valueOfRtnCommonCmd();
+		writeRtnCmd(rtnCmd, onlineAccount);
+	}
 	
-	
-	
-	
-	
+	private void writeRtnCmd(RtnCmd rtnCmd, OnlineAccount onlineAccount) {
+		//把结果写回给用户
+		GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
+		GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
+		gameSession.write(rtnCmd);
+	}
 	
 	
 	private void doDdzJoin(ReqJoinCmd reqJoinCmd, OnlineAccount onlineAccount) {

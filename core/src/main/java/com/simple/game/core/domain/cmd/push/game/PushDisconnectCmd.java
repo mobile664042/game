@@ -1,18 +1,19 @@
 package com.simple.game.core.domain.cmd.push.game;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
+
 import lombok.Data;
 
 @Data
 public class PushDisconnectCmd extends PushGameCmd{
-	public final static int CODE = 1101008;
-	
 	private long playerId;
 	private String nickname;
 	private String headPic;
 	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqDisconnectCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override

@@ -1,13 +1,12 @@
 package com.simple.game.core.domain.cmd.push.seat.notify;
 
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
 
 public class PushNotifyApplyAssistantCmd extends PushCmd{
-	public final static int CODE = 2102005;
-	
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqApplyAssistantCmd.CODE + PushCmd.NOTIFY_NUM;
 	}
 
 	@Override

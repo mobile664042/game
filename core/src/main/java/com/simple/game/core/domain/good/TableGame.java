@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.game.PushApplyManagerCmd;
-import com.simple.game.core.domain.cmd.push.game.PushChangeManagerCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.BaseDesk;
@@ -243,7 +241,7 @@ public abstract class TableGame extends BaseGame{
 	 * 设置(下一轮)主席位继任人
 	 * @param player
 	 */
-	public final void setSeatSuccessor(long masterId, int position, long playerId) {
+	public final void setSeatSuccessor(long masterId, int position, long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Player master = getGameDesk().getPlayer(masterId);
 		if(master == null) {
@@ -259,6 +257,7 @@ public abstract class TableGame extends BaseGame{
 		}
 		
 		gameSeat.setSeatSuccessor(master, player);
+		outParam.setParam(player);
 		logger.info("{}在席位:{}--{}--{}将主席位继任者传给{}成功", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo(), position, playerId);
 	}
 	
@@ -315,9 +314,8 @@ public abstract class TableGame extends BaseGame{
 	
 
 	/***申请直播****/
-	public boolean applyBroadcastLive(long playerId) {
+	public boolean applyBroadcastLive(long playerId, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		OutParam<SeatPlayer> outParam = OutParam.build();
 		boolean result = getGameDesk().applyBroadcastLive(playerId, outParam);
 		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 		return result;
@@ -326,11 +324,8 @@ public abstract class TableGame extends BaseGame{
 	public void cancleBroadcastLive(long playerId) {
 		this.operatorVerfy();
 		OutParam<SeatPlayer> outParam = OutParam.build();
-		PushCancelBroadcastLiveCmd result = getGameDesk().cancelBroadcastLive(playerId, outParam);
-		if(result != null) {
-			this.broadcast(result, playerId);
-		}
-		logger.info("{}申请直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
+		getGameDesk().cancelBroadcastLive(playerId, outParam);
+		logger.info("{}取消直播席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	/***直播****/
 	public void broadcastLive(long playerId, byte[] data) {
@@ -356,17 +351,13 @@ public abstract class TableGame extends BaseGame{
 	 * 
 	 * 当无管理员时第一个自动成功管理员
 	 * 
-	 * @param player
-	 * @param position
+	 * @param playerId
 	 */
-	public void applyManager(long playerId) {
+	public boolean applyManager(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushApplyManagerCmd result = getGameDesk().applyManager(playerId, outParam);
-		if(result != null) {
-			this.broadcast(result, playerId);
-			logger.info("{}在游戏桌:{}--{},申请管理员", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo());
-		}
+		boolean result = getGameDesk().applyManager(playerId, outParam);
+		logger.info("{}在游戏桌:{}--{},申请管理员", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo());
+		return result;
 	}
 	
 	/***
@@ -374,11 +365,9 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param playerId 为空时，表示无管理人员
 	 */
-	public void changeManager(long managerId, Long playerId) {
+	public void changeManager(long managerId, Long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		OutParam<Player> outParam = OutParam.build();
-		PushChangeManagerCmd result = getGameDesk().changeManager(managerId, playerId, outParam);
-		this.broadcast(result, managerId);
+		getGameDesk().changeManager(managerId, playerId, outParam);
 		logger.info("{}在游戏桌:{}--{},将管理员之位传给:{}", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), playerId);
 	}
 	
@@ -387,7 +376,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param id
 	 */
-	public void kickout(long managerId, long playerId) {
+	public void kickout(long managerId, long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Long oldManagerId = getGameDesk().getManagerId(); 
 		if(oldManagerId == null) {
@@ -396,7 +385,23 @@ public abstract class TableGame extends BaseGame{
 		if(managerId != oldManagerId) {
 			throw new BizException(String.format("%s不是管理员", managerId));
 		}
-		kickout(playerId);
+		kickout(playerId, outParam);
+	}
+	
+	/***游戏暂停****/
+	public void pause(long managerId, int seconds, OutParam<Player> outParam) {
+		this.operatorVerfy();
+		getGameDesk().checkAndGetManager(managerId, outParam);
+		super.pause(managerId, seconds);
+		
+		logger.info("{}在游戏桌:{}--{},暂停游戏{}秒", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), managerId);
+	}
+	/***游戏取消暂停(恢复正常)****/
+	public void resume(long managerId, OutParam<Player> outParam) {
+		this.operatorVerfy();
+		getGameDesk().checkAndGetManager(managerId, outParam);
+		super.resume(managerId);
+		logger.info("{}在游戏桌:{}--{},恢复游戏", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), managerId);
 	}
 	
 	@Override

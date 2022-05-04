@@ -1,13 +1,15 @@
 package com.simple.game.core.domain.cmd.push.seat;
 
+import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
+
 import lombok.Data;
 
 @Data
 public class PushApproveBroadcastLiveCmd extends PushSeatCmd{
-	public final static int CODE = 1102017;
 	@Override
 	public int getCode() {
-		return CODE;
+		return ReqApproveBroadcastLiveCmd.CODE + PushCmd.PUSH_NUM;
 	}
 
 	@Override
