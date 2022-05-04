@@ -1,4 +1,4 @@
-package com.simple.game.server.common.config;
+package com.simple.game.server.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

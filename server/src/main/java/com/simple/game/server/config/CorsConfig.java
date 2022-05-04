@@ -9,7 +9,6 @@ import org.springframework.web.filter.CorsFilter;
 /**
  * 解决跨域请求的
  */
-
 @Configuration
 public class CorsConfig {
     private CorsConfiguration buildConfig() {
