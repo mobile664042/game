@@ -7,10 +7,11 @@ import lombok.Data;
 
 @Data
 public class ReqConnectCmd extends ReqGameCmd{
+	public final static int CODE = 101008;
 	private GameSession session;
 	@Override
 	public int getCode() {
-		return 101008;
+		return CODE;
 	}
 
 	@Override

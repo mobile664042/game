@@ -9,11 +9,13 @@ import lombok.Data;
 
 @Data
 public class RtnGetAssistantListCmd extends RtnCmd{
+	public final static int CODE = 102003;
+	
 	private List<SeatPlayerVo> list;
 	
 	@Override
 	public int getCode() {
-		return 102003;
+		return CODE;
 	}
 
 	@Override

@@ -7,12 +7,14 @@ import lombok.Data;
 
 @Data
 public class ReqAdminResumeCmd extends Cmd{
+	public final static int CODE = 201002;
+	
 	protected int playKind;
 	protected int deskNo;
 	
 	@Override
 	public int getCode() {
-		return 201002;
+		return CODE;
 	}
 
 	@Override

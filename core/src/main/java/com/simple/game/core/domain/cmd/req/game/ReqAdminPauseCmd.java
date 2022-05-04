@@ -7,13 +7,15 @@ import lombok.Data;
 
 @Data
 public class ReqAdminPauseCmd extends Cmd{
+	public final static int CODE = 201001;
+	
 	protected int playKind;
 	protected int deskNo;
 	private int seconds;
 	
 	@Override
 	public int getCode() {
-		return 201001;
+		return CODE;
 	}
 
 	@Override

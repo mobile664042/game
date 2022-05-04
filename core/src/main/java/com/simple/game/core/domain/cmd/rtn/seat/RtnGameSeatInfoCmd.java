@@ -7,6 +7,8 @@ import lombok.Data;
 
 @Data
 public class RtnGameSeatInfoCmd extends RtnCmd{
+	public final static int CODE = 102001;
+	
 	/***席位主要人员****/
 	protected PlayerVo master;
 	
@@ -23,7 +25,7 @@ public class RtnGameSeatInfoCmd extends RtnCmd{
 	
 	@Override
 	public int getCode() {
-		return 102001;
+		return CODE;
 	}
 
 	@Override

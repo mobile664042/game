@@ -6,11 +6,12 @@ import lombok.Data;
 
 @Data
 public class PushJoinCmd extends PushGameCmd{
+	public final static int CODE = 1101003;
 	private PlayerVo player;
 	
 	@Override
 	public int getCode() {
-		return 1101003;
+		return CODE;
 	}
 
 	@Override

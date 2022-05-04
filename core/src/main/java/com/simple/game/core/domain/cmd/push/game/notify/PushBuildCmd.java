@@ -6,11 +6,12 @@ import lombok.Data;
 
 @Data
 public class PushBuildCmd extends PushCmd{
+	public final static int CODE = 2101002;
 	protected int playKind;
 	
 	@Override
 	public int getCode() {
-		return 2101002;
+		return CODE;
 	}
 
 	@Override

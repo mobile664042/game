@@ -7,11 +7,13 @@ import lombok.Data;
 
 @Data
 public class PushSysChatCmd extends PushCmd{
+	public final static int CODE = 2101003;
+	
 	private Chat chat;
 	
 	@Override
 	public int getCode() {
-		return 2101003;
+		return CODE;
 	}
 
 	@Override

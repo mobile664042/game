@@ -9,12 +9,13 @@ import lombok.Data;
 
 @Data
 public class PushReadyNextCmd extends PushSeatCmd{
+	public final static int CODE = 1151001;
 	private List<Integer> cards = new ArrayList<Integer>();
 	
 
 	@Override
 	public int getCode() {
-		return 1151001;
+		return CODE;
 	}
 
 	@Override

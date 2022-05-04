@@ -6,10 +6,11 @@ import lombok.Data;
 
 @Data
 public class ReqSetSeatSuccessorCmd extends ReqSeatCmd{
+	public final static int CODE = 102012;
 	private long otherId;
 	@Override
 	public int getCode() {
-		return 102012;
+		return CODE;
 	}
 
 	@Override

@@ -4,8 +4,11 @@ import lombok.Data;
 
 @Data
 public class PushChangeManagerCmd extends PushGameCmd{
+	public final static int CODE = 1101012;
+	
 	private long playerId;
 	private String nickname;
+	private String headPic;
 	
 	@Override
 	public int getCode() {

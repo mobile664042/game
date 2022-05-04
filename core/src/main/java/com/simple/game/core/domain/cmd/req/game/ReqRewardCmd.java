@@ -9,11 +9,13 @@ import lombok.Data;
 
 @Data
 public class ReqRewardCmd extends ReqGameCmd{
+	public final static int CODE = 101009;
+	
 	private List<Integer> positionList;
 	private Gift gift;
 	@Override
 	public int getCode() {
-		return 101009;
+		return CODE;
 	}
 
 	@Override

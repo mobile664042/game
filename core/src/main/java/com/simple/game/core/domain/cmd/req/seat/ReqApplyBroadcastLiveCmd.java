@@ -6,9 +6,11 @@ import lombok.Data;
 
 @Data
 public class ReqApplyBroadcastLiveCmd extends ReqSeatCmd{
+	public final static int CODE = 102014;
+	
 	@Override
 	public int getCode() {
-		return 102014;
+		return CODE;
 	}
 
 	@Override

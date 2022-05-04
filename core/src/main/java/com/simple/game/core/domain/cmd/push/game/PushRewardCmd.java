@@ -8,6 +8,8 @@ import lombok.Data;
 
 @Data
 public class PushRewardCmd extends PushGameCmd{
+	public final static int CODE = 1101009;
+	
 	private long playerId;
 	private String nickname;
 	private List<Integer> positionList;
@@ -15,7 +17,7 @@ public class PushRewardCmd extends PushGameCmd{
 	
 	@Override
 	public int getCode() {
-		return 1101009;
+		return CODE;
 	}
 
 	@Override

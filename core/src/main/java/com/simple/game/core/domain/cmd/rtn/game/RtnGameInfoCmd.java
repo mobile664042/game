@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class RtnGameInfoCmd extends RtnCmd{
+	public final static int CODE = 101003;
 	/***
 	 * 暂停时长(毫秒)
 	 */
@@ -13,7 +14,7 @@ public class RtnGameInfoCmd extends RtnCmd{
 	
 	@Override
 	public int getCode() {
-		return 101003;
+		return CODE;
 	}
 
 	@Override

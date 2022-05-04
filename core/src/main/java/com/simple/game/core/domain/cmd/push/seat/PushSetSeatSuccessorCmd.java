@@ -4,10 +4,11 @@ import lombok.Data;
 
 @Data
 public class PushSetSeatSuccessorCmd extends PushSeatCmd{
+	public final static int CODE = 1102012;
 	private long playerId;
 	@Override
 	public int getCode() {
-		return 1102012;
+		return CODE;
 	}
 
 	@Override

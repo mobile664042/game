@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class PushApproveBroadcastLiveCmd extends PushSeatCmd{
-	
+	public final static int CODE = 1102017;
 	@Override
 	public int getCode() {
-		return 1102017;
+		return CODE;
 	}
 
 	@Override

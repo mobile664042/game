@@ -6,10 +6,12 @@ import lombok.Data;
 
 @Data
 public class ReqKickoutCmd extends ReqGameCmd{
+	public final static int CODE = 101013;
+	
 	private Long otherId;
 	@Override
 	public int getCode() {
-		return 101013;
+		return CODE;
 	}
 
 	@Override

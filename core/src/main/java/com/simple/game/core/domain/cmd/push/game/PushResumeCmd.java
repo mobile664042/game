@@ -4,10 +4,11 @@ import lombok.Data;
 
 @Data
 public class PushResumeCmd extends PushGameCmd{
+	public final static int CODE = 1101002;
 	
 	@Override
 	public int getCode() {
-		return 1101002;
+		return CODE;
 	}
 
 	@Override

@@ -6,11 +6,12 @@ import lombok.Data;
 
 @Data
 public class PushSitdownCmd extends PushSeatCmd{
+	public final static int CODE = 1102001;
 	private PlayerVo player;
 	
 	@Override
 	public int getCode() {
-		return 1102001;
+		return CODE;
 	}
 
 	@Override

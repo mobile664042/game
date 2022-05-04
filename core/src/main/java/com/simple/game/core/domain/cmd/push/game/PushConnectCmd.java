@@ -4,13 +4,15 @@ import lombok.Data;
 
 @Data
 public class PushConnectCmd extends PushGameCmd{
+	public final static int CODE = 1101007;
+	
 	private long playerId;
 	private String nickname;
 	private String headPic;
 	
 	@Override
 	public int getCode() {
-		return 1101007;
+		return CODE;
 	}
 
 	@Override

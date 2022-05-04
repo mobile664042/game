@@ -6,11 +6,13 @@ import lombok.Data;
 
 @Data
 public class ReqApproveApplyAssistantCmd extends ReqSeatCmd{
+	public final static int CODE = 102006;
+	
 	protected long otherId;
 	
 	@Override
 	public int getCode() {
-		return 102006;
+		return CODE;
 	}
 
 	@Override

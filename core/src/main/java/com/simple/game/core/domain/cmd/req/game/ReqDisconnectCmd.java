@@ -6,9 +6,11 @@ import lombok.Data;
 
 @Data
 public class ReqDisconnectCmd extends ReqGameCmd{
+	public final static int CODE = 101007;
+	
 	@Override
 	public int getCode() {
-		return 101007;
+		return CODE;
 	}
 
 	@Override

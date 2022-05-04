@@ -4,11 +4,12 @@ import lombok.Data;
 
 @Data
 public class PushApproveApplyAssistantCmd extends PushSeatCmd{
+	public final static int CODE = 1102006;
 	private long playerId;
 	private String nickname;
 	@Override
 	public int getCode() {
-		return 1102006;
+		return CODE;
 	}
 
 	@Override

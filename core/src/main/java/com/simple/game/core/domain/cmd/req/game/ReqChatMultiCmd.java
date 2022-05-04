@@ -9,6 +9,8 @@ import lombok.Data;
 
 @Data
 public class ReqChatMultiCmd extends ReqGameCmd{
+	public final static int CODE = 101010;
+	
 	private List<Integer> positionList;
 	private Chat chat;
 	@Override

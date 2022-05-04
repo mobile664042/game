@@ -4,12 +4,14 @@ import lombok.Data;
 
 @Data
 public class PushBroadcastLiveCmd extends PushSeatCmd{
+	public final static int CODE = 1102016;
+	
 	private long playerId;
-//	private String nickname;
+	private String nickname;
 	
 	@Override
 	public int getCode() {
-		return 1102016;
+		return CODE;
 	}
 
 	@Override

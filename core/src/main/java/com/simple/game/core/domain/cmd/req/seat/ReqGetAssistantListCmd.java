@@ -4,10 +4,11 @@ import lombok.Data;
 
 @Data
 public class ReqGetAssistantListCmd extends ReqSeatCmd{
+	public final static int CODE = 102003;
 	
 	@Override
 	public int getCode() {
-		return 102003;
+		return CODE;
 	}
 
 	@Override

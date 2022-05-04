@@ -8,14 +8,16 @@ import lombok.Data;
 
 @Data
 public class PushChatMultiCmd extends PushGameCmd{
+	public final static int CODE = 1101010;
 	private long playerId;
 	private String nickname;
+	private String headPic;
 	private List<Integer> positionList;
 	private Chat chat;
 	
 	@Override
 	public int getCode() {
-		return 1101010;
+		return CODE;
 	}
 
 	@Override

@@ -6,10 +6,12 @@ import lombok.Data;
 
 @Data
 public class ReqChangeManagerCmd extends ReqGameCmd{
+	public final static int CODE = 101012;
+	
 	private Long otherId;
 	@Override
 	public int getCode() {
-		return 101012;
+		return CODE;
 	}
 
 	@Override

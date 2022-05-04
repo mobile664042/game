@@ -4,9 +4,10 @@ import lombok.Data;
 
 @Data
 public class PushStopOnlookerCmd extends PushSeatCmd{
+	public final static int CODE = 1102009;
 	@Override
 	public int getCode() {
-		return 1102009;
+		return CODE;
 	}
 
 	@Override

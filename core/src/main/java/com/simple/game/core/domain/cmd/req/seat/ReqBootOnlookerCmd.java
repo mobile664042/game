@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class ReqBootOnlookerCmd extends ReqSeatCmd{
-	
+	public final static int CODE = 102011;
 	@Override
 	public int getCode() {
-		return 102011;
+		return CODE;
 	}
 
 	@Override

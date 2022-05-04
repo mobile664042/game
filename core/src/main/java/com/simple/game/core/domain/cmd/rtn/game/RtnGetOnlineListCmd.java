@@ -9,11 +9,12 @@ import lombok.Data;
 
 @Data
 public class RtnGetOnlineListCmd extends RtnCmd{
+	public final static int CODE = 101004;
 	private List<PlayerVo> list;
 	
 	@Override
 	public int getCode() {
-		return 101004;
+		return CODE;
 	}
 
 	@Override
