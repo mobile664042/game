@@ -177,7 +177,7 @@ public abstract class BaseGame{
 	public final void broadcast(PushCmd cmd, long ...excludeIds){
 		broadcast(cmd, true, excludeIds);
 	}
-	public void broadcast(PushCmd cmd, boolean async, long ...excludeIds){
+	public void broadcast(final PushCmd cmd, boolean async, final long ...excludeIds){
 		this.operatorVerfy();
 		logger.info("cmd={}, 接收到推送信息！", cmd.toLogStr());
 		Runnable task = new Runnable() {

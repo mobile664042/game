@@ -128,7 +128,8 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//强制下线
-			this.getTableGame().left(player.getId(), OutParam.build());
+			OutParam<Player> outParam = OutParam.build();
+			this.getTableGame().left(player.getId(), outParam);
 			PushLeftCmd pushCmd = new PushLeftCmd();
 			//TODO 
 			//pushCmd.setPlayKind(playKind);
