@@ -1,7 +1,13 @@
 package com.simple.game.core.domain.good;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,24 +15,20 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
-import com.simple.game.core.domain.dto.BaseDesk;
 import com.simple.game.core.domain.dto.Player;
-import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
 import com.simple.game.core.domain.dto.constant.GameStatus;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.core.util.MyThreadFactory;
+import com.simple.game.core.util.SimpleUtil;
 
 import lombok.Getter;
 import lombok.ToString;
 
 /***
- * 游戏
  * 
- * BaseGame与BaseDesk基本等同，但是BaseGame更注重游戏部分，BaseDesk更多相当于容器
- * 
- * 设计的目的是减少个单个类的功能
- * 
+ * 最基本的游戏设计
  * 
  * 游戏中最基础的组件部分
  * 
@@ -36,17 +38,35 @@ import lombok.ToString;
 @Getter
 @ToString
 public abstract class BaseGame{
-	protected static final int PAGE_SIZE = 20;
-	private static Logger logger = LoggerFactory.getLogger(BaseGame.class);
-	private long lastLogTime = System.currentTimeMillis();
+	public static final int PAGE_SIZE = 20;
+	protected final static AtomicInteger INDEX = new AtomicInteger(100);
 	
-	/***所在的游戏桌****/
-	protected BaseDesk baseDesk;
-	protected DeskItem deskItem;
+	private final static Logger logger = LoggerFactory.getLogger(BaseGame.class);
+	private static final int coreSize = Runtime.getRuntime().availableProcessors();
+	private final static ThreadPoolExecutor pool = new ThreadPoolExecutor(1, coreSize,
+            60L, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>(100000),
+            new MyThreadFactory("broadcast"));
+	
+	/***
+	 * 进入的玩家
+	 * 会有很多旁观人群
+	 * key playerId
+	 */
+	protected final ConcurrentHashMap<Long, Player> playerMap = new ConcurrentHashMap<Long, Player>();
+	
+	/***
+	 * 掉线用户 
+	 * 减少遍历playerMap
+	 * key playerId
+	 */
+	protected final ConcurrentHashMap<Long, Player> offlineMap = new ConcurrentHashMap<Long, Player>();
+	
+	
+	private long lastLogTime = System.currentTimeMillis();
 	
 	/***游戏配置****/
 	protected GameItem gameItem;
-	
 	
 	/***游戏状态****/
 	protected GameStatus gameStatus;
@@ -55,27 +75,12 @@ public abstract class BaseGame{
 	private long pauseEndTime;
 	
 	/***游戏初使化****/
-	public BaseGame(GameItem gameItem, DeskItem deskItem){
-		if(gameItem == null || deskItem == null) {
-			throw new BizException("无效的参数");
-		}
+	public BaseGame( GameItem gameItem){
 		logger.info("游戏准备初使化");
 		long startTime = System.currentTimeMillis();
-		preInit(gameItem, deskItem);
 		gameStatus = GameStatus.ready;
 		this.gameItem = gameItem;
-		this.deskItem = deskItem;
-		this.baseDesk = buildDesk();
 		logger.info("游戏初使化完成, 耗时:{}", (System.currentTimeMillis() - startTime));
-	}
-	protected void preInit(GameItem gameItem, DeskItem deskItem) {};
-	
-	public int getDeskNo() {
-		return this.baseDesk.getDeskNo();
-	}
-	
-	protected BaseDesk buildDesk(){
-		return new BaseDesk(this);
 	}
 	
 	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)****/
@@ -146,49 +151,14 @@ public abstract class BaseGame{
 	/***
 	 * 进入游戏
 	 */
-	public final RtnGameInfoCmd join(Player player) {
-		this.operatorVerfy();
-		if(player.getAddress() != null) {
-			logger.info("{}重新进入{}游戏:所在位置{}, 请求游戏桌{}", player.getNickname(), gameItem.getName(), player.getAddress(), baseDesk.getAddrNo());
-			return rejoin(player);
-		}
-		
-		//是否有进入的限制条件
-		this.preJoin(player);
-		this.baseDesk.join(player);
-		logger.info("{}进入{}游戏:当前游戏桌{}", player.getNickname(), gameItem.getName(), baseDesk.getAddrNo());
-		return getGameInfo();
-	}
-	protected void preJoin(Player player) {};
-	
-	
-	protected RtnGameInfoCmd rejoin(Player player) {
-		if(!player.getAddress().getAddrNo().startsWith(baseDesk.getAddrNo())) {
-			throw new BizException(String.format("已在%s, 不可以再进入%s", player.getAddress().getAddrNo(), baseDesk.getAddrNo()));
-		}
-		
-		RtnGameInfoCmd rtnCmd = getGameInfo();
-		rtnCmd.setAddress(player.getAddress().getAddrNo());
-		return rtnCmd;
-	}
-	
-	protected RtnGameInfoCmd getGameInfo() {
-		RtnGameInfoCmd rtnCmd = new RtnGameInfoCmd();
-		long pauseMs = System.currentTimeMillis() - this.getPauseTime();
-		if(pauseMs > 0) {
-			rtnCmd.setPauseMs(pauseMs);
-		}
-		rtnCmd.setAddress(baseDesk.getAddrNo());
-		return rtnCmd;
-	}
-	
-	
+	public abstract RtnGameInfoCmd join(Player player);
+
 	/***
 	 * 获取游戏在线玩家
 	 * 需要页面这个接口的访问频率
 	 */
 	public List<Player> getOnlineList(int fromPage) {
-		List<Player> list = this.baseDesk.getOnlineList();
+		List<Player> list = new ArrayList<Player>(playerMap.values());
 		
 		List<Player> result = new ArrayList<Player>();
 		int fromIndex = fromPage * PAGE_SIZE;
@@ -207,10 +177,39 @@ public abstract class BaseGame{
 	public final void broadcast(PushCmd cmd, long ...excludeIds){
 		broadcast(cmd, true, excludeIds);
 	}
-	
-	public final void broadcast(PushCmd cmd, boolean async, long ...excludeIds){
+	public void broadcast(PushCmd cmd, boolean async, long ...excludeIds){
 		this.operatorVerfy();
-		this.baseDesk.broadcast(cmd, async, excludeIds);
+		logger.info("cmd={}, 接收到推送信息！", cmd.toLogStr());
+		Runnable task = new Runnable() {
+			@Override
+			public void run() {
+				synchronized (this) {
+					long startTime = System.currentTimeMillis();
+					for(Player player : playerMap.values()) {
+						if(SimpleUtil.contain(player.getId(), excludeIds)) {
+							continue;
+						}
+						player.getOnline().push(cmd);
+					}
+					logger.info("cmd={}, 推送{}个人完成, 耗时:{}毫秒！", cmd.toLogStr(), playerMap.size(), System.currentTimeMillis() - startTime);
+				}
+			}
+		};
+		try {
+			if(async) {
+				pool.submit(task);
+			}
+			else {
+				task.run();
+			}
+		}
+		catch(Exception e) {
+			String str = "";
+			if(excludeIds != null && excludeIds.length > 0) {
+				str = Arrays.toString(excludeIds);
+			}
+			logger.error("cmd={}, excludes={} 广播失败！", cmd.toLogStr(), str, e);
+		}
 	}
 	
 	/***
@@ -219,8 +218,16 @@ public abstract class BaseGame{
 	public final void left(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		this.preLeft(playerId);
-		this.baseDesk.left(playerId, outParam);
-		logger.info("{}离开{}游戏:当前游戏桌{}", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo());
+		
+		Player player = playerMap.remove(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		offlineMap.remove(playerId);
+		outParam.setParam(player);
+		player.setAddress(null);
+		
+		logger.info("{}离开{}游戏", outParam.getParam().getNickname(), gameItem.getName());
 	}
 	protected void preLeft(long playerId) {}
 	
@@ -228,42 +235,66 @@ public abstract class BaseGame{
 	/***聊天****/
 	public final void chat(long playerId, Chat message, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		this.baseDesk.chat(playerId, message, outParam);
-		logger.info("{}在游戏桌:{}--{},发送:{}聊天", outParam.getParam().getNickname(), gameItem.getName(), baseDesk.getAddrNo(), message.getKind());
+		Player player = playerMap.get(playerId);
+		if(player == null) {
+			throw new BizException(String.format("非法请求，不在游戏桌中"));
+		}
+		outParam.setParam(player);
+		logger.info("{}在游戏:{},发送:{}聊天", outParam.getParam().getNickname(), gameItem.getName(), message.getKind());
 	}
 
 	/***系统强制踢人***/
 	public final void kickout(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		this.preLeft(playerId);
-		this.baseDesk.left(playerId, outParam);
-		logger.info("强制在游戏桌:{}--{},将{}踢走", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
+		
+		Player player = playerMap.remove(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		offlineMap.remove(playerId);
+		outParam.setParam(player);
+		player.setAddress(null);
+		
+		logger.info("强制在游戏:{},将{}踢走", gameItem.getName(), outParam.getParam().getNickname());
 	}
 	
 	/***游戏暂停****/
 	public final void pause(int seconds) {
 		this.operatorVerfy();
 		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
-		logger.info("游戏准备暂停{}秒", seconds);
+		logger.info("游戏:{}准备暂停{}秒", gameItem.getName(), seconds);
 	}
 	/***游戏取消暂停(恢复正常)****/
 	public final void resume() {
 		this.operatorVerfy();
 		pauseEndTime = 0; 
-		logger.info("游戏恢复正常");
+		logger.info("游戏:{}恢复正常", gameItem.getName());
 	}
 	
 	/***断网，掉线***/
 	public final void disconnect(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		this.baseDesk.disconnect(playerId, outParam);
-		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
+		Player player = playerMap.get(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		outParam.setParam(player);
+		offlineMap.put(playerId, player);
+		player.getOnline().setSession(null);
+		
+		logger.info("游戏:{}的{}玩家掉线", gameItem.getName(), outParam.getParam().getNickname());
 	}
 	
 	/***掉线重连***/
 	public final void connect(long playerId, OutParam<Player> outParam) {
 		this.operatorVerfy();
-		this.baseDesk.connect(playerId, outParam);
-		logger.info("游戏桌:{}--{}的{}玩家掉线", gameItem.getName(), baseDesk.getAddrNo(), outParam.getParam().getNickname());
+		Player player = playerMap.get(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		outParam.setParam(player);
+		offlineMap.remove(playerId);
+		logger.info("游戏:{}的{}玩家掉线", gameItem.getName(), outParam.getParam().getNickname());
 	}
 }

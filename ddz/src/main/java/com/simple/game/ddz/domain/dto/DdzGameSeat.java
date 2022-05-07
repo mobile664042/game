@@ -63,14 +63,14 @@ public class DdzGameSeat extends GameSeat{
 	@Override
 	protected void preSitdown(Player player) {
 		//判断游戏币够不够
-		if(player.getBcoin() < ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinSitdownCoin()) {
-			throw new BizException(String.format("%s的钱不够%s,无法坐下主席位", player.getId(), ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinSitdownCoin()));
+		if(player.getBcoin() < ((DdzDeskItem)this.desk.getTableGame().getDeskItem()).getMinSitdownCoin()) {
+			throw new BizException(String.format("%s的钱不够%s,无法坐下主席位", player.getId(), ((DdzDeskItem)this.desk.getTableGame().getDeskItem()).getMinSitdownCoin()));
 		}
 	}
 	@Override
 	protected void doSitdownMaster() {
 		this.ready = true;
-		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.get().getPlayer().getNickname(), this.desk.getCurrentGame().getGameItem().getName(), this.desk.getAddrNo(), this.getPosition());
+		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.get().getPlayer().getNickname(), this.desk.getTableGame().getGameItem().getName(), this.desk.getAddrNo(), this.getPosition());
 	}
 	
 	@Override
@@ -105,8 +105,8 @@ public class DdzGameSeat extends GameSeat{
 	
 	public PushReadyNextCmd readyNext() {
 		//判断游戏币够不够
-		if(master.get().getPlayer().getBcoin() < ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()) {
-			throw new BizException(String.format("%s的钱不够%s,无法准备下一轮", master.get().getPlayer().getId(), ((DdzDeskItem)this.desk.getCurrentGame().getDeskItem()).getMinReadyCoin()));
+		if(master.get().getPlayer().getBcoin() < ((DdzDeskItem)this.desk.getTableGame().getDeskItem()).getMinReadyCoin()) {
+			throw new BizException(String.format("%s的钱不够%s,无法准备下一轮", master.get().getPlayer().getId(), ((DdzDeskItem)this.desk.getTableGame().getDeskItem()).getMinReadyCoin()));
 		}
 		this.ready = true;
 		return toPushReadyNextCmd();

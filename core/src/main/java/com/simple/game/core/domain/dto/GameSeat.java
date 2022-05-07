@@ -95,7 +95,7 @@ public class GameSeat implements AddressNo{
 			pushCmd.setPlayerId(master.get().getPlayer().getId());
 			pushCmd.setNickname(master.get().getPlayer().getNickname());
 			pushCmd.setHeadPic(master.get().getPlayer().getHeadPic());
-			this.getDesk().broadcast(pushCmd, true);
+			this.getDesk().getTableGame().broadcast(pushCmd, true);
 			logger.info("{}的主席位由{}担任", this.position, master.get().player.getId());
 		}
 		catch(BizException e) {
@@ -106,7 +106,7 @@ public class GameSeat implements AddressNo{
 			pushCmd.setPlayerId(old.getPlayer().getId());
 			pushCmd.setNickname(old.getPlayer().getNickname());
 			pushCmd.setHeadPic(old.getPlayer().getHeadPic());
-			this.getDesk().broadcast(pushCmd, true);
+			this.getDesk().getTableGame().broadcast(pushCmd, true);
 			logger.warn("playerId={}, 不满足{}主席位重新坐下条件！", old.player.getId(), this.position, e);
 			
 		}
@@ -155,14 +155,16 @@ public class GameSeat implements AddressNo{
 		}
 		else {
 			//判断是否超过最大限度，不需要加锁判断，减少时死锁，提高性能，允许极少量的误差
-			if(seatPlayerMap.size() >= desk.getCurrentGame().getGameItem().getSeatMaxFans()) {
-				throw new BizException(String.format("人员已挤不下去了(已有%s)", desk.getCurrentGame().getGameItem().getSeatMaxFans()));
+			if(seatPlayerMap.size() >= desk.getTableGame().getGameItem().getSeatMaxFans()) {
+				throw new BizException(String.format("人员已挤不下去了(已有%s)", desk.getTableGame().getGameItem().getSeatMaxFans()));
 			}
 			if(this.isStopOnlooker()) {
 				throw new BizException(String.format("已禁止旁观！！"));
 			}
 			seatPlayer = buildSeatPlayer(player, SeatPost.onlooker);
 		}
+		
+		
 		
 		seatPlayerMap.put(player.getId(), seatPlayer);
 		player.setAddress(this);

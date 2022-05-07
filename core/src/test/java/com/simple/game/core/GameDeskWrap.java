@@ -33,7 +33,7 @@ public class GameDeskWrap{
 	
 	/***
 	 * 游戏桌缓存
-	 * key com.simple.game.core.domain.dto.BaseDesk.number 桌号
+	 * key com.simple.game.core.domain.dto.BaseDesk.deskNo 桌号
 	 */
 	protected final ConcurrentHashMap<Integer, BaseGame> gameDeskMap = new ConcurrentHashMap<Integer, BaseGame>();
 	
@@ -46,8 +46,8 @@ public class GameDeskWrap{
 	
 	/***游戏初使化****/
 	void buildGameDesk(int count){
-		gameDeskMap.put(baseGame.getAddrNo(), baseGame);
-		logger.info("创建{}张游戏桌完成:{}", count, baseGame.getAddrNo());
+//		gameDeskMap.put(baseGame.getDeskNo(), baseGame);
+//		logger.info("创建{}张游戏桌完成:{}", count, baseGame.getDeskNo());
 	}
 	
 	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)****/

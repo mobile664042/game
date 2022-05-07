@@ -24,6 +24,11 @@ public class RtnGameInfoCmd extends RtnCmd{
 	 */
 	private long pauseMs;
 	
+	/***
+	 * 管理员的id
+	 */
+	private Long managerId;
+	
 	@Override
 	public int getCode() {
 		return ReqJoinCmd.CODE;

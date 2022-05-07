@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.push.game.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.game.PushConnectCmd;
 import com.simple.game.core.domain.cmd.push.game.PushDisconnectCmd;
@@ -16,8 +15,6 @@ import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqLeftCmd;
-import com.simple.game.core.domain.cmd.req.game.ReqPauseCmd;
-import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;

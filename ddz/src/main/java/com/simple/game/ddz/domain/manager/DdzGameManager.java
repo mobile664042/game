@@ -6,7 +6,7 @@ import java.util.List;
 import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
-import com.simple.game.core.domain.good.BaseGame;
+import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.domain.manager.GameManager;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
@@ -30,7 +30,7 @@ public class DdzGameManager extends GameManager {
 	private List<DeskItem> deskItemList;
 
 	@Override
-	public BaseGame newInstanceload(GameItem gameItem, DeskItem deskItem) {
+	public TableGame newInstanceload(GameItem gameItem, DeskItem deskItem) {
 		return new DdzGame((DdzGameItem)gameItem, (DdzDeskItem)deskItem);
 	}
 	

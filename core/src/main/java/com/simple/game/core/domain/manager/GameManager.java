@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
 import com.simple.game.core.domain.good.BaseGame;
+import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.MyThreadFactory;
 
@@ -39,7 +40,7 @@ public abstract class GameManager {
 	 * value.key com.simple.game.core.domain.dto.BaseDesk.number 桌号
 	 * 
 	 */
-	protected final ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, BaseGame>> gameDeskMap = new ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, BaseGame>>();
+	protected final ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, TableGame>> gameDeskMap = new ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, TableGame>>();
 	
 	
 	protected GameItem gameItem;
@@ -56,7 +57,7 @@ public abstract class GameManager {
 	
 	public abstract GameItem getGameItem();
 	public abstract List<DeskItem> getDeskItemList();
-	public abstract BaseGame newInstanceload(GameItem gameItem, DeskItem deskItem);
+	public abstract TableGame newInstanceload(GameItem gameItem, DeskItem deskItem);
 	
 	
 	public void buildGameDesk(int kind, int count) {
@@ -67,13 +68,13 @@ public abstract class GameManager {
 
 		long startTime = System.currentTimeMillis();
 		for(int i=0; i<count; i++) {
-			BaseGame baseGame = newInstanceload(gameItem, item);
-			ConcurrentHashMap<Integer, BaseGame> deskMap = gameDeskMap.get(kind);
+			TableGame tableGame = newInstanceload(gameItem, item);
+			ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(kind);
 			if(deskMap == null) {
 				gameDeskMap.put(kind, deskMap);
 			}
-			deskMap.put(baseGame.getDeskNo(), baseGame);
-			logger.info("创建kind={}, 游戏桌编号={}完成", kind, baseGame.getDeskNo());
+			deskMap.put(tableGame.getDeskNo(), tableGame);
+			logger.info("创建kind={}, 游戏桌编号={}完成", kind, tableGame.getDeskNo());
 		}
 		
 		logger.info("创建kind={}, 总量={}完成, 耗时:{}", kind, count, (System.currentTimeMillis() - startTime));
@@ -82,12 +83,12 @@ public abstract class GameManager {
 	
 	
 	public void destroyGameDesk(int kind, int deskNo) {
-		ConcurrentHashMap<Integer, BaseGame> deskMap = gameDeskMap.get(kind);
+		ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(kind);
 		if(deskMap == null) {
 			throw new BizException(String.format("没有%s类型的桌子", kind));
 		}
 		
-		BaseGame baseGame = deskMap.get(deskNo);
+		TableGame baseGame = deskMap.get(deskNo);
 		if(baseGame == null) {
 			throw new BizException(String.format("没有%s类型的桌子编号为%s桌子", kind, deskNo));
 		}
@@ -104,8 +105,8 @@ public abstract class GameManager {
 	private void boot() {
 		Runnable task = new Runnable() {
 			public void run() {
-				for(ConcurrentHashMap<Integer, BaseGame> deskMap : gameDeskMap.values()) {
-					for(BaseGame baseGame : deskMap.values()) {
+				for(ConcurrentHashMap<Integer, TableGame> deskMap : gameDeskMap.values()) {
+					for(TableGame baseGame : deskMap.values()) {
 						try {
 							baseGame.scan();
 						}
@@ -120,7 +121,7 @@ public abstract class GameManager {
 	}
 	
 	public BaseGame getBaseGame(int playKind, int deskNo) {
-		ConcurrentHashMap<Integer, BaseGame> deskMap = gameDeskMap.get(playKind);
+		ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(playKind);
 		if(deskMap == null) {
 			return null;
 		}

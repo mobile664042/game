@@ -109,7 +109,7 @@ public class DdzDesk extends TableDesk{
 	 * 处理掉线的用户
 	 */
 	private void handleDisconnectPlayer() {
-		for(Player player : this.offlineMap.values()) {
+		for(Player player : this.getTableGame().getOfflineMap().values()) {
 			long time = System.currentTimeMillis() - player.getOnline().getDisconnectTime();
 			if(time == 0 || time / 1000 < this.getDdzGameItem().getMaxDisconnectSecond()) {
 				continue;
@@ -128,13 +128,13 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//强制下线
-			this.left(lastGameOverTime, OutParam.build());
+			this.getTableGame().left(player.getId(), OutParam.build());
 			PushLeftCmd pushCmd = new PushLeftCmd();
 			//TODO 
 			//pushCmd.setPlayKind(playKind);
 			pushCmd.setDeskNo(this.getDeskNo());
 			pushCmd.setPlayerId(player.getId());
-			this.broadcast(pushCmd, true);
+			this.getTableGame().broadcast(pushCmd, true);
 		}
 	}
 	
@@ -189,7 +189,7 @@ public class DdzDesk extends TableDesk{
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
 		pushCmd.setPosition(position);
 		pushCmd.getCards().addAll(outCards);
-		this.broadcast(pushCmd, true);
+		this.getTableGame().broadcast(pushCmd, true);
 		return true;
 	}
 	
@@ -229,18 +229,6 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	public boolean canStandUpMaster() {
-//		ready,
-//		
-//		sended,
-//		
-//		robbedLandlord,
-//		
-//		/*****/
-//		gameover,
-//		
-//		/**额外扩展的状态(效果与gameover类似)***/
-//		surrender,
-		
 		return currentProgress == GameProgress.ready;
 	}
 	private void shuffleCards() {
@@ -707,10 +695,10 @@ public class DdzDesk extends TableDesk{
 		return DoubleKind.exponential;
 	}
 	protected DdzGameItem getDdzGameItem() {
-		return (DdzGameItem)this.getCurrentGame().getGameItem();
+		return (DdzGameItem)this.getTableGame().getGameItem();
 	}
 	protected DdzDeskItem getDdzDeskItem() {
-		return (DdzDeskItem)this.getCurrentGame().getDeskItem();
+		return (DdzDeskItem)this.getTableGame().getDeskItem();
 	}
 	@Override
 	protected GameSeat buildGameSeat(int position){
