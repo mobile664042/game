@@ -197,6 +197,8 @@ public class DdzDesk extends TableDesk{
 			//pushCmd.setPlayKind(playKind);
 			pushCmd.setDeskNo(this.getDeskNo());
 			pushCmd.setPlayerId(player.getId());
+			pushCmd.setNickname(outParam.getParam().getNickname());
+			pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 			this.getTableGame().broadcast(pushCmd, true);
 		}
 	}

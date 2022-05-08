@@ -126,7 +126,7 @@ public abstract class BaseService{
 		//广播离开信息
 		PushLeftCmd pushCmd = reqCmd.valueOfPushLeftCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
-		pushCmd.setHeadPic(outParam.getParam().getNickname());
+		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 	
