@@ -125,8 +125,8 @@ function joinGameDesk(){
 
 	function onMessage(event) {
 		console.log(event.data);
-		let rtnData = JSON.parse(e.data);
-		onReceive(rtnData);
+		let rtnData = JSON.parse(event.data);
+		onDispather(rtnData);
 	}
 
 	function onOpen(event) {
@@ -157,7 +157,34 @@ function joinGameDesk(){
 }
 
 
-function onReceive(rtnData){
+function onDispather(rtnData){
+	if(rtnData.hasOwnProperty("code") && rtnData.code != 0){
+		alert(rtnData.message);
+		return;
+	}
+	
+	$('#s_show').html($('#s_show').html() + "<br/>" + JSON.stringify(rtnData));
+	
+	//分发处理响应字段
+	switch(rtnData.cmd){
+		case 101003:
+	    onRtnGameInfoCmd(rtnData);
+	    break;
+	    
+		case 1101003:
+	    onPushJoinCmd(rtnData);
+	    break;
+	    
+	    
+	}
+}
+
+
+function onRtnGameInfoCmd(rtnCmd){
+	console.log("准备处理进入游戏 , " + JSON.stringify(rtnCmd));
+}
+
+function onPushJoinCmd(pushCmd){
 	
 }
 	
