@@ -29,6 +29,7 @@ public class RtnGameInfoCmd extends RtnCmd{
 	 * 管理员的id
 	 */
 	private Long managerId;
+	private long playerId;
 	
 	@Override
 	public int getCmd() {

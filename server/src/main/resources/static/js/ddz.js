@@ -116,7 +116,7 @@ function logout(){
 
 
 
-
+var webSocket;
 function joinGameDesk(){
 	if(!logoinToken){
 		alert("请先登录");
@@ -124,7 +124,7 @@ function joinGameDesk(){
 	}
 	
 	let websocketUrl = "ws://127.0.0.1:2022/websocket/ddz/" + logoinToken;
-	var webSocket = new WebSocket(websocketUrl);
+	webSocket = new WebSocket(websocketUrl);
 
 	function onMessage(event) {
 		console.log(event.data);
@@ -134,13 +134,13 @@ function joinGameDesk(){
 
 	function onOpen(event) {
 		//一旦链接开始，尝试发出进入游戏
-		let reqCmd = {
+		let reqJoinCmd = {
 			"code": 101003,
 			"playKind": $('#j_playerKind').val(),
 			"deskNo": $('#j_deskNo').val()
 		}
 		
-		let sendMessage = JSON.stringify(reqCmd);
+		let sendMessage = JSON.stringify(reqJoinCmd);
 		webSocket.send(sendMessage);
 	}
 
@@ -159,6 +159,45 @@ function joinGameDesk(){
 	};	
 }
 
+function leftGameDesk(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+
+	let reqLeftCmd = {
+		"code": 101005,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val()
+	}
+	
+	let sendMessage = JSON.stringify(reqLeftCmd);
+	webSocket.send(sendMessage);
+}
+
+function getOnlineList(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+
+	let reqGetOnlineListCmd = {
+		"code": 101004,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val()
+	}
+	
+	let sendMessage = JSON.stringify(reqGetOnlineListCmd);
+	webSocket.send(sendMessage);
+}
 
 function onDispather(rtnData){
 	if(rtnData.hasOwnProperty("code") && rtnData.code != 0){
@@ -167,7 +206,7 @@ function onDispather(rtnData){
 	}
 	
 	//FIXME 完成后需要删除
-	showMsg(JSON.stringify(rtnData));
+	//showMsg(JSON.stringify(rtnData));
 	
 	//分发处理响应字段
 	switch(rtnData.cmd){
@@ -179,6 +218,18 @@ function onDispather(rtnData){
 	    onPushJoinCmd(rtnData);
 	    break;
 	    
+	    case 101005:
+	    alert("你已离开游戏了！");
+	    break;
+	    
+		case 1101005:
+	    onPushLeftCmd(rtnData);
+	    break;
+	    
+		case 101004:
+	    onRtnGetOnlineListCmd(rtnData);
+	    break;
+	    
 	    
 	}
 }
@@ -188,7 +239,8 @@ function showMsg(message){
 }
 
 /////////////---------具体游戏部分--------///////////////////////
-
+//管理员的id
+var playerId;
 //暂停时长(毫秒)
 var pauseMs;
 //管理员的id
@@ -212,6 +264,7 @@ function onRtnGameInfoCmd(rtnCmd){
 		$('#s_position').val(currentPosition);
 	}	
 	managerId = rtnCmd.managerId;
+	playerId = rtnCmd.playerId;
 	
 	extGameInfo.currentProgress = rtnCmd.currentProgress;
 	extGameInfo.surrenderPosition = rtnCmd.surrenderPosition;
@@ -278,7 +331,7 @@ function onRtnGameInfoCmd(rtnCmd){
 				$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
 			}
 			if(element.cards){
-				extGameInfo.cards.forEach(function(subElement) {
+				element.cards.forEach(function(subElement) {
 					let imgHtml = '<img alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
 					$('#p_currentProgress').html($('#p_currentProgress').html() + imgHtml);
 				});
@@ -294,6 +347,21 @@ function onRtnGameInfoCmd(rtnCmd){
 }
 
 function onPushJoinCmd(pushCmd){
-	
+	let divHtml = '<div><img alt="'+ pushCmd.player.id +'" class="headPic_item" src="/img/head/' + pushCmd.player.headPic + '.jpeg">'+ pushCmd.player.nickname +' 进入游戏了！</div>';
+	showMsg(divHtml);
 }
+function onPushLeftCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname +' 离开游戏了！</div>';
+	showMsg(divHtml);
+}
+function onRtnGetOnlineListCmd(rtnCmd){
+	rtnCmd.list.forEach(function(element) {
+		let divHtml = '<div><img alt="'+ element.id +'" class="headPic_item" src="/img/head/' + element.headPic + '.jpeg">'+ element.nickname +' 在游戏中</div>';
+		showMsg(divHtml);
+	});
+				
+}
+
+
+
 	

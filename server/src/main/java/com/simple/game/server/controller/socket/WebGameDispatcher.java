@@ -72,6 +72,7 @@ public class WebGameDispatcher {
 	public void onMessage(String gameCode, String message, OnlineAccount onlineAccount) {
 		if(MyConstant.DDZ.equals(gameCode)) {
 			ReqCmd reqCmd = parseAndCheck(message);
+			reqCmd.setPlayerId(onlineAccount.getUser().getId());
 			if(reqCmd instanceof ReqJoinCmd) {
 				doDdzJoin((ReqJoinCmd)reqCmd, onlineAccount);
 				return ;

@@ -95,7 +95,7 @@ hr {
 							<option value="107">107</option>
 						</select>
 						<button id="j_join" onclick="joinGameDesk()">进入游戏</button>
-						<button id="j_left">离开</button>
+						<button id="j_left" onclick="leftGameDesk()">离开</button>
 						<br/><br/>
 						
 						<label style="height:30px;" id="s_position">席位:</label>
@@ -242,7 +242,7 @@ hr {
 							<button id="g_applyManager">申请管理员</button>
 							<button id="g_changeManager">更换管理员</button>
 							
-							<button id="g_getOnlineList">获取在线玩家</button>
+							<button id="g_getOnlineList" onclick="getOnlineList()">获取在线玩家</button>
 							<button id="g_getSeatPlayerList">获取席位粉丝</button>
 							<button id="g_getAssistantList">获取席位辅助</button>
 							<button id="g_applySeatSuccessor">申请席位继承人</button>
