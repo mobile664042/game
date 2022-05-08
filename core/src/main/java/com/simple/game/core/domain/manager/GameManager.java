@@ -1,5 +1,6 @@
 package com.simple.game.core.domain.manager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
-import com.simple.game.core.domain.good.BaseGame;
 import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.MyThreadFactory;
@@ -71,6 +71,7 @@ public abstract class GameManager {
 			TableGame tableGame = newInstanceload(gameItem, item);
 			ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(kind);
 			if(deskMap == null) {
+				deskMap = new ConcurrentHashMap<Integer, TableGame>(); 
 				gameDeskMap.put(kind, deskMap);
 			}
 			deskMap.put(tableGame.getDeskNo(), tableGame);
@@ -120,12 +121,21 @@ public abstract class GameManager {
 		pool.scheduleAtFixedRate(task, INTERVAL_MS, INTERVAL_MS, TimeUnit.MILLISECONDS);
 	}
 	
-	public BaseGame getBaseGame(int playKind, int deskNo) {
+	public TableGame getTableGame(int playKind, int deskNo) {
 		ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(playKind);
 		if(deskMap == null) {
 			return null;
 		}
 		
 		return deskMap.get(deskNo);
+	}
+	
+	public List<TableGame> getTableGameList(int playKind){
+		ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(playKind);
+		if(deskMap == null) {
+			return null;
+		}
+		
+		return new ArrayList<TableGame>(deskMap.values());
 	}
 }

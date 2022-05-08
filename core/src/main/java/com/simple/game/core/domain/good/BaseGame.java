@@ -297,4 +297,8 @@ public abstract class BaseGame{
 		offlineMap.remove(playerId);
 		logger.info("游戏:{}的{}玩家掉线", gameItem.getName(), outParam.getParam().getNickname());
 	}
+	
+	public int getOnlineCount() {
+		return playerMap.size();
+	}
 }

@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequestMapping(MyConstant.SESSION_PATH_PREFIX + "/admin/game/ddz")
 @Api(tags = "游戏桌管理接口")
-public class DeskAdminController {
+public class DeskDdzAdminController {
 
 	@Autowired
 	private MyDdzGameService myDdzGameService;

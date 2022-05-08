@@ -17,6 +17,7 @@ import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
+import com.simple.game.ddz.domain.dto.constant.ddz.GameProgress;
 
 import lombok.ToString;
 
@@ -107,6 +108,9 @@ public class DdzGame extends TableGame{
 		logger.info("{}投降认输,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), tableDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	
+	public GameProgress getCurrentProgress() {
+		return this.getDdzDesk().getCurrentProgress();
+	}
 	
 	protected DdzDesk getDdzDesk() {
 		return (DdzDesk)this.tableDesk;

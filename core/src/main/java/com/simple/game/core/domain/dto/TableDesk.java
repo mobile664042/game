@@ -50,6 +50,7 @@ public class TableDesk implements AddressNo{
 	
 	
 	public TableDesk(TableGame game) {
+		this.currentGame = game;
 		for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
 			GameSeat gameSeat = buildGameSeat(position); 
 			seatPlayingMap.put(position, gameSeat);

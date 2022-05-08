@@ -21,6 +21,7 @@ import com.simple.game.core.domain.cmd.vo.PlayerVo;
 import com.simple.game.core.domain.dto.OnlineInfo;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.good.BaseGame;
+import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.domain.manager.GameManager;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
@@ -49,8 +50,8 @@ public abstract class BaseService{
 		this.gameManager = gameManager;
 	}
 	
-	public BaseGame checkAndGet(int playKind, int deskNo) {
-		BaseGame baseGame = gameManager.getBaseGame(playKind, deskNo);
+	public TableGame checkAndGet(int playKind, int deskNo) {
+		TableGame baseGame = gameManager.getTableGame(playKind, deskNo);
 		if(baseGame == null) {
 			throw new BizException("游戏桌没找到!");
 		}

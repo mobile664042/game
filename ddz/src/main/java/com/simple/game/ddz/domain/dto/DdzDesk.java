@@ -29,6 +29,7 @@ import com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem;
 import com.simple.game.ddz.domain.manager.ResultManager;
 import com.simple.game.ddz.domain.ruler.DdzCard;
 
+import lombok.Getter;
 import lombok.ToString;
 
 /***
@@ -38,6 +39,7 @@ import lombok.ToString;
  *
  */
 @ToString
+@Getter
 public class DdzDesk extends TableDesk{
 	private static Logger logger = LoggerFactory.getLogger(DdzDesk.class);
 	
@@ -63,6 +65,10 @@ public class DdzDesk extends TableDesk{
 	
 	public synchronized boolean onScan() {
 		if(currentProgress == GameProgress.ready) {
+			if(this.currentGame.getOnlineCount() == 0) {
+				return false;
+			}
+			
 			handleDisconnectPlayer();
 			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
@@ -73,7 +79,11 @@ public class DdzDesk extends TableDesk{
 				
 				if(!gameSeat.isReady() && gameSeat.getFansCount() > 0) {
 					//还没准备好了
-					return forceStandUpPosition(gameSeat);
+					forceStandUpPosition(gameSeat);
+				}
+				
+				if(!gameSeat.isReady()) {
+					return false;
 				}
 			}
 			
@@ -705,4 +715,5 @@ public class DdzDesk extends TableDesk{
 	protected GameSeat buildGameSeat(int position){
 		return new DdzGameSeat(this, position);
 	}
+	
 }

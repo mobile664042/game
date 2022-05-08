@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class DeskItem {
 	/***玩法类型(唯一标识，用来确定其他字段)**/
-	private int playKind;
+	private int playKind = 1;
 	
 	/***一张桌子最多人员个数****/
 	private int maxPersion = 1000;
