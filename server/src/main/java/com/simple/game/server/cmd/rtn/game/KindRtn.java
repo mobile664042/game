@@ -11,9 +11,6 @@ import lombok.Data;
 @Data
 @ApiModel("玩法信息")
 public class KindRtn {
-	@ApiModelProperty(value = "id", required = true)
-	private Long id;
-	
 	@ApiModelProperty(value = "玩法类型", required = true)
 	private int playKind;
 	

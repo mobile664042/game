@@ -17,9 +17,9 @@ public class BaseCacheDao<ID, T>{
             //设置缓存最大容量为100，超过100之后就会按照LRU最近虽少使用算法来移除缓存项
             .maximumSize(300)
             //设置写缓存后n秒钟过期
-            .expireAfterWrite(17, TimeUnit.SECONDS)
+            .expireAfterWrite(7, TimeUnit.DAYS)
             //只阻塞当前数据加载线程，其他线程返回旧值
-            .refreshAfterWrite(13, TimeUnit.SECONDS)
+            .refreshAfterWrite(7, TimeUnit.DAYS)
             //设置缓存的移除通知
             .removalListener(notification -> {
             	log.info(notification.getKey() + " 被移除,原因:" + notification.getCause());

@@ -7,13 +7,18 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 import com.simple.game.server.cmd.rtn.RtnResult;
 import com.simple.game.server.constant.MyConstant;
 
+@Component
+@WebFilter
 public class LoginFilter implements Filter{
 
 	@Override
@@ -27,6 +32,7 @@ public class LoginFilter implements Filter{
 				HttpServletResponse response = (HttpServletResponse)resp;
 				RtnResult<?> rtn = RtnResult.invalidSession();
 				String json = JSON.toJSONString(rtn);
+				response.setCharacterEncoding("utf-8");
 				response.getWriter().write(json);
 				return;
 			}
