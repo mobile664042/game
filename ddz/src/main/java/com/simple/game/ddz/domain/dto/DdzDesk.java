@@ -19,6 +19,8 @@ import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
+import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd;
+import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd.OutCard;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.DoubleKind;
@@ -28,6 +30,7 @@ import com.simple.game.ddz.domain.manager.GameResultRecord;
 import com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem;
 import com.simple.game.ddz.domain.manager.ResultManager;
 import com.simple.game.ddz.domain.ruler.DdzCard;
+import com.simple.game.ddz.domain.ruler.DdzRuler;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -119,6 +122,50 @@ public class DdzDesk extends TableDesk{
 		}
 		return false;
 	}
+	
+	
+	public RtnGameInfoCmd getGameInfo(RtnGameInfoCmd gameInfo) {
+		RtnDdzGameInfoCmd rtnCmd = RtnDdzGameInfoCmd.copy(gameInfo);
+		rtnCmd.setCurrentProgress(currentProgress);
+		if(currentProgress == GameProgress.ready) {
+			return rtnCmd;
+		}
+		
+		rtnCmd.setCommonCards(ddzCard.getCommonCards());
+		if(currentProgress == GameProgress.sended) {
+			return rtnCmd;
+		}
+		
+		rtnCmd.setLandlordPosition(ddzCard.getLandlordPosition());
+		rtnCmd.setDoubleCount(ddzCard.getDoubleCount());
+		if(currentProgress == GameProgress.robbedLandlord) {
+			return rtnCmd;
+		}
+		
+		rtnCmd.setCurrentPosition(ddzCard.getCurrentPosition());
+		rtnCmd.setSurrenderPosition(surrenderPosition);
+		
+		DdzRuler.SpanCard[] spanArray = ddzCard.getBattlefield().getData();
+		if(spanArray != null && spanArray.length > 0) {
+			List<OutCard> battlefield = new ArrayList<OutCard>(spanArray.length);
+			rtnCmd.setBattlefield(battlefield);
+			
+			for(DdzRuler.SpanCard spanCard : spanArray) {
+				OutCard outCard = new OutCard();
+				outCard.setPosition(spanCard.getPosition());
+				outCard.setCards(spanCard.getCards());
+				battlefield.add(outCard);
+			}
+		}
+		rtnCmd.setLandlordPlayCardCount(ddzCard.getLandlordPlayCardCount());
+		rtnCmd.setFarmerPlayCardCount(ddzCard.getFarmerPlayCardCount());
+		
+//		if(currentProgress == GameProgress.gameover) {
+//		}
+		
+		return rtnCmd;
+	}
+	
 	
 	/***
 	 * 处理掉线的用户

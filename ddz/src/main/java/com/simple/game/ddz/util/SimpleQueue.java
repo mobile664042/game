@@ -57,4 +57,7 @@ public class SimpleQueue<T> {
 	public T getFirst() {
 		return data[0];
 	}
+	public T[] getData() {
+		return data;
+	}
 }

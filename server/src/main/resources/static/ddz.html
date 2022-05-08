@@ -26,11 +26,13 @@ hr {
 
 .farmer_item{
 	background-color: yellow; 
-	margin-right:20px
+	margin-right:20px;
+	font-size: x-large;
 }
 .landlord_item{
 	background-color: orange; 
-	margin-right:20px
+	margin-right:20px;
+	font-size: x-large;
 }
 
 </style>
@@ -113,7 +115,7 @@ hr {
 							<table style="height: 100%">
 								<tr>
 									<td style="padding-top: 5px; padding-left: 5px; width: 800px" rowspan="2">
-										 已出的牌 ↓
+										<span id="p_currentProgress">已出的牌 ↓</span>
 										<div id="p_deskPanel" style="height: 350px; overflow: auto; border: 1px solid red; ">
 											<span class="farmer_item">
 												<img alt="1" class="headPic_item" src="/img/head/1.jpeg">张三 

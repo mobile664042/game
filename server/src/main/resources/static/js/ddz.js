@@ -114,6 +114,9 @@ function logout(){
 }
 
 
+
+
+
 function joinGameDesk(){
 	if(!logoinToken){
 		alert("请先登录");
@@ -163,7 +166,8 @@ function onDispather(rtnData){
 		return;
 	}
 	
-	$('#s_show').html($('#s_show').html() + "<br/>" + JSON.stringify(rtnData));
+	//FIXME 完成后需要删除
+	showMsg(JSON.stringify(rtnData));
 	
 	//分发处理响应字段
 	switch(rtnData.cmd){
@@ -179,9 +183,114 @@ function onDispather(rtnData){
 	}
 }
 
+function showMsg(message){
+	$('#s_show').html($('#s_show').html() + "<br/>" + message);
+}
+
+/////////////---------具体游戏部分--------///////////////////////
+
+//暂停时长(毫秒)
+var pauseMs;
+//管理员的id
+var managerId;
+//当前的席位
+var currentPosition;
+
+//当前的游戏信息
+var extGameInfo = {};
 
 function onRtnGameInfoCmd(rtnCmd){
 	console.log("准备处理进入游戏 , " + JSON.stringify(rtnCmd));
+	if(rtnCmd.pauseMs > 0){
+		showMsg("游戏还需要暂停毫秒:" + rtnCmd.pauseMs);
+	}
+	
+	//@45@78@1
+	var strList = rtnCmd.address.split("@");
+	if(strList.length=4){
+		currentPosition = strList[3];
+		$('#s_position').val(currentPosition);
+	}	
+	managerId = rtnCmd.managerId;
+	
+	extGameInfo.currentProgress = rtnCmd.currentProgress;
+	extGameInfo.surrenderPosition = rtnCmd.surrenderPosition;
+	extGameInfo.commonCards = rtnCmd.commonCards;
+	extGameInfo.landlordPosition = rtnCmd.landlordPosition;
+	extGameInfo.currentPosition = rtnCmd.currentPosition;
+	extGameInfo.battlefield = rtnCmd.battlefield;
+	extGameInfo.doubleCount = rtnCmd.doubleCount;
+	extGameInfo.landlordPlayCardCount = rtnCmd.landlordPlayCardCount;
+	extGameInfo.farmerPlayCardCount = rtnCmd.farmerPlayCardCount;
+	
+	//渲染
+	if(extGameInfo.currentProgress == "ready"){
+		$('#p_currentProgress').css("background","yellow");
+		return;
+	}
+	
+	//加载底牌
+	$('#p_currentProgress').html('');
+	extGameInfo.commonCards.forEach(function(element) {
+		//console.log(element);
+		let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
+		$('#p_currentProgress').html($('#p_currentProgress').html() + imgHtml);
+	});
+	if(extGameInfo.currentProgress == "sended"){
+		$('#p_currentProgress').css("background","blue");
+		return;
+	}
+	
+	$('#p_landlord_position').html(extGameInfo.landlordPosition);
+	$('#p_doubleCount').html(extGameInfo.doubleCount);
+	if(extGameInfo.currentProgress == "robbedLandlord"){
+		$('#p_currentProgress').css("background","orange");
+		return;
+	}
+	
+	currentPosition = extGameInfo.currentPosition;
+	$('#s_position').val(currentPosition);
+	
+	
+	//设置已出过的牌
+	$("#p_deskPanel").html('');
+	if(extGameInfo.currentProgress == "gameover"){
+		$('#p_currentProgress').css("background","red");
+		
+//		<span class="farmer_item">
+//			<img alt="1" class="headPic_item" src="/img/head/1.jpeg">张三 
+//		</span>
+//		<img alt="3" class="pkPic_item" src="/img/pk/30.png">
+//		<img alt="4" class="pkPic_item" src="/img/pk/31.png">
+//		<img alt="5" class="pkPic_item" src="/img/pk/33.png">
+//		<hr/>
+		extGameInfo.battlefield.forEach(function(element) {
+			//console.log(element);
+			//let imgHtml = '<img alt="'+ element +'" class="headPic_item" src="/img/head/' + element + '.jpeg">';
+			
+			//地主;
+			if(element.position == extGameInfo.landlordPosition){
+				let spanHtml = '<span class="landlord_item">' + element.position +': </span>';
+				$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
+			}
+			else{
+				let spanHtml = '<span class="farmer_item">' + element.position +': </span>';
+				$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
+			}
+			if(element.cards){
+				extGameInfo.cards.forEach(function(subElement) {
+					let imgHtml = '<img alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
+					$('#p_currentProgress').html($('#p_currentProgress').html() + imgHtml);
+				});
+			}
+			$('#p_currentProgress').html($('#p_currentProgress').html() + '<hr/>');
+		});
+	}
+	$('#p_currentProgress').html($('#p_currentProgress').html() + '<hr/>');
+	
+	if(extGameInfo.currentProgress == "surrender"){
+		$('#p_currentProgress').css("background","darkred")
+	}
 }
 
 function onPushJoinCmd(pushCmd){

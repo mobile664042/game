@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
+import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
@@ -68,6 +69,11 @@ public class DdzGame extends TableGame{
 		return this.getDdzDesk().onScan();
 	}
 	
+	@Override
+	protected RtnGameInfoCmd getGameInfo() {
+		RtnGameInfoCmd gameInfo = super.getGameInfo();
+		return getDdzDesk().getGameInfo(gameInfo);
+	}
 	
 	/***
 	 * 抢地主

@@ -7,6 +7,8 @@ import java.util.List;
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.exception.BizException;
 
+import lombok.Getter;
+
 /***
  * 手牌规则
  * @author zhibozhang
@@ -23,11 +25,15 @@ public class DdzRuler {
 	
 	
 	/***一次出牌***/
+	@Getter
 	public static class SpanCard implements Comparable<SpanCard>{
+		int position;
 		CardType type;
 		List<Integer> cards;
 		/***主牌***/
 		int masterCard;
+		
+		
 
 		/***-1表示小于***/
 		@Override
@@ -97,7 +103,7 @@ public class DdzRuler {
 	 * @param cards
 	 * @return
 	 */
-	static SpanCard buildSpanCard(List<Integer> originalCards) {
+	static SpanCard buildSpanCard(int position, List<Integer> originalCards) {
 		isValidCard(originalCards);
 		List<Integer> list = new ArrayList<Integer>(originalCards);
 		Collections.sort(list);
@@ -111,6 +117,7 @@ public class DdzRuler {
 		
 		SpanCard spanCard = new SpanCard();
 		spanCard.cards = list;
+		spanCard.position = position;
 		if(list.size() == 1) {
 			spanCard.type = CardType.single;
 			spanCard.masterCard = list.get(0)/10;

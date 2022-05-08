@@ -154,7 +154,7 @@ public class DdzCard {
 			verifyCard(position, cards);
 		
 			//再判断牌面
-			DdzRuler.SpanCard spanCard = DdzRuler.buildSpanCard(cards);
+			DdzRuler.SpanCard spanCard = DdzRuler.buildSpanCard(position, cards);
 			if(this.battlefield.getLast() != null) {
 				//需要比较大小
 				if(spanCard.compareTo(this.battlefield.getLast()) <= 0) {
