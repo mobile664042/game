@@ -12,8 +12,8 @@ public class PushApplyAssistantCmd extends PushSeatCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqApplyAssistantCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqApplyAssistantCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

@@ -12,8 +12,8 @@ public class PushNotifyApplyManagerCmd extends PushCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqApplyManagerCmd.CODE + PushCmd.NOTIFY_NUM;
+	public int getCmd() {
+		return ReqApplyManagerCmd.CMD + PushCmd.NOTIFY_NUM;
 	}
 
 	@Override

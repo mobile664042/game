@@ -13,8 +13,8 @@ public class RtnGetOnlineListCmd extends RtnCmd{
 	private List<PlayerVo> list;
 	
 	@Override
-	public int getCode() {
-		return ReqGetOnlineListCmd.CODE;
+	public int getCmd() {
+		return ReqGetOnlineListCmd.CMD;
 	}
 
 	@Override

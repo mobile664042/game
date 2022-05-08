@@ -7,8 +7,9 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.simple.game.server.util.SpringContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,26 +18,31 @@ import lombok.extern.slf4j.Slf4j;
 @ServerEndpoint("/websocket/{gameCode}/{loginToken}")
 //此注解相当于设置访问URL
 public class WebSocket {
-	@Autowired
-	private WebSocketHandler webSocketHandler;
 	private Session session;
 	
     @OnOpen
     public void onOpen(Session session,@PathParam(value="gameCode")String gameCode, @PathParam(value="loginToken")String loginToken) {
     	log.info("收到连接请求，gameCode={}, loginToken={}", gameCode, loginToken);
     	this.session = session;
+    	WebSocketHandler webSocketHandler = getWebSocketHandler();
     	webSocketHandler.onOpen(session, gameCode, loginToken);
     }
 
     @OnClose
     public void onClose() {
+    	WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.onClose(session);
     }
 
     @OnMessage
     public void onMessage(String message) {
     	log.info("收到请求: {}", message);
+    	WebSocketHandler webSocketHandler = getWebSocketHandler();
     	webSocketHandler.onMessage(session, message);
+    }
+    
+    private WebSocketHandler getWebSocketHandler() {
+    	return SpringContextUtil.getApplicationContext().getBean(WebSocketHandler.class);
     }
 
 }

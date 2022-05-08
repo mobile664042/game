@@ -15,8 +15,8 @@ public class PushReadyNextCmd extends PushSeatCmd{
 	
 
 	@Override
-	public int getCode() {
-		return ReqReadyNextCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqReadyNextCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

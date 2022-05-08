@@ -12,8 +12,8 @@ public class PushLeftCmd extends PushGameCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqLeftCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqLeftCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

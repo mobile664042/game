@@ -12,8 +12,8 @@ public class PushDisconnectCmd extends PushGameCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqDisconnectCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqDisconnectCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

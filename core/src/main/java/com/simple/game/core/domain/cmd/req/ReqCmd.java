@@ -18,7 +18,7 @@ public abstract class ReqCmd extends Cmd{
 	
 	public RtnCommonCmd valueOfRtnCommonCmd() {
 		RtnCommonCmd rtmCmd = new RtnCommonCmd();
-		rtmCmd.setCode(getCode());
+		rtmCmd.setCmd(getCmd());
 		rtmCmd.setMessage("ok");
 		return rtmCmd;
 	}

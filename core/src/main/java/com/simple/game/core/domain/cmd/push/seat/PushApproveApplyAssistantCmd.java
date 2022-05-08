@@ -11,8 +11,8 @@ public class PushApproveApplyAssistantCmd extends PushSeatCmd{
 	private String nickname;
 	private String headPic;
 	@Override
-	public int getCode() {
-		return ReqApproveApplyAssistantCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqApproveApplyAssistantCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

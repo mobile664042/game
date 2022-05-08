@@ -7,11 +7,11 @@ import lombok.Data;
 
 @Data
 public class ReqQuickSitdownCmd extends ReqGameCmd{
-	public final static int CODE = 102004;
+	public final static int CMD = 102004;
 	
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

@@ -69,6 +69,7 @@ public class DdzDesk extends TableDesk{
 				return false;
 			}
 			
+			int readyCount = 0;
 			handleDisconnectPlayer();
 			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
@@ -85,6 +86,10 @@ public class DdzDesk extends TableDesk{
 				if(!gameSeat.isReady()) {
 					return false;
 				}
+				readyCount++;
+			}
+			if(readyCount <= 3) {
+				return false;
 			}
 			
 			//更换主席位
@@ -128,7 +133,7 @@ public class DdzDesk extends TableDesk{
 			//判断是否是主席位
 			boolean isMaster = false;
 			for(GameSeat gameSeat : seatPlayingMap.values()) {
-				if(gameSeat.getMaster() != null && gameSeat.getMaster().get().getPlayer().getId() != player.getId()) {
+				if(gameSeat.getMaster().get() != null && gameSeat.getMaster().get().getPlayer().getId() != player.getId()) {
 					isMaster = true;
 					break;
 				}

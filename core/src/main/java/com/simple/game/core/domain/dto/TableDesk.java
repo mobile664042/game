@@ -205,6 +205,15 @@ public class TableDesk implements AddressNo{
 		gameSeat.bootOnlooker(player);
 		logger.info("{}在席位:{}开启申请旁观者", player.getNickname(), gameSeat.getAddrNo());
 	}
+
+	public void applySeatSuccessor(Player player, int position) {
+		GameSeat gameSeat = getGameSeat(position);
+		if(gameSeat == null) {
+			throw new BizException(String.format("%s无效的席位号", position));
+		}		
+		gameSeat.applySeatSuccessor(player);
+		logger.info("{}在席位:{}申请主席位继任者", player.getNickname(), gameSeat.getAddrNo());
+	}
 	/***
 	 * 设置(下一轮)主席位继任人
 	 * @param player
@@ -364,5 +373,6 @@ public class TableDesk implements AddressNo{
 	public int getDeskNo() {
 		return deskNo;
 	}
+
 	
 }

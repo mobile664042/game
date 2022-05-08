@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 public class ReqJoinCmd extends ReqGameCmd{
-	public final static int CODE = 101003;
+	public final static int CMD = 101003;
 	
 	private String nickname;
     private int sex;
@@ -18,8 +18,8 @@ public class ReqJoinCmd extends ReqGameCmd{
 	private GameSession session;
 	
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

@@ -75,10 +75,7 @@ public abstract class TableGame extends BaseGame{
 	
 	protected RtnGameInfoCmd getGameInfo() {
 		RtnGameInfoCmd rtnCmd = new RtnGameInfoCmd();
-		long pauseMs = System.currentTimeMillis() - this.getPauseTime();
-		if(pauseMs > 0) {
-			rtnCmd.setPauseMs(pauseMs);
-		}
+		rtnCmd.setPauseMs(this.getPauseTime());
 		rtnCmd.setManagerId(this.getManagerId());
 		rtnCmd.setAddress(tableDesk.getAddrNo());
 		return rtnCmd;
@@ -104,8 +101,9 @@ public abstract class TableGame extends BaseGame{
 		playerMap.put(player.getId(), player);
 		player.setAddress(tableDesk);
 		
-		logger.info("{}进入{}游戏", player.getNickname(), gameItem.getName());
-		return getGameInfo();
+		RtnGameInfoCmd rtnCmd = getGameInfo();
+		logger.info("{}进入{}游戏, 返回:{} ", player.getNickname(), gameItem.getName(), rtnCmd.toLogStr());
+		return rtnCmd;
 	}
 	
 	
@@ -236,6 +234,20 @@ public abstract class TableGame extends BaseGame{
 			throw new BizException(String.format("%s不在游戏中", playerId));
 		}
 		tableDesk.bootOnlooker(player, position);
+	}
+	
+	/***
+	 * 申请(下一轮)主席位继任人
+	 * @param player
+	 */
+	public final void applySeatSuccessor(long playerId, int position, OutParam<Player> outParam) {
+		this.operatorVerfy();
+		Player player = playerMap.get(playerId);
+		if(player == null) {
+			throw new BizException(String.format("%s不在游戏中", playerId));
+		}
+		outParam.setParam(player);
+		tableDesk.applySeatSuccessor(player, position);
 	}
 	
 	/***

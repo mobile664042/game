@@ -10,8 +10,8 @@ public class PushCancleBroadcastLiveCmd extends PushSeatCmd{
 	private long playerId;
 	
 	@Override
-	public int getCode() {
-		return ReqCancleBroadcastLiveCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqCancleBroadcastLiveCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

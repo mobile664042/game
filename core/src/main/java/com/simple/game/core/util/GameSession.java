@@ -40,5 +40,7 @@ public interface GameSession {
     /****發送數據**/
     void write(byte[] data)throws IOException;
     
+    void write(String data);
+    
     void write(Cmd data);
 }

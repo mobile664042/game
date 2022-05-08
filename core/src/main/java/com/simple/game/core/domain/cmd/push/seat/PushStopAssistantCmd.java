@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class PushStopAssistantCmd extends PushSeatCmd{
 	@Override
-	public int getCode() {
-		return ReqStopAssistantCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqStopAssistantCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

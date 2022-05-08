@@ -9,8 +9,8 @@ import lombok.Data;
 public class PushResumeCmd extends PushGameCmd{
 	
 	@Override
-	public int getCode() {
-		return ReqResumeCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqResumeCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

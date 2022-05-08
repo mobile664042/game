@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class ReqLeftCmd extends ReqGameCmd{
-	public final static int CODE = 101005;
+	public final static int CMD = 101005;
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

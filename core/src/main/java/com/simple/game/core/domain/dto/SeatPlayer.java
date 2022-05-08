@@ -33,8 +33,9 @@ public class SeatPlayer {
 		this.player = player;
 		this.gameSeat = gameSeat;
 		this.seatPost = seatPost;
-		
 	}
+	
+	
 	
 	public SeatPlayerVo valueOfSeatPlayerVo() {
 		SeatPlayerVo vo = new SeatPlayerVo();
@@ -48,6 +49,12 @@ public class SeatPlayer {
 		vo.setPosition(gameSeat.getPosition());
 		vo.setSeatPost(seatPost);
 		return vo;
+	}
+
+
+
+	public void setApplyAssistanted(boolean applyAssistanted) {
+		this.applyAssistanted = applyAssistanted;
 	}
 	
 }

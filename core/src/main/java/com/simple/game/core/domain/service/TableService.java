@@ -32,6 +32,7 @@ import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqRewardCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApplyBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplySeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApproveApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqBootAssistantCmd;
@@ -238,6 +239,16 @@ public abstract class TableService extends BaseService{
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+	}
+	
+	/***
+	 * 申请(下一轮)主席位继任人
+	 * @param player
+	 */
+	public final void applySeatSuccessor(ReqApplySeatSuccessorCmd reqCmd) {
+		TableGame tableGame = (TableGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
+		OutParam<Player> outParam = OutParam.build();
+		tableGame.applySeatSuccessor(reqCmd.getPlayerId(), reqCmd.getPosition(), outParam);
 	}
 	
 	/***

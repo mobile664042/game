@@ -7,11 +7,11 @@ import lombok.Data;
 
 @Data
 public class ReqRobLandlordCmd extends ReqSeatCmd{
-	public final static int CODE = 151002;
+	public final static int CMD = 151002;
 	private int score;
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

@@ -11,8 +11,8 @@ public class PushSitdownCmd extends PushSeatCmd{
 	private PlayerVo player;
 	
 	@Override
-	public int getCode() {
-		return ReqSitdownCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqSitdownCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

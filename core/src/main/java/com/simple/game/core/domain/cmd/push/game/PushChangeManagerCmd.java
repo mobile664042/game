@@ -12,8 +12,8 @@ public class PushChangeManagerCmd extends PushGameCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqChangeManagerCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqChangeManagerCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

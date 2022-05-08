@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class PushBootOnlookerCmd extends PushSeatCmd{
 	@Override
-	public int getCode() {
-		return ReqBootOnlookerCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqBootOnlookerCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

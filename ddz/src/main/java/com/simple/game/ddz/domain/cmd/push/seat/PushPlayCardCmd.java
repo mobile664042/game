@@ -15,8 +15,8 @@ public class PushPlayCardCmd extends PushSeatCmd{
 	
 
 	@Override
-	public int getCode() {
-		return ReqPlayCardCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqPlayCardCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

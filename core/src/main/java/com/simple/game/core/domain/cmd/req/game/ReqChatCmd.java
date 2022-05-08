@@ -7,12 +7,12 @@ import lombok.Data;
 
 @Data
 public class ReqChatCmd extends ReqGameCmd{
-	public final static int CODE = 101006;
+	public final static int CMD = 101006;
 	
 	private Chat chat;
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

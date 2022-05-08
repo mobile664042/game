@@ -10,8 +10,8 @@ public class PushPauseCmd extends PushGameCmd{
 	private int seconds;
 	
 	@Override
-	public int getCode() {
-		return ReqPauseCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqPauseCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

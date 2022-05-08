@@ -9,8 +9,8 @@ import lombok.Data;
 @Data
 public class PushSurrenderCmd extends PushSeatCmd{
 	@Override
-	public int getCode() {
-		return ReqSurrenderCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqSurrenderCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

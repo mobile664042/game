@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplySeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyChangeSeatMasterCmd;
 import com.simple.game.core.domain.cmd.push.seat.notify.PushNotifyApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
@@ -289,6 +290,26 @@ public class GameSeat implements AddressNo{
 		}
 		return master;
 	}
+
+	public void applySeatSuccessor(Player player) {
+		if(player.getId() == this.master.get().getPlayer().getId()) {
+			throw new BizException(String.format("你已是主席位"));
+		}
+		
+		SeatPlayer other = this.seatPlayerMap.get(player.getId());
+		if(other == null) {
+			throw new BizException(String.format("%s不在席位上，不可以申请席位继任者", player.getId()));
+		}
+		
+		//向主席位发送告知
+		PushNotifyApplySeatSuccessorCmd pushCmd = new PushNotifyApplySeatSuccessorCmd();
+		pushCmd.setPlayerId(player.getId());
+		pushCmd.setHeadPic(player.getHeadPic());
+		pushCmd.setNickname(player.getNickname());
+		master.get().getPlayer().getOnline().push(pushCmd);
+		logger.info("{}向主席位{}发送更换管理员申请", player.getNickname(), master.get().getPlayer().getNickname());
+	}
+	
 	public void setSeatSuccessor(Player master, Player player) {
 		SeatPlayer seartMaster = checkSeatMaster(master.getId());
 
@@ -404,4 +425,5 @@ public class GameSeat implements AddressNo{
 	public void setStopAssistant(boolean stopAssistant) {
 		this.stopAssistant = stopAssistant;
 	}
+
 }

@@ -4,14 +4,14 @@ import lombok.Data;
 
 @Data
 public class ReqGetSeatPlayerListCmd extends ReqSeatCmd{
-	public final static int CODE = 102002;
+	public final static int CMD = 102002;
 	
 	/***从0开始(每页20条)***/
 	private int fromPage;
 	
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

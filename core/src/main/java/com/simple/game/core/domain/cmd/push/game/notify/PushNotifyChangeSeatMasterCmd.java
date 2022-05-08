@@ -6,14 +6,14 @@ import lombok.Data;
 
 @Data
 public class PushNotifyChangeSeatMasterCmd extends PushCmd{
-	public final static int CODE = 2101005;
+	public final static int CMD = 2101005;
 	private long playerId;
 	private String nickname;
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

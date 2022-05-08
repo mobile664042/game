@@ -51,14 +51,18 @@ public class MyGameSession implements GameSession {
 	}
 	
 	@Override
+	public void write(String text){
+		try {
+			session.getBasicRemote().sendText(text);
+		} catch (Exception e) {
+			log.error("写入{}失败", text, e);
+		}
+	}
+	
+	@Override
 	public void write(Cmd cmd){
 		String json = JSON.toJSONString(cmd);
-		try {
-			byte[] data = json.getBytes("utf-8");
-			this.write(data);
-		} catch (Exception e) {
-			log.error("写入{}失败", json, e);
-		}
+		write(json);
 	}
 
 }

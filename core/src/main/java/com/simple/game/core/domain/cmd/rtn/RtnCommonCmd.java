@@ -12,7 +12,7 @@ import lombok.Data;
  */
 @Data
 public class RtnCommonCmd extends RtnCmd{
-	protected int code;
+	protected int cmd;
 	
 	
 	@Override

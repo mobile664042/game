@@ -13,8 +13,8 @@ public class PushBroadcastLiveCmd extends PushSeatCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqBroadcastLiveCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqBroadcastLiveCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

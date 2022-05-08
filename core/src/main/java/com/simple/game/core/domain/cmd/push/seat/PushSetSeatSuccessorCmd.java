@@ -11,8 +11,8 @@ public class PushSetSeatSuccessorCmd extends PushSeatCmd{
 	private String nickname;
 	private String headPic;
 	@Override
-	public int getCode() {
-		return ReqSetSeatSuccessorCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqSetSeatSuccessorCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

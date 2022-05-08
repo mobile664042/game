@@ -12,8 +12,8 @@ public class PushStandUpCmd extends PushSeatCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqStandUpCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqStandUpCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

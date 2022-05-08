@@ -6,11 +6,11 @@ import lombok.Data;
 
 @Data
 public class PushDestroyCmd extends PushGameCmd{
-	public final static int CODE = 2101001;
+	public final static int CMD = 2101001;
 	
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

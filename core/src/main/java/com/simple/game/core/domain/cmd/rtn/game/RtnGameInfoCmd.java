@@ -1,5 +1,6 @@
 package com.simple.game.core.domain.cmd.rtn.game;
 
+import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
 
@@ -30,14 +31,13 @@ public class RtnGameInfoCmd extends RtnCmd{
 	private Long managerId;
 	
 	@Override
-	public int getCode() {
-		return ReqJoinCmd.CODE;
+	public int getCmd() {
+		return ReqJoinCmd.CMD;
 	}
 
 	@Override
 	public String toLogStr() {
-		// TODO Auto-generated method stub
-		return null;
+		return JSON.toJSONString(this);
 	}
 
 

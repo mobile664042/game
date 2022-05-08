@@ -264,82 +264,82 @@ public class WebGameDispatcher {
 		
 		int code = jsonObject.getIntValue("code");
 		switch(code) {
-		case ReqJoinCmd.CODE:
+		case ReqJoinCmd.CMD:
 			return JSON.parseObject(message, ReqJoinCmd.class);
-		case ReqGetOnlineListCmd.CODE:
+		case ReqGetOnlineListCmd.CMD:
 			return JSON.parseObject(message, ReqGetOnlineListCmd.class);
-		case ReqLeftCmd.CODE:
+		case ReqLeftCmd.CMD:
 			return JSON.parseObject(message, ReqLeftCmd.class);
 			
-		case ReqChatCmd.CODE:
+		case ReqChatCmd.CMD:
 			return JSON.parseObject(message, ReqChatCmd.class);
-		case ReqChatMultiCmd.CODE:
+		case ReqChatMultiCmd.CMD:
 			return JSON.parseObject(message, ReqChatMultiCmd.class);
-		case ReqRewardCmd.CODE:
+		case ReqRewardCmd.CMD:
 			return JSON.parseObject(message, ReqRewardCmd.class);
 			
-		case ReqApplyManagerCmd.CODE:
+		case ReqApplyManagerCmd.CMD:
 			return JSON.parseObject(message, ReqApplyManagerCmd.class);
-		case ReqChangeManagerCmd.CODE:
+		case ReqChangeManagerCmd.CMD:
 			return JSON.parseObject(message, ReqChangeManagerCmd.class);
-		case ReqKickoutCmd.CODE:
+		case ReqKickoutCmd.CMD:
 			return JSON.parseObject(message, ReqKickoutCmd.class);
-		case ReqResumeCmd.CODE:
+		case ReqResumeCmd.CMD:
 			return JSON.parseObject(message, ReqResumeCmd.class);
-		case ReqPauseCmd.CODE:
+		case ReqPauseCmd.CMD:
 			return JSON.parseObject(message, ReqPauseCmd.class);
 			
 		
 		//桌位请求
-		case ReqSitdownCmd.CODE:
+		case ReqSitdownCmd.CMD:
 			return JSON.parseObject(message, ReqSitdownCmd.class);
-		case ReqQuickSitdownCmd.CODE:
+		case ReqQuickSitdownCmd.CMD:
 			return JSON.parseObject(message, ReqQuickSitdownCmd.class);
-		case ReqStandUpCmd.CODE:
+		case ReqStandUpCmd.CMD:
 			return JSON.parseObject(message, ReqStandUpCmd.class);
-		case ReqForceStandUpCmd.CODE:
+		case ReqForceStandUpCmd.CMD:
 			return JSON.parseObject(message, ReqForceStandUpCmd.class);
 			
-		case ReqGetSeatPlayerListCmd.CODE:
+		case ReqGetSeatPlayerListCmd.CMD:
 			return JSON.parseObject(message, ReqGetSeatPlayerListCmd.class);
-		case ReqGetAssistantListCmd.CODE:
+		case ReqGetAssistantListCmd.CMD:
 			return JSON.parseObject(message, ReqGetAssistantListCmd.class);
-		case ReqApplyAssistantCmd.CODE:
+		case ReqApplyAssistantCmd.CMD:
 			return JSON.parseObject(message, ReqApplyAssistantCmd.class);
-		case ReqApproveApplyAssistantCmd.CODE:
+		case ReqApproveApplyAssistantCmd.CMD:
 			return JSON.parseObject(message, ReqApproveApplyAssistantCmd.class);
-		case ReqStopAssistantCmd.CODE:
+		case ReqStopAssistantCmd.CMD:
 			return JSON.parseObject(message, ReqStopAssistantCmd.class);
-		case ReqBootAssistantCmd.CODE:
+		case ReqBootAssistantCmd.CMD:
 			return JSON.parseObject(message, ReqBootAssistantCmd.class);
-		case ReqStopOnlookerCmd.CODE:
+		case ReqStopOnlookerCmd.CMD:
 			return JSON.parseObject(message, ReqStopOnlookerCmd.class);
-		case ReqBootOnlookerCmd.CODE:
+		case ReqBootOnlookerCmd.CMD:
 			return JSON.parseObject(message, ReqBootOnlookerCmd.class);
-		case ReqApplySeatSuccessorCmd.CODE:
+		case ReqApplySeatSuccessorCmd.CMD:
 			return JSON.parseObject(message, ReqApplySeatSuccessorCmd.class);
-		case ReqSetSeatSuccessorCmd.CODE:
+		case ReqSetSeatSuccessorCmd.CMD:
 			return JSON.parseObject(message, ReqSetSeatSuccessorCmd.class);
 		
-		case ReqApplyBroadcastLiveCmd.CODE:
+		case ReqApplyBroadcastLiveCmd.CMD:
 			return JSON.parseObject(message, ReqApplyBroadcastLiveCmd.class);
-		case ReqApproveBroadcastLiveCmd.CODE:
+		case ReqApproveBroadcastLiveCmd.CMD:
 			return JSON.parseObject(message, ReqApproveBroadcastLiveCmd.class);
-		case ReqCancleBroadcastLiveCmd.CODE:
+		case ReqCancleBroadcastLiveCmd.CMD:
 			return JSON.parseObject(message, ReqCancleBroadcastLiveCmd.class);
-		case ReqBroadcastLiveCmd.CODE:
+		case ReqBroadcastLiveCmd.CMD:
 			return JSON.parseObject(message, ReqBroadcastLiveCmd.class);
 			
 			
 			
 		//TODO 
-		case ReqPlayCardCmd.CODE:
+		case ReqPlayCardCmd.CMD:
 			return JSON.parseObject(message, ReqPlayCardCmd.class);
-		case ReqReadyNextCmd.CODE:
+		case ReqReadyNextCmd.CMD:
 			return JSON.parseObject(message, ReqReadyNextCmd.class);
-		case ReqRobLandlordCmd.CODE:
+		case ReqRobLandlordCmd.CMD:
 			return JSON.parseObject(message, ReqRobLandlordCmd.class);
-		case ReqSurrenderCmd.CODE:
+		case ReqSurrenderCmd.CMD:
 			return JSON.parseObject(message, ReqSurrenderCmd.class);
 			
 		

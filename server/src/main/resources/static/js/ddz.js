@@ -55,7 +55,7 @@ function registerUser(){
     });
 }
 
-
+var logoinToken;
 function login(){
 	if($('#r_username').val().length < 2 || $('#r_username').val().length > 20 ){
 		$('#r_username').focus();
@@ -85,6 +85,7 @@ function login(){
 		        alert(result.msg);
 				return ;
 			}
+			logoinToken = result.data
 	        alert("登录成功，你可以进入游戏啦!");
       	},
       	error: function (jqXHR, textStatus, errorThrown) {
@@ -111,3 +112,52 @@ function logout(){
         }
     });
 }
+
+
+function joinGameDesk(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	
+	let websocketUrl = "ws://127.0.0.1:2022/websocket/ddz/" + logoinToken;
+	var webSocket = new WebSocket(websocketUrl);
+
+	function onMessage(event) {
+		console.log(event.data);
+		let rtnData = JSON.parse(e.data);
+		onReceive(rtnData);
+	}
+
+	function onOpen(event) {
+		//一旦链接开始，尝试发出进入游戏
+		let reqCmd = {
+			"code": 101003,
+			"playKind": $('#j_playerKind').val(),
+			"deskNo": $('#j_deskNo').val()
+		}
+		
+		let sendMessage = JSON.stringify(reqCmd);
+		webSocket.send(sendMessage);
+	}
+
+	function onError(event) {
+		alert(event.data);
+	}
+	
+	webSocket.onerror = function(event) {
+		onError(event)
+	};
+	webSocket.onopen = function(event) {
+		onOpen(event)
+	};
+	webSocket.onmessage = function(event) {
+		onMessage(event)
+	};	
+}
+
+
+function onReceive(rtnData){
+	
+}
+	

@@ -13,8 +13,8 @@ public class PushKickoutCmd extends PushGameCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqKickoutCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqKickoutCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

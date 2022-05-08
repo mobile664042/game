@@ -13,8 +13,8 @@ public class RtnGetAssistantListCmd extends RtnCmd{
 	private List<SeatPlayerVo> list;
 	
 	@Override
-	public int getCode() {
-		return ReqGetAssistantListCmd.CODE;
+	public int getCmd() {
+		return ReqGetAssistantListCmd.CMD;
 	}
 
 	@Override

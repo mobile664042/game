@@ -7,10 +7,10 @@ import lombok.Data;
 
 @Data
 public class ReqSurrenderCmd extends ReqSeatCmd{
-	public final static int CODE = 151004;
+	public final static int CMD = 151004;
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

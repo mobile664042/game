@@ -12,8 +12,8 @@ public class PushConnectCmd extends PushGameCmd{
 	private String headPic;
 	
 	@Override
-	public int getCode() {
-		return ReqConnectCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqConnectCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

@@ -10,7 +10,7 @@ public class PushBuildCmd extends PushCmd{
 	protected int playKind;
 	
 	@Override
-	public int getCode() {
+	public int getCmd() {
 		return CODE;
 	}
 

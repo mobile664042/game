@@ -6,12 +6,12 @@ import lombok.Data;
 
 @Data
 public class ReqPauseCmd extends ReqGameCmd{
-	public final static int CODE = 101001;
+	public final static int CMD = 101001;
 	private int seconds;
 	
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override

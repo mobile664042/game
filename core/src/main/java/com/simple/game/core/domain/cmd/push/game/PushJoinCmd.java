@@ -11,8 +11,8 @@ public class PushJoinCmd extends PushGameCmd{
 	private PlayerVo player;
 	
 	@Override
-	public int getCode() {
-		return ReqJoinCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqJoinCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

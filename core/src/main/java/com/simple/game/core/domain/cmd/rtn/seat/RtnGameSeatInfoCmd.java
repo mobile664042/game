@@ -23,8 +23,8 @@ public class RtnGameSeatInfoCmd extends RtnCmd{
 	protected int position;
 	
 	@Override
-	public int getCode() {
-		return ReqSitdownCmd.CODE;
+	public int getCmd() {
+		return ReqSitdownCmd.CMD;
 	}
 
 	@Override

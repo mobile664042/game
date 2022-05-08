@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class PushApproveBroadcastLiveCmd extends PushSeatCmd{
 	@Override
-	public int getCode() {
-		return ReqApproveBroadcastLiveCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqApproveBroadcastLiveCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

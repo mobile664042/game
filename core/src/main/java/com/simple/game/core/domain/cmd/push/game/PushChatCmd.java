@@ -14,8 +14,8 @@ public class PushChatCmd extends PushGameCmd{
 	private Chat chat;
 	
 	@Override
-	public int getCode() {
-		return ReqChatCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqChatCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

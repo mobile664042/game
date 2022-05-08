@@ -11,8 +11,8 @@ public class PushRobLandlordCmd extends PushSeatCmd{
 	private int score;
 
 	@Override
-	public int getCode() {
-		return ReqRobLandlordCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqRobLandlordCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

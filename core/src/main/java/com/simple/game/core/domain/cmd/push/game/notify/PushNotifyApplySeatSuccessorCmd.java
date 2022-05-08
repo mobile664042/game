@@ -1,19 +1,19 @@
 package com.simple.game.core.domain.cmd.push.game.notify;
 
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplySeatSuccessorCmd;
 
 import lombok.Data;
 
 @Data
-public class PushNotifyCancelSeatSuccessorCmd extends PushCmd{
-	public final static int CMD = 2101004;
+public class PushNotifyApplySeatSuccessorCmd extends PushCmd{
 	private long playerId;
 	private String nickname;
 	private String headPic;
 	
 	@Override
 	public int getCmd() {
-		return CMD;
+		return ReqApplySeatSuccessorCmd.CMD + PushCmd.NOTIFY_NUM;
 	}
 
 	@Override

@@ -17,8 +17,8 @@ public class PushRewardCmd extends PushGameCmd{
 	private Gift gift;
 	
 	@Override
-	public int getCode() {
-		return ReqRewardCmd.CODE + PushCmd.PUSH_NUM;
+	public int getCmd() {
+		return ReqRewardCmd.CMD + PushCmd.PUSH_NUM;
 	}
 
 	@Override

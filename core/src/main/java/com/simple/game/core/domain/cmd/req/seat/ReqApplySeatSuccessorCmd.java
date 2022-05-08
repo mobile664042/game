@@ -3,9 +3,8 @@ package com.simple.game.core.domain.cmd.req.seat;
 import lombok.Data;
 
 @Data
-public class ReqGetAssistantListCmd extends ReqSeatCmd{
-	public final static int CMD = 102003;
-	
+public class ReqApplySeatSuccessorCmd extends ReqSeatCmd{
+	public final static int CMD = 102018;
 	@Override
 	public int getCmd() {
 		return CMD;
@@ -16,5 +15,4 @@ public class ReqGetAssistantListCmd extends ReqSeatCmd{
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class ReqStopAssistantCmd extends ReqSeatCmd{
-	public final static int CODE = 102008;
+	public final static int CMD = 102008;
 	@Override
-	public int getCode() {
-		return CODE;
+	public int getCmd() {
+		return CMD;
 	}
 
 	@Override
