@@ -136,7 +136,7 @@ public abstract class BaseService{
 		OutParam<Player> outParam = OutParam.build();
 		baseGame.chat(reqCmd.getPlayerId(), reqCmd.getChat(), outParam);
 		
-		//广播离开信息
+		//广播聊天信息
 		PushChatCmd pushCmd = reqCmd.valueOfPushChatCmd();
 		pushCmd.setNickname(outParam.getParam().getNickname());
 		pushCmd.setHeadPic(outParam.getParam().getHeadPic());

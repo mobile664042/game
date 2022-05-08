@@ -199,6 +199,30 @@ function getOnlineList(){
 	webSocket.send(sendMessage);
 }
 
+function sendChat(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+
+	let reqChatCmd = {
+		"code": 101006,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val(),
+		"chat":{
+			"kind":"text",
+			"content":$('#c_content').val()
+		}
+	}
+	
+	let sendMessage = JSON.stringify(reqChatCmd);
+	webSocket.send(sendMessage);
+}
+
 function onDispather(rtnData){
 	if(rtnData.hasOwnProperty("code") && rtnData.code != 0){
 		alert(rtnData.message);
@@ -230,12 +254,22 @@ function onDispather(rtnData){
 	    onRtnGetOnlineListCmd(rtnData);
 	    break;
 	    
+	    case 101006:
+	    onRtnChatCmd(rtnData);
+	    break;
+	    
+	    case 1101006:
+	    onPushChatCmd(rtnData);
+	    break;
 	    
 	}
 }
 
 function showMsg(message){
 	$('#s_show').html($('#s_show').html() + "<br/>" + message);
+}
+function chatMsg(message){
+	$('#c_chatPanel').html($('#c_chatPanel').html() + "<br/>" + message);
 }
 
 /////////////---------具体游戏部分--------///////////////////////
@@ -359,9 +393,16 @@ function onRtnGetOnlineListCmd(rtnCmd){
 		let divHtml = '<div><img alt="'+ element.id +'" class="headPic_item" src="/img/head/' + element.headPic + '.jpeg">'+ element.nickname +' 在游戏中</div>';
 		showMsg(divHtml);
 	});
-				
+}
+
+function onRtnChatCmd(rtnCmd){
+	let divHtml = '<div style="text-align: right;">我说：' + $('#c_content').val() + '</div>';
+	chatMsg(divHtml);
+}
+
+function onPushChatCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname +'说：'+ pushCmd.chat.content +'</div>';
+	chatMsg(divHtml);
 }
 
 
-
-	
