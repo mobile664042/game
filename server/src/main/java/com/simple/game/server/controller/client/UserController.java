@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.simple.game.server.cmd.req.user.AddReq;
 import com.simple.game.server.cmd.rtn.RtnResult;
-import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.service.UserService;
 
 import io.swagger.annotations.Api;
@@ -18,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-@RequestMapping(MyConstant.SESSION_PATH_PREFIX + "/client/user")
+@RequestMapping("/client/user")
 @Api(tags = "用户接口")
 public class UserController {
 

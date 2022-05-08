@@ -19,37 +19,11 @@ hr {
 				<td>
 				
 					<fieldset style="width: 900px">
-						<legend>注册平台账号</legend>
-						<input type="text" style="height:30px" width="80px" id="r_username" placeholder="填写你的用户名" />
-						<input type="text" style="height:30px" width="80px" id="r_password" placeholder="填写你的密码" />
-						<input type="text" style="height:30px" width="80px" id="r_nickname" placeholder="填写你的昵称" />
-						<input type="text" style="height:30px" width="80px" id="r_telphone" placeholder="填写你的手机号码" />
-						<br/>
-						
-						
-						<label style="height:30px;" for="r_sex">性别:</label>
-						<select style="height:30px; width:100px" id="r_sex" title="你的性别" >
-							<option value="1">男</option>
-							<option value="2">女</option>
-						</select>
-						
-						<label style="height:30px;" for="r_headPic">选择你的头像:</label>
-						<select style="height:30px; width:100px" id="r_headPic" title="你的头像" onchange="changeHeadPicShow()">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
-							<option value="6">6</option>
-							<option value="7">7</option>
-							<option value="8">8</option>
-							<option value="9">9</option>
-							<option value="10">10</option>
-							<option value="11">11</option>
-						</select>
-						<img alt="1" width="37px" height="37px" id="r_headPicShow" src="/img/head/1.jpeg"/>
-						
-						<button id="r_save" onclick="registerUser()">注册</button>
+						<legend>登录游戏</legend>
+						<input type="text" style="height:30px" width="80px" id="playerId" placeholder="填写你的playerId" />
+						<input type="text" style="height:30px" width="80px" id="nickname" placeholder="填写你的昵称" />
+						<input type="text" style="height:30px" width="80px" id="bcoin" placeholder="填写你的游戏币数量" />
+						<button id="start">登录游戏</button>
 					</fieldset>
 					
 					<fieldset style="width: 900px">
