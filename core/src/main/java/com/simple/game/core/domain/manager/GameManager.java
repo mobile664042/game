@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simple.game.core.domain.cmd.push.game.notify.PushDestroyCmd;
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
 import com.simple.game.core.domain.good.TableGame;
@@ -79,27 +80,30 @@ public abstract class GameManager {
 		}
 		
 		logger.info("创建kind={}, 总量={}完成, 耗时:{}", kind, count, (System.currentTimeMillis() - startTime));
-		
 	}
 	
-	
-	public void destroyGameDesk(int kind, int deskNo) {
-		ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(kind);
+	public void destroyGameDesk(int playKind, int deskNo) {
+		ConcurrentHashMap<Integer, TableGame> deskMap = gameDeskMap.get(playKind);
 		if(deskMap == null) {
-			throw new BizException(String.format("没有%s类型的桌子", kind));
+			throw new BizException(String.format("没有%s类型的桌子", playKind));
 		}
 		
-		TableGame baseGame = deskMap.get(deskNo);
-		if(baseGame == null) {
-			throw new BizException(String.format("没有%s类型的桌子编号为%s桌子", kind, deskNo));
+		TableGame tableGame = deskMap.get(deskNo);
+		if(tableGame == null) {
+			throw new BizException(String.format("没有%s类型的桌子编号为%s桌子", playKind, deskNo));
 		}
 		
-		baseGame.destroy();
+		PushDestroyCmd pushCmd = new PushDestroyCmd();
+		pushCmd.setPlayKind(playKind);
+		pushCmd.setDeskNo(deskNo);
+		tableGame.broadcast(pushCmd, false);
+		
+		tableGame.destroy();
 		deskMap.remove(deskNo);
 		if(deskMap.size() == 0) {
-			gameDeskMap.remove(kind);
+			gameDeskMap.remove(playKind);
 		}
-		logger.info("已销毁{}类型桌子编号为{}的游戏桌", kind, baseGame.getDeskNo());
+		logger.info("已销毁{}类型桌子编号为{}的游戏桌", playKind, tableGame.getDeskNo());
 	}
 	
 	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)****/

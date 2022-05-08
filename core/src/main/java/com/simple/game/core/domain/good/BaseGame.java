@@ -132,7 +132,7 @@ public abstract class BaseGame{
 		if(pauseEndTime == 0) {
 			return 0;
 		}
-		long time = System.currentTimeMillis() - pauseEndTime;
+		long time = pauseEndTime - System.currentTimeMillis();
 		if(time < 0) {
 			return 0;
 		}

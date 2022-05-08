@@ -84,6 +84,7 @@ public class MyDdzGameService{
 			desk.setGameStatus(tableGame.getGameStatus());
 			desk.setOnlineCount(tableGame.getOnlineCount());
 			desk.setCurrentProgress(ddzGame.getCurrentProgress());
+			desk.setPauseTime((int)tableGame.getPauseTime());
 			result.add(desk);
 		}
 		

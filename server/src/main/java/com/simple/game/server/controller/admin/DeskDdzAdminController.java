@@ -1,5 +1,7 @@
 package com.simple.game.server.controller.admin;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,5 +66,40 @@ public class DeskDdzAdminController {
 		return RtnResult.success("ok");
 	}
 
+	@PostConstruct
+    void initTestDesk() {
+    	log.info("准备初使化4个默认游戏桌子");
+    	{
+    		BuildReq req = new BuildReq();
+    		req.setGameCode("ddz");
+    		req.setCount(2);
+    		req.setPlayKind(1);
+    		myDdzGameService.buildDdzDesk(req);
+    	}
+    	{
+    		BuildReq req = new BuildReq();
+    		req.setGameCode("ddz");
+    		req.setCount(2);
+    		req.setPlayKind(1);
+    		myDdzGameService.buildDdzDesk(req);
+    	}
+    	{
+    		DestroyReq req = new DestroyReq();
+    		req.setGameCode("ddz");
+    		req.setDeskNo(103);
+    		req.setPlayKind(1);
+    		myDdzGameService.destroyDesk(req);
+    	}
+    	{
+    		PauseReq req = new PauseReq();
+    		req.setGameCode("ddz");
+    		req.setDeskNo(101);
+    		req.setPlayKind(1);
+    		req.setSecond(24*3600*1000);
+    		myDdzGameService.pauseDdzDesk(req);
+    	}
+    	
+    	log.info("初使化默认游戏桌完成");
+    }
 	
 }

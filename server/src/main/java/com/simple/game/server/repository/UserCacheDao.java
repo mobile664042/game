@@ -63,7 +63,7 @@ public class UserCacheDao extends BaseCacheDao<Long, User> {
 	public User getById(Long param) {
 		try {
 			return cache.get(param);
-		} catch (ExecutionException e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}

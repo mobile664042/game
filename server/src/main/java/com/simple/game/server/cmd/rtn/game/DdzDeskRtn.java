@@ -19,6 +19,9 @@ public class DdzDeskRtn {
 	@ApiModelProperty(value = "游戏状态", required = true)
 	private GameStatus gameStatus;
 	
+	@ApiModelProperty(value = "游戏暂停长时(毫秒)", required = true)
+	private int pauseTime;
+	
 	@ApiModelProperty(value = "游戏进度", required = true)
 	private GameProgress currentProgress;
 }
