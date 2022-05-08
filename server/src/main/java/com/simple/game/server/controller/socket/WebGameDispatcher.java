@@ -21,6 +21,7 @@ import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqRewardCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApplyBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplySeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApproveApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqBootAssistantCmd;
@@ -194,6 +195,11 @@ public class WebGameDispatcher {
 				responseReq(reqCmd, onlineAccount);
 				return ;
 			}
+			else if(reqCmd instanceof ReqApplySeatSuccessorCmd) {
+				ddzService.applySeatSuccessor((ReqApplySeatSuccessorCmd)reqCmd);
+				responseReq(reqCmd, onlineAccount);
+				return ;
+			}
 			else if(reqCmd instanceof ReqSetSeatSuccessorCmd) {
 				ddzService.setSeatSuccessor((ReqSetSeatSuccessorCmd)reqCmd);
 				responseReq(reqCmd, onlineAccount);
@@ -310,6 +316,8 @@ public class WebGameDispatcher {
 			return JSON.parseObject(message, ReqStopOnlookerCmd.class);
 		case ReqBootOnlookerCmd.CODE:
 			return JSON.parseObject(message, ReqBootOnlookerCmd.class);
+		case ReqApplySeatSuccessorCmd.CODE:
+			return JSON.parseObject(message, ReqApplySeatSuccessorCmd.class);
 		case ReqSetSeatSuccessorCmd.CODE:
 			return JSON.parseObject(message, ReqSetSeatSuccessorCmd.class);
 		

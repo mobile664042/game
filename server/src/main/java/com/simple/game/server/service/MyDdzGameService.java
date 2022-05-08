@@ -16,7 +16,7 @@ import com.simple.game.server.cmd.req.desk.DestroyReq;
 import com.simple.game.server.cmd.req.desk.PauseReq;
 import com.simple.game.server.cmd.req.desk.ResumeReq;
 import com.simple.game.server.cmd.rtn.game.DdzDeskRtn;
-import com.simple.game.server.cmd.rtn.game.KindRtn;
+import com.simple.game.server.cmd.rtn.game.DdzKindRtn;
 
 @Service
 public class MyDdzGameService{
@@ -26,11 +26,11 @@ public class MyDdzGameService{
 	
 	
 
-	public List<KindRtn> getKindList() {
+	public List<DdzKindRtn> getKindList() {
 		List<DeskItem> deskItemList = adminService.getGameManager().getDeskItemList();
-		List<KindRtn> list = new ArrayList<KindRtn>(deskItemList.size()); 
+		List<DdzKindRtn> list = new ArrayList<DdzKindRtn>(deskItemList.size()); 
 		for(DeskItem item : deskItemList) {
-			KindRtn rtn = KindRtn.valueOfUser(item);
+			DdzKindRtn rtn = DdzKindRtn.valueOfUser(item);
 			list.add(rtn);
 		}
 		return list;

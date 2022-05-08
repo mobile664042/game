@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.simple.game.server.cmd.req.BaseReq;
 import com.simple.game.server.cmd.rtn.RtnResult;
 import com.simple.game.server.cmd.rtn.game.DdzDeskRtn;
-import com.simple.game.server.cmd.rtn.game.KindRtn;
+import com.simple.game.server.cmd.rtn.game.DdzKindRtn;
 import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.service.MyDdzGameService;
 
@@ -30,8 +30,8 @@ public class MyDdzGameController {
     @RequestMapping(value="/getKindList",method=RequestMethod.POST)
 	@ResponseBody
 	@ApiOperation(value="获取玩法类型",notes="获取玩法类型")
-    public RtnResult<List<KindRtn>> getKindList() {
-    	List<KindRtn> result = myDdzGameService.getKindList();
+    public RtnResult<List<DdzKindRtn>> getKindList() {
+    	List<DdzKindRtn> result = myDdzGameService.getKindList();
         return RtnResult.success(result);
     }
 

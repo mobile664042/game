@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 @ApiModel("玩法信息")
-public class KindRtn {
+public class DdzKindRtn {
 	@ApiModelProperty(value = "玩法类型", required = true)
 	private int playKind;
 	
@@ -22,13 +22,22 @@ public class KindRtn {
 	
 	@ApiModelProperty(value = "最大席位号", required = true)
 	private int maxPosition = 3;
+
+	@ApiModelProperty(value = "最小坐下币", required = true)
+	private int minSitdownCoin = 1000;
 	
-	/***介绍****/
+	@ApiModelProperty(value = "*最小可进行一轮游戏的币", required = true)
+	private int minReadyCoin = 500;
+
+	/***单价****/
+	@ApiModelProperty(value = "底注", required = true)
+	private int unitPrice = 5;
+	
 	@ApiModelProperty(value = "介绍")
 	private String desc;
 
-	public static KindRtn valueOfUser(DeskItem deskItem) {
-		KindRtn o = new KindRtn();
+	public static DdzKindRtn valueOfUser(DeskItem deskItem) {
+		DdzKindRtn o = new DdzKindRtn();
     	BeanUtils.copyProperties(deskItem, o);
     	return o;
     }

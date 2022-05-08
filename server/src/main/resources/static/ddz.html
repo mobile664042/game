@@ -8,6 +8,31 @@ hr {
 	border:0px;
 	border-bottom:1px solid grey;
 }
+
+.input_item{
+	height:30px;
+	width:"80px;
+}
+
+.headPic_item{
+	height:30px;
+	width:27px;
+}
+
+.pkPic_item{
+	width:50px;
+	height:"65px;
+}
+
+.farmer_item{
+	background-color: yellow; 
+	margin-right:20px
+}
+.landlord_item{
+	background-color: orange; 
+	margin-right:20px
+}
+
 </style>
 <script src="/js/jquery/jquery-3.6.0.min.js"></script>
 <script src="/js/ddz.js"></script>
@@ -20,10 +45,10 @@ hr {
 				
 					<fieldset style="width: 900px">
 						<legend>注册平台账号</legend>
-						<input type="text" style="height:30px" width="80px" id="r_username" placeholder="填写你的用户名" />
-						<input type="text" style="height:30px" width="80px" id="r_password" placeholder="填写你的密码" />
-						<input type="text" style="height:30px" width="80px" id="r_nickname" placeholder="填写你的昵称" />
-						<input type="text" style="height:30px" width="80px" id="r_telphone" placeholder="填写你的手机号码" />
+						<input type="text" class="input_item" id="r_username" title="用户名" placeholder="填写你的用户名" value="qq_123" />
+						<input type="text" class="input_item" id="r_password" title="密码" placeholder="填写你的密码"  value="123456" />
+						<input type="text" class="input_item" id="r_nickname" title="昵称" placeholder="填写你的昵称"  value="小小" />
+						<input type="text" class="input_item" id="r_telphone" title="手机号码" placeholder="填写你的手机号码"  value="13800138000" />
 						<br/>
 						
 						
@@ -50,40 +75,35 @@ hr {
 						<img alt="1" width="37px" height="37px" id="r_headPicShow" src="/img/head/1.jpeg"/>
 						
 						<button id="r_save" onclick="registerUser()">注册</button>
+						<button id="r_login" onclick="login()">登录</button>
+						<button id="r_logout" onclick="logout()">退出</button>
 					</fieldset>
 					
 					<fieldset style="width: 900px">
 						<legend>进入游戏</legend>
-						<label style="height:30px;">游戏类型:</label>
-						<select style="height:30px; width:100px" id="playerKind" title="游戏类型" >
-							<option>底注10块</option>
-							<option>底注100块</option>
-							<option>底注1000块</option>
+						<label style="height:30px;" for="j_playerKind" >游戏类型:</label>
+						<select style="height:30px; width:100px" id="j_playerKind" title="游戏类型" >
+							<option value="1">底注5块</option>
 						</select>
 						
-						<label style="height:30px;">桌号:</label>
-						<select style="height:30px; width:100px" id="deskNo" title="桌号" >
-							<option>1</option>
-							<option>2</option>
-							<option>3</option>
-							<option>4</option>
-							<option>5</option>
-							<option>6</option>
-							<option>7</option>
+						<label style="height:30px;" for="j_deskNo">桌号:</label>
+						<select style="height:30px; width:100px" id="j_deskNo" title="桌号" >
+							<option value="102">102</option>
+							<option value="104">104</option>
 						</select>
-						<button id="join">进入游戏</button>
-						<button id="left">离开</button>
+						<button id="j_join">进入游戏</button>
+						<button id="j_left">离开</button>
 						<br/><br/>
 						
-						<label style="height:30px;">席位:</label>
-						<select style="height:30px; width:100px" id="deskNo" title="席位" >
+						<label style="height:30px;" id="s_position">席位:</label>
+						<select style="height:30px; width:100px" id="s_position" title="席位" >
 							<option>1</option>
 							<option>2</option>
 							<option>3</option>
 						</select>
-						<button id="sitdown">坐下</button>
-						<button id="sitdown">快速坐下</button>
-						<button id="standup">站起</button>
+						<button id="s_sitdown">坐下</button>
+						<button id="s_sitdown">快速坐下</button>
+						<button id="s_standup">站起</button>
 					</fieldset><br/>
 					
 					<fieldset style="width: 900px">
@@ -93,57 +113,60 @@ hr {
 								<tr>
 									<td style="padding-top: 5px; padding-left: 5px; width: 800px" rowspan="2">
 										 已出的牌 ↓
-										<div id="deskPanel" style="height: 350px; overflow: auto; border: 1px solid red; ">
-											<span style="background-color: yellow; margin-right:20px">
-												<img alt="1" width="27px" height="27px" src="/img/head/1.jpeg">张三 
+										<div id="p_deskPanel" style="height: 350px; overflow: auto; border: 1px solid red; ">
+											<span class="farmer_item">
+												<img alt="1" class="headPic_item" src="/img/head/1.jpeg">张三 
 											</span>
-											<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
-											<img alt="4" width="50px" height="65px" src="/img/pk/31.png">
-											<img alt="5" width="50px" height="65px" src="/img/pk/33.png">
+											<img alt="3" class="pkPic_item" src="/img/pk/30.png">
+											<img alt="4" class="pkPic_item" src="/img/pk/31.png">
+											<img alt="5" class="pkPic_item" src="/img/pk/33.png">
 											<hr/>
 											
-											<span style="background-color: yellow; margin-right:20px">
-												<img alt="1" width="27px" height="27px" src="/img/head/2.jpeg">李四 
+											<span class="farmer_item">
+												<img alt="1" class="headPic_item" src="/img/head/2.jpeg">李四 
 											</span>
-											<img alt="J" width="50px" height="65px" src="/img/pk/110.png">
-											<img alt="Q" width="50px" height="65px" src="/img/pk/111.png">
-											<img alt="K" width="50px" height="65px" src="/img/pk/112.png">
+											<img alt="J" class="pkPic_item" src="/img/pk/110.png">
+											<img alt="Q" class="pkPic_item" src="/img/pk/111.png">
+											<img alt="K" class="pkPic_item" src="/img/pk/112.png">
 											<hr/>
 											
-											<span style="background-color: yellow; margin-right:20px">
-												<img alt="1" width="27px" height="27px" src="/img/head/2.jpeg">李四 
+											<span class="farmer_item">
+												<img alt="1" class="headPic_item" src="/img/head/2.jpeg">李四 
 											</span>
-											<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
-											<img alt="4" width="50px" height="65px" src="/img/pk/41.png">
-											<img alt="5" width="50px" height="65px" src="/img/pk/52.png">
-											<img alt="6" width="50px" height="65px" src="/img/pk/61.png">
-											<img alt="7" width="50px" height="65px" src="/img/pk/70.png">
-											<img alt="8" width="50px" height="65px" src="/img/pk/83.png">
-											<img alt="9" width="50px" height="65px" src="/img/pk/92.png">
-											<img alt="10" width="50px" height="65px" src="/img/pk/103.png">
-											<img alt="J" width="50px" height="65px" src="/img/pk/113.png">
-											<img alt="Q" width="50px" height="65px" src="/img/pk/121.png">
-											<img alt="K" width="50px" height="65px" src="/img/pk/130.png">
-											<img alt="A" width="50px" height="65px" src="/img/pk/10.png">
+											<img alt="3" class="pkPic_item" src="/img/pk/30.png">
+											<img alt="4" class="pkPic_item" src="/img/pk/41.png">
+											<img alt="5" class="pkPic_item" src="/img/pk/52.png">
+											<img alt="6" class="pkPic_item" src="/img/pk/61.png">
+											<img alt="7" class="pkPic_item" src="/img/pk/70.png">
+											<img alt="8" class="pkPic_item" src="/img/pk/83.png">
+											<img alt="9" class="pkPic_item" src="/img/pk/92.png">
+											<img alt="10" class="pkPic_item" src="/img/pk/103.png">
+											<img alt="J" class="pkPic_item" src="/img/pk/113.png">
+											<img alt="Q" class="pkPic_item" src="/img/pk/121.png">
+											<img alt="K" class="pkPic_item" src="/img/pk/130.png">
+											<img alt="A" class="pkPic_item" src="/img/pk/10.png">
 											<hr/>
 											
-											<span style="background-color: orange; margin-right:20px">
-												<img alt="1" width="27px" height="27px" src="/img/head/3.jpeg">王二 
+											<span class="landlord_item">
+												<img alt="1" class="headPic_item" src="/img/head/3.jpeg">王二 
 											</span>
-											<img alt="3" width="50px" height="65px" src="/img/pk/200.png">
-											<img alt="4" width="50px" height="65px" src="/img/pk/201.png">
+											<img alt="3" class="pkPic_item" src="/img/pk/200.png">
+											<img alt="4" class="pkPic_item" src="/img/pk/201.png">
 										</div> 
 									</td>
 									<td style="vertical-align: middle; text-align: center;width: 90px">
-									 	<label style="height:30px;">底牌:</label>
-									 	<label style="height:30px;">
-									 		<img alt="Q" width="50px" height="65px" src="/img/pk/200.png">
-											<img alt="K" width="50px" height="65px" src="/img/pk/41.png">
-											<img alt="A" width="50px" height="65px" src="/img/pk/201.png">
-										</label><br/><br/><br/>
+										<label style="height:30px;" for="p_landlord_position">地主: </label>
+									 	<label style="height:30px; color: orange" id="p_landlord_position">1</label><br/><br/>
 									 	
-									 	<label style="height:30px;">倍数:</label><br/>
-									 	<label style="height:30px;">120</label>
+									 	<label style="height:30px;" for="p_commonCards">底牌:</label>
+									 	<label style="height:30px;" id="p_commonCards" >
+									 		<img alt="Q" class="pkPic_item" src="/img/pk/200.png">
+											<img alt="K" class="pkPic_item" src="/img/pk/41.png">
+											<img alt="A" class="pkPic_item" src="/img/pk/201.png">
+										</label><br/><br/>
+									 	
+									 	<label style="height:30px;" for="p_doubleCount">倍数:</label><br/>
+									 	<label style="height:30px;" id="p_doubleCount">120</label>
 									 </td>
 								</tr>
 							</table>
@@ -155,50 +178,50 @@ hr {
 						<div>
 							<div>
 							 	剩余的手牌--&gt;  
-							 	<div style="padding-bottom: 15px">
-									<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
-									<img alt="4" width="50px" height="65px" src="/img/pk/41.png">
-									<img alt="5" width="50px" height="65px" src="/img/pk/52.png">
-									<img alt="6" width="50px" height="65px" src="/img/pk/61.png">
-									<img alt="7" width="50px" height="65px" src="/img/pk/70.png">
-									<img alt="8" width="50px" height="65px" src="/img/pk/83.png">
-									<img alt="9" width="50px" height="65px" src="/img/pk/92.png">
-									<img alt="10" width="50px" height="65px" src="/img/pk/103.png">
-									<img alt="J" width="50px" height="65px" src="/img/pk/113.png">
-									<img alt="Q" width="50px" height="65px" src="/img/pk/121.png">
-									<img alt="K" width="50px" height="65px" src="/img/pk/130.png">
-									<img alt="A" width="50px" height="65px" src="/img/pk/10.png">
-									<img alt="3" width="50px" height="65px" src="/img/pk/30.png">
-									<img alt="4" width="50px" height="65px" src="/img/pk/41.png">
-									<img alt="5" width="50px" height="65px" src="/img/pk/52.png">
-									<img alt="6" width="50px" height="65px" src="/img/pk/61.png">
-									<img alt="7" width="50px" height="65px" src="/img/pk/70.png">
-									<img alt="8" width="50px" height="65px" src="/img/pk/83.png">
-									<img alt="9" width="50px" height="65px" src="/img/pk/92.png">
-									<img alt="10" width="50px" height="65px" src="/img/pk/103.png">
-									<img alt="J" width="50px" height="65px" src="/img/pk/113.png">
-									<img alt="Q" width="50px" height="65px" src="/img/pk/121.png">
-									<img alt="K" width="50px" height="65px" src="/img/pk/130.png">
-									<img alt="A" width="50px" height="65px" src="/img/pk/10.png">
+							 	<div style="padding-bottom: 15px" id="p_residue_cards">
+									<img alt="3" class="pkPic_item" src="/img/pk/30.png">
+									<img alt="4" class="pkPic_item" src="/img/pk/41.png">
+									<img alt="5" class="pkPic_item" src="/img/pk/52.png">
+									<img alt="6" class="pkPic_item" src="/img/pk/61.png">
+									<img alt="7" class="pkPic_item" src="/img/pk/70.png">
+									<img alt="8" class="pkPic_item" src="/img/pk/83.png">
+									<img alt="9" class="pkPic_item" src="/img/pk/92.png">
+									<img alt="10" class="pkPic_item" src="/img/pk/103.png">
+									<img alt="J" class="pkPic_item" src="/img/pk/113.png">
+									<img alt="Q" class="pkPic_item" src="/img/pk/121.png">
+									<img alt="K" class="pkPic_item" src="/img/pk/130.png">
+									<img alt="A" class="pkPic_item" src="/img/pk/10.png">
+									<img alt="3" class="pkPic_item" src="/img/pk/30.png">
+									<img alt="4" class="pkPic_item" src="/img/pk/41.png">
+									<img alt="5" class="pkPic_item" src="/img/pk/52.png">
+									<img alt="6" class="pkPic_item" src="/img/pk/61.png">
+									<img alt="7" class="pkPic_item" src="/img/pk/70.png">
+									<img alt="8" class="pkPic_item" src="/img/pk/83.png">
+									<img alt="9" class="pkPic_item" src="/img/pk/92.png">
+									<img alt="10" class="pkPic_item" src="/img/pk/103.png">
+									<img alt="J" class="pkPic_item" src="/img/pk/113.png">
+									<img alt="Q" class="pkPic_item" src="/img/pk/121.png">
+									<img alt="K" class="pkPic_item" src="/img/pk/130.png">
+									<img alt="A" class="pkPic_item" src="/img/pk/10.png">
 								</div>
 							</div>
 							 
 							<div>
-								准备出的牌--&gt; <input type="text" value="120, 121, 123, 123, 123, 123, 123" style="height:30px; width: 330px" id="bcoin" placeholder="填写你要出的牌！" />
-								<button id="start">出牌</button>
+								准备出的牌--&gt; <input type="text" value="120, 121, 123, 123, 123, 123, 123" style="height:30px; width: 330px" id="p_cards" placeholder="填写你要出的牌！" />
+								<button id="p_playCard">出牌</button>
 								(尾号)花色规则：
 								0:♠  1:<font color="red" style="font-size: large;">♥</font>  2:♣  3:<font color="red" style="font-size: large;">♦</font>
 								201:大王
 								200:小王
 							</div>
 							<div>
-								<button id="start">要不起</button>
-								<button id="start">抢地主</button>
-								<button id="start">不抢地主</button>
-								<button id="start">准备</button>
-								<button id="start">投降</button>
-								<button id="start">加倍</button>
-								<button id="start">明牌</button>
+								<button id="p_skip">要不起</button>
+								<button id="p_robLandlord">抢地主</button>
+								<button id="p_rejectLandlord">不抢地主</button>
+								<button id="p_ready">准备</button>
+								<button id="p_surrender">投降</button>
+								<button id="p_dubble">加倍</button>
+								<button id="p_showCard">明牌</button>
 							</div>
 						</div>
 					</fieldset>	
@@ -210,27 +233,31 @@ hr {
 							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写position" /> 
 							<br/>
 			
-							<button id="start">暂停</button>
-							<button id="start">恢复</button>
-							<button id="start">踢走</button>
-							<button id="start">获取在线玩家</button>
-							<button id="start">获取席位粉丝</button>
-							<button id="start">获取席位辅助</button>
-							<button id="start">设置席位继承人</button>
-							<button id="start">申请席位继承人</button>
-							<button id="start">申请管理员</button>
-							<button id="start">申请辅助</button>
-							<button id="start">同意成为辅助</button>
-							<button id="start">申请直播</button>
-							<button id="start">取消直播</button>
-							<button id="start">同意直播</button>
-							<button id="start">更换管理员</button>
-							<button id="start">打賞</button>
+							<button id="g_pause">暂停</button>
+							<button id="g_resume">恢复</button>
+							<button id="g_kickout">踢走</button>
+							<button id="g_applyManager">申请管理员</button>
+							<button id="g_changeManager">更换管理员</button>
+							
+							<button id="g_getOnlineList">获取在线玩家</button>
+							<button id="g_getSeatPlayerList">获取席位粉丝</button>
+							<button id="g_getAssistantList">获取席位辅助</button>
+							<button id="g_applySeatSuccessor">申请席位继承人</button>
+							<button id="g_setSeatSuccessor">设置席位继承人</button>
+							<button id="g_applyAssistant">申请辅助</button>
+							<button id="g_aproveApplyAssistant">同意成为辅助</button>
+							<button id="g_applyBroadcastLive">申请直播</button>
+							<button id="g_cancleBroadcastLive">取消直播</button>
+							<button id="g_approveBroadcastLive">同意直播</button>
+							<button id="g_broadcastLive">直播</button>
+							<button id="g_reward">打賞</button>
 			
-							<button id="start">取消旁观</button>
-							<button id="start">开启旁观</button>
-							<button id="start">送花</button>
-							<button id="start">送爱心</button>
+							<button id="g_stopOnlooker">取消旁观</button>
+							<button id="g_bootOnlooker">开启旁观</button>
+							<button id="g_stopAssistant">取消辅助</button>
+							<button id="g_bootAssistant">开启辅助</button>
+							<button id="g_sendflower">送花</button>
+							<button id="g_sendHeart">送爱心</button>
 						</div>
 					</fieldset>	
 				</td>
@@ -244,10 +271,10 @@ hr {
 								<tr>
 									<td style="padding-top: 5px; padding-left: 5px; width: 800px" rowspan="2">
 										 历史留言 ↓
-										<div id="deskPanel" style="height: 480px; overflow: auto; border: 1px solid red; "></div> 
+										<div id="c_chatPanel" style="height: 480px; overflow: auto; border: 1px solid red; "></div> 
 										
-										<input type="text" style="height:30px; width: 250px" id="bcoin" placeholder="填写你的发送内容！" />
-										<button id="start">发送聊天</button>
+										<input type="text" style="height:30px; width: 250px" id="c_conent" placeholder="填写你的发送内容！" />
+										<button id="c_send">发送聊天</button>
 									</td>
 								</tr>
 							</table>
@@ -255,7 +282,7 @@ hr {
 					</fieldset>	
 					<fieldset style="width: 350px; height:222px;">
 						<legend>信息展示</legend>
-						<div>
+						<div id="s_show">
 						</div>
 					</fieldset>	
 				</td>
