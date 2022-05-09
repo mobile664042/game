@@ -53,9 +53,9 @@ public class UserService{
             //设置缓存最大容量为100，超过100之后就会按照LRU最近虽少使用算法来移除缓存项
             .maximumSize(300)
             //设置写缓存后n秒钟过期
-            .expireAfterWrite(17, TimeUnit.SECONDS)
+            .expireAfterWrite(7, TimeUnit.DAYS)
             //只阻塞当前数据加载线程，其他线程返回旧值
-            .refreshAfterWrite(13, TimeUnit.SECONDS)
+            .refreshAfterWrite(7, TimeUnit.DAYS)
             //设置缓存的移除通知
             .removalListener(notification -> {
             	OnlineAccount onlineAccount = (OnlineAccount)notification.getValue();
@@ -116,6 +116,7 @@ public class UserService{
 		OnlineAccount onlineAccount = (OnlineAccount)httpSession.getAttribute(MyConstant.SESSION_KEY);
 		if(onlineAccount != null) {
 			online_cache.invalidate(onlineAccount.getLoginToken());
+			online_id_map.remove(onlineAccount.getUser().getId());
 			//online_id_map.remove(onlineAccount.getUser().getId());
 			httpSession.removeAttribute(MyConstant.SESSION_KEY);
 			log.info("{}用户走了,loginToken={}", onlineAccount.getUser().getUsername(), onlineAccount.getLoginToken());
@@ -176,7 +177,7 @@ public class UserService{
 		}
 		OnlineAccount onlineAccount = getOnlineAccount(loginToken);
 		if(onlineAccount == null) {
-			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
+			log.warn("可能有bug，loginToken={}没找到在信息息", loginToken);
 			throw new BizException("用户不在线啊2！");
 		}
 		
@@ -195,16 +196,29 @@ public class UserService{
 			return null;
 		}
 		
-		DetailRtn rtn = new DetailRtn();
-		rtn.setEntityRtn(EntityRtn.valueOfUser(old));
+		return getDetail(old);
+	}
+
+	public DetailRtn getDetailByUsername(BaseReq<String> req) {
+		User old = userCacheDao.getByUsername(req.getParam());
+		if(old == null) {
+			return null;
+		}
 		
-		String loginToken = online_id_map.get(req.getParam());
+		return getDetail(old);
+	}
+	
+	private DetailRtn getDetail(User user) {
+		DetailRtn rtn = new DetailRtn();
+		rtn.setEntityRtn(EntityRtn.valueOfUser(user));
+		
+		String loginToken = online_id_map.get(user.getId());
 		if(loginToken == null) {
 			return rtn;
 		}
 		OnlineAccount onlineAccount = getOnlineAccount(loginToken);
 		if(onlineAccount == null) {
-			log.warn("有严重bug，loginToken={}没找到在信息息", loginToken);
+			log.warn("可能有bug，loginToken={}没找到在信息息", loginToken);
 			return rtn;
 		}
 		List<GameItemInfo> gameList = new ArrayList<GameItemInfo>();
@@ -220,6 +234,5 @@ public class UserService{
 		}
 		return rtn;
 	}
-
 
 }

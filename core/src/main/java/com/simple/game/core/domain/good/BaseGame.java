@@ -14,9 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.PushCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushSysChatCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.config.GameItem;
+import com.simple.game.core.domain.dto.constant.ChatKind;
 import com.simple.game.core.domain.dto.constant.GameStatus;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.exception.BizException;
@@ -252,6 +254,15 @@ public abstract class BaseGame{
 		if(player == null) {
 			throw new BizException(String.format("%s不在游戏中", playerId));
 		}
+		
+		//发送给玩家
+		PushSysChatCmd pushCmd = new PushSysChatCmd();
+		Chat chat = new Chat();
+		chat.setKind(ChatKind.text);
+		chat.setContent("你被强制踢下线了！");
+		pushCmd.setChat(chat);
+		player.getOnline().push(pushCmd);
+		
 		offlineMap.remove(playerId);
 		outParam.setParam(player);
 		player.setAddress(null);

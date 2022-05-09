@@ -262,6 +262,10 @@ function onDispather(rtnData){
 	    onPushChatCmd(rtnData);
 	    break;
 	    
+	    case 2101003:
+	    onPushSysChatCmd(rtnData);
+	    break;
+	    
 	}
 }
 
@@ -387,6 +391,11 @@ function onPushJoinCmd(pushCmd){
 function onPushLeftCmd(pushCmd){
 	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname +' 离开游戏了！</div>';
 	showMsg(divHtml);
+	
+	//TODO 需要判断是不是自己被踢下线了
+	if(pushCmd.playerId == playerId){
+		$('#p_currentProgress').css("background","black");	
+	}
 }
 function onRtnGetOnlineListCmd(rtnCmd){
 	rtnCmd.list.forEach(function(element) {
@@ -398,10 +407,16 @@ function onRtnGetOnlineListCmd(rtnCmd){
 function onRtnChatCmd(rtnCmd){
 	let divHtml = '<div style="text-align: right;">我说：' + $('#c_content').val() + '</div>';
 	chatMsg(divHtml);
+	$('#c_content').val('');	
 }
 
 function onPushChatCmd(pushCmd){
 	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname +'说：'+ pushCmd.chat.content +'</div>';
+	chatMsg(divHtml);
+}
+
+function onPushSysChatCmd(pushCmd){
+	let divHtml = '<div>系统管理对你说：'+ pushCmd.chat.content +'</div>';
 	chatMsg(divHtml);
 }
 

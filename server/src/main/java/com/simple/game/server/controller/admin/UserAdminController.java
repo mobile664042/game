@@ -55,10 +55,19 @@ public class UserAdminController {
 
 	@RequestMapping(value = "/getDetail", method = RequestMethod.POST)
 	@ResponseBody
-	@ApiOperation(value = "获取玩家的详细信息", notes = "获取玩家的详细信息")
+	@ApiOperation(value = "获取玩家的详细信息(id)", notes = "获取玩家的详细信息(id)")
 	public RtnResult<DetailRtn> getDetail(@RequestBody BaseReq<Long> req) {
 		log.info("收到请求:{}", req);
 		DetailRtn rtn = userService.getDetail(req);
+		return RtnResult.success(rtn);
+	}
+	
+	@RequestMapping(value = "/getDetailByUsername", method = RequestMethod.POST)
+	@ResponseBody
+	@ApiOperation(value = "获取玩家的详细信息(username)", notes = "获取玩家的详细信息(username)")
+	public RtnResult<DetailRtn> getDetailByUsername(@RequestBody BaseReq<String> req) {
+		log.info("收到请求:{}", req);
+		DetailRtn rtn = userService.getDetailByUsername(req);
 		return RtnResult.success(rtn);
 	}
 	
