@@ -117,6 +117,7 @@ function logout(){
 
 
 var webSocket;
+var connected;
 function joinGameDesk(){
 	if(!logoinToken){
 		alert("请先登录");
@@ -140,6 +141,11 @@ function joinGameDesk(){
 			"deskNo": $('#j_deskNo').val()
 		}
 		
+		//TODO 需要发送心跳，使得socket连接不中断
+		connected = true;
+		setInterval(sendHeartCheck(), 10000);
+
+		//准备进入游戏		
 		let sendMessage = JSON.stringify(reqJoinCmd);
 		webSocket.send(sendMessage);
 	}
@@ -147,17 +153,37 @@ function joinGameDesk(){
 	function onError(event) {
 		alert(event.data);
 	}
+	function onClose(event) {
+		connected = false;
+		alert("你掉线了！");
+	}
 	
 	webSocket.onerror = function(event) {
-		onError(event)
+		onError(event);
 	};
+	webSocket.onclose=function (event) {
+        onClose(event);
+    };
 	webSocket.onopen = function(event) {
-		onOpen(event)
+		onOpen(event);
 	};
 	webSocket.onmessage = function(event) {
-		onMessage(event)
+		onMessage(event);
 	};	
 }
+
+
+//心跳检测
+function sendHeartCheck(){
+	if(connected && webSocket){
+		let heartCmd = {
+			"code": 888888
+		}
+		let sendMessage = JSON.stringify(heartCmd);
+		webSocket.send(sendMessage);
+	}
+}
+
 
 function leftGameDesk(){
 	if(!logoinToken){

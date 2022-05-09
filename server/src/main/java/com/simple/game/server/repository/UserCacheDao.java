@@ -47,7 +47,7 @@ public class UserCacheDao extends BaseCacheDao<Long, User> {
 	public User getByUsername(String username) {
 		try {
 			User old = (User)usernameCache.get(username);
-			cache.refresh(old.getId());
+//			cache.refresh(old.getId());
 			return old;
 		} catch (Exception e) {
 			return null;
@@ -65,7 +65,7 @@ public class UserCacheDao extends BaseCacheDao<Long, User> {
 	public User getById(Long param) {
 		try {
 			User old = cache.get(param);
-			usernameCache.refresh(old.getUsername());
+//			usernameCache.refresh(old.getUsername());
 			return old;
 		} catch (Exception e) {
 			return null;
@@ -86,7 +86,7 @@ public class UserCacheDao extends BaseCacheDao<Long, User> {
 			Long playerId = keyList.get(i);
 			try {
 				User user = (User)cache.get(playerId);
-				usernameCache.refresh(user.getUsername());
+//				usernameCache.refresh(user.getUsername());
 				list.add(user);
 			} catch (ExecutionException e) {
 			}
