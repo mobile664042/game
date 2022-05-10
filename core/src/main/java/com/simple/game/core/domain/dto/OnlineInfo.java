@@ -1,5 +1,7 @@
 package com.simple.game.core.domain.dto;
 
+import java.io.IOException;
+
 import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.util.GameSession;
 
@@ -40,7 +42,9 @@ public class OnlineInfo {
 
 	/** 推送消息 ***/
 	public void push(PushCmd pushCmd) {
-		session.write(pushCmd);
+		if(session != null) {
+			session.write(pushCmd);
+		}
 	}
 
 	public long getLastReqeustTime() {
@@ -74,8 +78,14 @@ public class OnlineInfo {
 	public void setLoginIp(String loginIp) {
 		this.loginIp = loginIp;
 	}
+	
+	public void closeSession() throws IOException {
+		if(session != null) {
+			session.close();
+		}
+	}
 
-	public Object getSession() {
+	public GameSession getSession() {
 		return session;
 	}
 

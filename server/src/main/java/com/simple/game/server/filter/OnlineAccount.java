@@ -2,6 +2,7 @@ package com.simple.game.server.filter;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 
 import com.simple.game.server.dbEntity.User;
@@ -14,6 +15,7 @@ public class OnlineAccount{
 	private final static ThreadLocal<OnlineAccount> LOGIN_CACHE = new ThreadLocal<OnlineAccount>();
 	private User user;
 	private String loginToken;
+	private HttpSession session;
 	
 	/***
 	 * 已连接的webSocket(游戏)
@@ -28,11 +30,16 @@ public class OnlineAccount{
 	
 	private OnlineAccount() {};
 	
-	public static OnlineAccount valueOf(User user, String loginToken) {
+	public static OnlineAccount valueOf(User user, String loginToken, HttpSession session) {
 		OnlineAccount onlineAccount = new OnlineAccount();
 		onlineAccount.user = user;
 		onlineAccount.loginToken = loginToken;
+		onlineAccount.session = session;
 		return onlineAccount;
+	}
+	
+	public void changeSession(HttpSession session) {
+		this.session = session;
 	}
 	
 	public static void cache(OnlineAccount onlineAccount) {

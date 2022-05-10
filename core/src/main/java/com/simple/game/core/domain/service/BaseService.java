@@ -3,12 +3,16 @@ package com.simple.game.core.domain.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.game.PushChatCmd;
 import com.simple.game.core.domain.cmd.push.game.PushConnectCmd;
 import com.simple.game.core.domain.cmd.push.game.PushDisconnectCmd;
 import com.simple.game.core.domain.cmd.push.game.PushJoinCmd;
 import com.simple.game.core.domain.cmd.push.game.PushLeftCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushSysChatCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqChatCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqConnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
@@ -20,6 +24,8 @@ import com.simple.game.core.domain.cmd.rtn.game.RtnGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
 import com.simple.game.core.domain.dto.OnlineInfo;
 import com.simple.game.core.domain.dto.Player;
+import com.simple.game.core.domain.dto.constant.ChatKind;
+import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.good.BaseGame;
 import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.domain.manager.GameManager;
@@ -40,7 +46,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public abstract class BaseService{
-//	private final static Logger logger = LoggerFactory.getLogger(BaseService.class);
+	private final static Logger logger = LoggerFactory.getLogger(BaseService.class);
 	/***
 	 * 游戏管理
 	 */
@@ -159,15 +165,37 @@ public abstract class BaseService{
 	/***掉线重连***/
 	public void connected(ReqConnectCmd reqCmd) {
 		BaseGame baseGame = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		OutParam<Player> outParam = OutParam.build();
-		baseGame.connect(reqCmd.getPlayerId(), outParam);
+		
+		Player player = baseGame.getPlayerMap().get(reqCmd.getPlayerId());
+		if(player == null) {
+			logger.error(String.format("%s不在游戏中", reqCmd.getPlayerId()));
+			return;
+		}
+		
+		try {
+			//挤下线
+			PushSysChatCmd pushCmd = new PushSysChatCmd();
+			Chat chat = new Chat();
+			chat.setKind(ChatKind.text);
+			chat.setContent("你被挤下线了！");
+			pushCmd.setChat(chat);
+			player.getOnline().push(pushCmd);
+			logger.error("{}旧的在线被挤下去了", player.getId());
+			//主动断线
+			player.getOnline().closeSession();
+		}
+		catch(Exception e) {
+			logger.error("{}主动断线失败", player.getId(), e);
+		}
+		
+		baseGame.connect(reqCmd.getPlayerId());
 		//重新更改session
-		changeSession(outParam.getParam(), reqCmd.getSession());
+		changeSession(player, reqCmd.getSession());
 		
 		//广播重连信息
 		PushConnectCmd pushCmd = reqCmd.valueOfPushConnectCmd();
-		pushCmd.setNickname(outParam.getParam().getNickname());
-		pushCmd.setHeadPic(outParam.getParam().getHeadPic());
+		pushCmd.setNickname(player.getNickname());
+		pushCmd.setHeadPic(player.getHeadPic());
 		baseGame.broadcast(pushCmd, reqCmd.getPlayerId());
 	}
 }

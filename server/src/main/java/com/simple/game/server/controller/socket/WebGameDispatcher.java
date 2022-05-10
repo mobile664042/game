@@ -439,16 +439,16 @@ public class WebGameDispatcher {
 	public void onReOpen(String gameCode, OnlineAccount onlineAccount) {
 		if(MyConstant.DDZ.equals(gameCode)) {
 			GameOnlineInfo gameOnlineInfo = onlineAccount.getOnlineWebSocket().get(MyConstant.DDZ);
-			GameSession gameSession = new MyGameSession(gameOnlineInfo.getSession());
+			GameSession newSession = new MyGameSession(gameOnlineInfo.getSession());
 			
 			ReqConnectCmd reqCmd = new ReqConnectCmd();
 			reqCmd.setPlayKind(gameOnlineInfo.getPlayKind());
 			reqCmd.setDeskNo(gameOnlineInfo.getDeskNo());
 			reqCmd.setPlayerId(onlineAccount.getUser().getId());
-			reqCmd.setSession(gameSession);
+			reqCmd.setSession(newSession);	
 			
 			ddzService.connected(reqCmd);
-    	}				
+		}				
 	}
 	
 	

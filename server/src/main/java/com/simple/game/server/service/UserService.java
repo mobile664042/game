@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
@@ -102,8 +103,29 @@ public class UserService{
 			throw new BizException(req.getUsername() + "的密码不对哦");
 		}
 		
+		//判断之是否已经登录
+		OnlineAccount oldOnlineAccount = null;
+		String oldLoginToken = online_id_map.get(old.getId());
+		if(oldLoginToken != null) {
+			//之前那个已经登录了
+			try {
+				oldOnlineAccount = online_cache.get(oldLoginToken);
+			} catch (ExecutionException e) {
+				log.warn("playerId={}缓存可能存在bug,loginToken={}", old.getId(), oldLoginToken, e);
+			}
+		}
+		
 		String loginToken = UUID.randomUUID().toString();
-		OnlineAccount onlineAccount = OnlineAccount.valueOf(old, loginToken);
+		OnlineAccount onlineAccount = oldOnlineAccount;
+		if(oldOnlineAccount == null) {
+			onlineAccount = OnlineAccount.valueOf(old, loginToken, request.getSession());
+		}
+		else {
+			//这里直接被挤下线了
+			onlineAccount.getSession().removeAttribute(MyConstant.SESSION_KEY);
+			onlineAccount.changeSession(request.getSession());
+			log.warn("playerId={}旧的会话被挤下线了", old.getId());
+		}
 		request.getSession().setAttribute(MyConstant.SESSION_KEY, onlineAccount);
 		
 		online_cache.put(loginToken, onlineAccount);

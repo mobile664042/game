@@ -1,5 +1,6 @@
 package com.simple.game.core.domain.good;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -263,6 +264,12 @@ public abstract class BaseGame{
 		pushCmd.setChat(chat);
 		player.getOnline().push(pushCmd);
 		
+		try {
+			player.getOnline().closeSession();
+		} catch (IOException e) {
+			logger.warn(e.getMessage());
+		}
+		
 		offlineMap.remove(playerId);
 		outParam.setParam(player);
 		player.setAddress(null);
@@ -298,15 +305,8 @@ public abstract class BaseGame{
 	}
 	
 	/***掉线重连***/
-	public final void connect(long playerId, OutParam<Player> outParam) {
-		this.operatorVerfy();
-		Player player = playerMap.get(playerId);
-		if(player == null) {
-			throw new BizException(String.format("%s不在游戏中", playerId));
-		}
-		outParam.setParam(player);
+	public final void connect(long playerId) {
 		offlineMap.remove(playerId);
-		logger.info("游戏:{}的{}玩家掉线", gameItem.getName(), outParam.getParam().getNickname());
 	}
 	
 	public int getOnlineCount() {

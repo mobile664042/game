@@ -117,7 +117,7 @@ function logout(){
 
 
 var webSocket;
-var connected;
+var connected = false;
 function joinGameDesk(){
 	if(!logoinToken){
 		alert("请先登录");
@@ -143,7 +143,7 @@ function joinGameDesk(){
 		
 		//TODO 需要发送心跳，使得socket连接不中断
 		connected = true;
-		setInterval(sendHeartCheck(), 10000);
+		
 
 		//准备进入游戏		
 		let sendMessage = JSON.stringify(reqJoinCmd);
@@ -174,14 +174,16 @@ function joinGameDesk(){
 
 
 //心跳检测
+setTimeout(sendHeartCheck(), 120000);
 function sendHeartCheck(){
-	if(connected && webSocket){
+	if(connected){
 		let heartCmd = {
 			"code": 888888
 		}
 		let sendMessage = JSON.stringify(heartCmd);
 		webSocket.send(sendMessage);
 	}
+	setTimeout(sendHeartCheck, 120000);
 }
 
 
