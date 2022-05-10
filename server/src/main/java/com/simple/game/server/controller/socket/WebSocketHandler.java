@@ -71,9 +71,15 @@ public class WebSocketHandler {
     	
     	try {
     		GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);
-    		if(old != null) {
+    		if(old != null && old.getPlayKind() != 0 && old.getDeskNo() != 0) {
+    			
     			old.setSession(session);
+    			gameSession.getAttachment().put(MyConstant.PLAY_KIND, old.getPlayKind());
+    	    	gameSession.getAttachment().put(MyConstant.DESK_NO, old.getDeskNo());
     			webGameDispatcher.onReOpen(gameCode, gameSession);
+    			
+    			String onlineKey = buildOnlineKey(gameCode, session);
+    			onlineSessionMap.put(onlineKey, gameSession);
     		}
     		else {
     			GameOnlineInfo gameOnlineInfo = new GameOnlineInfo();
