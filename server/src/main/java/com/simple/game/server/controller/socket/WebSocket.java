@@ -9,6 +9,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.springframework.stereotype.Component;
 
+import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.util.SpringContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public class WebSocket {
 	private Session session;
 	
     @OnOpen
-    public void onOpen(Session session,@PathParam(value="gameCode")String gameCode, @PathParam(value="loginToken")String loginToken) {
+    public void onOpen(Session session,@PathParam(value=MyConstant.GAME_CODE)String gameCode, @PathParam(value=MyConstant.LOGIN_TOKEN)String loginToken) {
     	log.info("收到连接请求，gameCode={}, loginToken={}", gameCode, loginToken);
     	this.session = session;
     	WebSocketHandler webSocketHandler = getWebSocketHandler();
@@ -36,7 +37,7 @@ public class WebSocket {
 
     @OnMessage
     public void onMessage(String message) {
-    	log.info("收到请求: {}", message);
+    	log.info("收到请求: {}, sessionId={}", message, session.getId());
     	WebSocketHandler webSocketHandler = getWebSocketHandler();
     	webSocketHandler.onMessage(session, message);
     }

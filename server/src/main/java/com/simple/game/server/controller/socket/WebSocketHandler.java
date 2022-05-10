@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.cmd.rtn.game.InvalidateSesssionRtnCmd;
 import com.simple.game.core.domain.cmd.rtn.game.SysRtnCmd;
+import com.simple.game.core.util.GameSession;
 import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.filter.OnlineAccount;
 import com.simple.game.server.filter.OnlineAccount.GameOnlineInfo;
@@ -24,11 +25,15 @@ public class WebSocketHandler {
 	/***
 	 * 已连接的webSocket(游戏)
 	 * key 		gameCode--webSocketId
-	 * value 	WebSocketSession
+	 * value 	GameSession
 	 */
-	private final ConcurrentHashMap<String, OnlineAccount> gameOnlineAccountMap = new ConcurrentHashMap<String, OnlineAccount>();
+	private final ConcurrentHashMap<String, GameSession> onlineSessionMap = new ConcurrentHashMap<String, GameSession>();
 	
 	private final String supportGameCode = MyConstant.DDZ;
+	
+	/***
+	 * 贪图方便，借用
+	 */
 	@Autowired
     private UserService userService;
 	
@@ -57,18 +62,26 @@ public class WebSocketHandler {
     		return; 
     	}
     	
+    	GameSession gameSession = new MyGameSession(session);
+    	gameSession.getAttachment().put(MyConstant.PLAYER_ID, onlineAccount.getUser().getId());
+    	gameSession.getAttachment().put(MyConstant.NICKNAME, onlineAccount.getUser().getNickname());
+    	gameSession.getAttachment().put(MyConstant.SEX, onlineAccount.getUser().getSex());
+    	gameSession.getAttachment().put(MyConstant.TELPHONE, onlineAccount.getUser().getTelphone());
+    	gameSession.getAttachment().put(MyConstant.HEADPIC, onlineAccount.getUser().getHeadPic());
+    	
     	try {
     		GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);
     		if(old != null) {
     			old.setSession(session);
-    			webGameDispatcher.onReOpen(gameCode, onlineAccount);
+    			webGameDispatcher.onReOpen(gameCode, gameSession);
     		}
     		else {
     			GameOnlineInfo gameOnlineInfo = new GameOnlineInfo();
     			gameOnlineInfo.setSession(session);
     			onlineAccount.getOnlineWebSocket().put(gameCode, gameOnlineInfo);
+    			
     			String onlineKey = buildOnlineKey(gameCode, session);
-    			gameOnlineAccountMap.put(onlineKey, onlineAccount);
+    			onlineSessionMap.put(onlineKey, gameSession);
     		}
     		log.info("好棒哦，{}登录了游戏，gameCode={}, loginToken={}", onlineAccount.getUser().getUsername(), gameCode, loginToken);
     	}
@@ -84,25 +97,33 @@ public class WebSocketHandler {
     }
 
 	public void onClose(Session session) {
-		String gameCode = session.getRequestParameterMap().get("gameCode").get(0);
+		String gameCode = session.getRequestParameterMap().get(MyConstant.GAME_CODE).get(0);
+		String loginToken = session.getRequestParameterMap().get(MyConstant.LOGIN_TOKEN).get(0);
 		String onlineKey = buildOnlineKey(gameCode, session);
 		
-		OnlineAccount onlineAccount = gameOnlineAccountMap.remove(onlineKey);
-    	if(onlineAccount == null) {
+		GameSession gameSession = onlineSessionMap.remove(onlineKey);
+    	if(gameSession == null) {
     		log.warn("不好意思，onlineKey={}已提前失效了", onlineKey);
     		return; 
     	}
-    	webGameDispatcher.onClose(gameCode, onlineAccount);
-    	onlineAccount.getOnlineWebSocket().remove(gameCode);
-    	log.info("{}用户离开了{}游戏,loginToken={}", onlineAccount.getUser().getUsername(), gameCode, onlineAccount.getLoginToken());
+    	webGameDispatcher.onClose(gameCode, gameSession);
+    	
+    	OnlineAccount onlineAccount = userService.getOnlineAccount(loginToken);
+    	if(onlineAccount != null) {
+    		onlineAccount.getOnlineWebSocket().remove(gameCode);
+    		log.info("{}用户离开了{}游戏,loginToken={}", onlineAccount.getUser().getUsername(), gameCode, loginToken);
+    	}
+    	else {
+    		log.info("{}用户离开了{}游戏,loginToken={}", gameSession.getAttachment().get(MyConstant.PLAYER_ID), gameCode, loginToken);
+    	}
 	}
 
 	public void onMessage(Session session, String message) {
-		String gameCode = session.getRequestParameterMap().get("gameCode").get(0);
+		String gameCode = session.getRequestParameterMap().get(MyConstant.GAME_CODE).get(0);
 		String onlineKey = buildOnlineKey(gameCode, session);
 		
-		OnlineAccount onlineAccount = gameOnlineAccountMap.get(onlineKey);
-		if(onlineAccount == null) {
+		GameSession gameSession = onlineSessionMap.get(onlineKey);
+		if(gameSession == null) {
 			log.warn("不好意思，onlineKey={}已提前失效了", onlineKey);
 			try {
     			InvalidateSesssionRtnCmd rtnCmd = InvalidateSesssionRtnCmd.build();
@@ -113,7 +134,7 @@ public class WebSocketHandler {
 		}
 		
 		try {
-			webGameDispatcher.onMessage(gameCode, message, onlineAccount);
+			webGameDispatcher.onMessage(gameCode, message, gameSession);
     	}
     	catch(Exception e) {
     		log.error("建立连接失败", e);

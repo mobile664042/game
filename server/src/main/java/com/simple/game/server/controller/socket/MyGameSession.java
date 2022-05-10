@@ -2,6 +2,8 @@ package com.simple.game.server.controller.socket;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.websocket.Session;
 
@@ -13,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class MyGameSession implements GameSession {
+	private final Map<String, Object> attachment = new HashMap<String, Object>();
+	
 	private Session session;
 	
 	public MyGameSession(Session session) {
@@ -63,6 +67,11 @@ public class MyGameSession implements GameSession {
 	public void write(Cmd cmd){
 		String json = JSON.toJSONString(cmd);
 		write(json);
+	}
+
+	@Override
+	public Map<String, Object> getAttachment() {
+		return attachment;
 	}
 
 }

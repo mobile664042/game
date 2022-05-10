@@ -150,7 +150,6 @@ public class UserService{
 			return online_cache.get(loginToken);
 		}
 		catch(Exception e) {
-			log.debug("loginToken={}用户不在线", loginToken);
 			return null;
 		}
 	}

@@ -1,6 +1,7 @@
 package com.simple.game.core.util;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.simple.game.core.domain.cmd.Cmd;
 
@@ -43,4 +44,6 @@ public interface GameSession {
     void write(String data);
     
     void write(Cmd data);
+    
+    Map<String, Object> getAttachment();
 }
