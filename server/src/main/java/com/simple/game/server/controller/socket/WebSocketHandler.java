@@ -135,6 +135,18 @@ public class WebSocketHandler {
 		
 		try {
 			webGameDispatcher.onMessage(gameCode, message, gameSession);
+			
+			String loginToken = session.getRequestParameterMap().get(MyConstant.LOGIN_TOKEN).get(0);
+			OnlineAccount onlineAccount = userService.getOnlineAccount(loginToken);
+	    	if(onlineAccount != null) {
+	    		GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);
+	    		if(old != null) {
+	    			Integer playKind = (Integer)gameSession.getAttachment().get(MyConstant.PLAY_KIND);
+	    			Integer deskNo = (Integer)gameSession.getAttachment().get(MyConstant.DESK_NO);
+	    			old.setPlayKind(playKind);
+	    			old.setDeskNo(deskNo);
+	    		}
+	    	}
     	}
     	catch(Exception e) {
     		log.error("建立连接失败", e);
