@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.push.game.PushLeftCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
@@ -21,6 +22,7 @@ import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd.OutCard;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.DoubleKind;
@@ -124,7 +126,7 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	
-	public RtnGameInfoCmd getGameInfo(RtnGameInfoCmd gameInfo) {
+	public RtnDdzGameInfoCmd getGameInfo(RtnGameInfoCmd gameInfo) {
 		RtnDdzGameInfoCmd rtnCmd = RtnDdzGameInfoCmd.copy(gameInfo);
 		rtnCmd.setCurrentProgress(currentProgress);
 		if(currentProgress == GameProgress.ready) {
@@ -166,6 +168,26 @@ public class DdzDesk extends TableDesk{
 		return rtnCmd;
 	}
 	
+	public RtnDdzGameSeatCmd getSeatInfo(RtnGameSeatInfoCmd seatInfo) {
+		RtnDdzGameSeatCmd rtnCmd = new RtnDdzGameSeatCmd();
+		rtnCmd.copy(seatInfo);
+		
+		if(seatInfo.getPosition() == 1) {
+			rtnCmd.setCards(ddzCard.getFirstCards());
+		}
+		if(seatInfo.getPosition() == 2) {
+			rtnCmd.setCards(ddzCard.getSecondCards());
+		}
+		if(seatInfo.getPosition() == 3) {
+			rtnCmd.setCards(ddzCard.getThirdCards());
+		}
+		
+		DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(seatInfo.getPosition());
+		rtnCmd.setReady(gameSeat.isReady());
+		rtnCmd.setSkipCount(gameSeat.getSkipCount());
+		rtnCmd.setTimeoutCount(gameSeat.getTimeoutCount());
+		return rtnCmd;
+	}
 	
 	/***
 	 * 处理掉线的用户

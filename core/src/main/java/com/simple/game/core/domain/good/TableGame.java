@@ -113,7 +113,7 @@ public abstract class TableGame extends BaseGame{
 	 * @param player
 	 * @param position
 	 */
-	public final RtnGameSeatInfoCmd sitdown(long playerId, int position, OutParam<Player> outParam) {
+	public RtnGameSeatInfoCmd sitdown(long playerId, int position, OutParam<Player> outParam) {
 		this.operatorVerfy();
 		Player player = playerMap.get(playerId);
 		if(player == null) {

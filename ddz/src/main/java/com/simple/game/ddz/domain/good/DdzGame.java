@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
@@ -15,6 +16,7 @@ import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
 import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
@@ -73,6 +75,18 @@ public class DdzGame extends TableGame{
 	protected RtnGameInfoCmd getGameInfo() {
 		RtnGameInfoCmd gameInfo = super.getGameInfo();
 		return getDdzDesk().getGameInfo(gameInfo);
+	}
+	
+	/***
+	 * 选择某个席位座下
+	 * 
+	 * @param player
+	 * @param position
+	 */
+	@Override
+	public RtnGameSeatInfoCmd sitdown(long playerId, int position, OutParam<Player> outParam) {
+		RtnGameSeatInfoCmd parent = super.sitdown(playerId, position, outParam);
+		return getDdzDesk().getSeatInfo(parent);
 	}
 	
 	/***

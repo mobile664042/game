@@ -78,7 +78,7 @@ hr {
 						
 						<button id="r_save" onclick="registerUser()">注册</button>
 						<button id="r_login" onclick="login()">登录</button>
-						<button id="r_logout" onclick="logout()">退出</button>
+						<button id="r_logout" disabled="true" onclick="logout()">退出</button>
 					</fieldset>
 					
 					<fieldset style="width: 900px">
@@ -94,19 +94,19 @@ hr {
 							<option value="104">104</option>
 							<option value="107">107</option>
 						</select>
-						<button id="j_join" onclick="joinGameDesk()">进入游戏</button>
-						<button id="j_left" onclick="leftGameDesk()">离开</button>
+						<button id="j_join"  disabled="true" onclick="joinGameDesk()">进入游戏</button>
+						<button id="j_left"  disabled="true" onclick="leftGameDesk()">离开</button>
 						<br/><br/>
 						
-						<label style="height:30px;" id="s_position">席位:</label>
+						<label style="height:30px;" for="s_position">席位:</label>
 						<select style="height:30px; width:100px" id="s_position" title="席位" >
-							<option>1</option>
-							<option>2</option>
-							<option>3</option>
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
 						</select>
-						<button id="s_sitdown">坐下</button>
-						<button id="s_sitdown">快速坐下</button>
-						<button id="s_standup">站起</button>
+						<button id="s_sitdown" disabled="true" onclick="sitdown()">坐下</button>
+						<button id="s_quickSitdown" onclick="quickSitdown()" disabled="true" >快速坐下</button>
+						<button id="s_standup" disabled="true" onclick="standup()">站起</button>
 					</fieldset><br/>
 					
 					<fieldset style="width: 900px">
@@ -221,7 +221,7 @@ hr {
 								<button id="p_skip">要不起</button>
 								<button id="p_robLandlord">抢地主</button>
 								<button id="p_rejectLandlord">不抢地主</button>
-								<button id="p_ready">准备</button>
+								<button id="p_ready" onclick="ready()">准备</button>
 								<button id="p_surrender">投降</button>
 								<button id="p_dubble">加倍</button>
 								<button id="p_showCard">明牌</button>
@@ -267,6 +267,25 @@ hr {
 			
 			
 				<td style="vertical-align: bottom;">
+					<fieldset style="width: 350px">
+						<legend>设置信息</legend>
+						<div>
+							<table>
+								<tr>
+									<td style="padding-top: 5px; padding-left: 5px; height: 150px; width: 800px" rowspan="2">
+										下一轮主席位：
+										<span class="farmer_item">
+											<img id="s_nextMaster_img" class="headPic_item">
+											<label id="s_nextMaster_label"></label>
+										</span><br/>
+										是否可以旁观: <label id="s_stopAssistant">true</label><br/>
+										是否可以辅助: <label id="s_broadcasting">true</label><br/>
+										是否通过直播审核: <label id="s_applyBroadcasted">false</label><br/>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</fieldset><br/>
 					<fieldset style="width: 350px">
 						<legend>聊天</legend>
 						<div>

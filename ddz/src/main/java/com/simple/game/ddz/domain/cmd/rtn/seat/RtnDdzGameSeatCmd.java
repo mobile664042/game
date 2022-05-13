@@ -1,5 +1,7 @@
 package com.simple.game.ddz.domain.cmd.rtn.seat;
 
+import java.util.List;
+
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 
 import lombok.Data;
@@ -13,6 +15,9 @@ public class RtnDdzGameSeatCmd extends RtnGameSeatInfoCmd{
 	
 	/***当前轮的跳过次数****/
 	private int timeoutCount;
+	
+	/***剩余的手牌****/
+	private List<Integer> cards;
 	
 	@Override
 	public String toLogStr() {

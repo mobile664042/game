@@ -85,7 +85,9 @@ function login(){
 		        alert(result.msg);
 				return ;
 			}
-			logoinToken = result.data
+			logoinToken = result.data;
+			$('#r_logout').removeAttr('disabled');
+			$('#j_join').removeAttr('disabled');
 	        alert("登录成功，你可以进入游戏啦!");
       	},
       	error: function (jqXHR, textStatus, errorThrown) {
@@ -136,7 +138,7 @@ function joinGameDesk(){
 	function onOpen(event) {
 		//一旦链接开始，尝试发出进入游戏
 		let reqJoinCmd = {
-			"code": 101003,
+			"cmd": 101003,
 			"playKind": $('#j_playerKind').val(),
 			"deskNo": $('#j_deskNo').val()
 		}
@@ -173,12 +175,119 @@ function joinGameDesk(){
 }
 
 
+function sitdown(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!connected){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!$('#s_position').val()){
+		alert("请先选择席位");
+	}
+	
+	//选择座位坐下
+	let reqSitdownCmd = {
+		"cmd": 102001,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val(),
+		"position": $('#s_position').val()
+	}
+	
+	//准备坐下	
+	let sendMessage = JSON.stringify(reqSitdownCmd);
+	webSocket.send(sendMessage);
+}
+
+
+function quickSitdown(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!connected){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	//选择座位坐下
+	let reqSitdownCmd = {
+		"cmd": 102004,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val()
+	}
+	
+	//准备快速坐下	
+	let sendMessage = JSON.stringify(reqSitdownCmd);
+	webSocket.send(sendMessage);
+}
+
+function standup(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!connected){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!position){
+		alert("你还未坐下");
+		return;
+	}
+	
+	//站起
+	let reqStandUpCmd = {
+		"cmd": 102007,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val(),
+		"position": $('#s_position').val()
+	}
+	
+	//站起
+	let sendMessage = JSON.stringify(reqStandUpCmd);
+	webSocket.send(sendMessage);
+}
+
+
+function ready(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!connected){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!position){
+		alert("你还未坐下");
+		return;
+	}
+	
+	//选择座位坐下
+	let reqReadyNextCmd = {
+		"cmd": 151001,
+		"playKind": $('#j_playerKind').val(),
+		"deskNo": $('#j_deskNo').val(),
+		"position": $('#s_position').val()
+	}
+	
+	//准备下一局
+	let sendMessage = JSON.stringify(reqReadyNextCmd);
+	webSocket.send(sendMessage);
+}
+
 //心跳检测
 setTimeout(sendHeartCheck(), 120000);
 function sendHeartCheck(){
 	if(connected){
 		let heartCmd = {
-			"code": 888888
+			"cmd": 888888
 		}
 		let sendMessage = JSON.stringify(heartCmd);
 		webSocket.send(sendMessage);
@@ -198,7 +307,7 @@ function leftGameDesk(){
 	}
 
 	let reqLeftCmd = {
-		"code": 101005,
+		"cmd": 101005,
 		"playKind": $('#j_playerKind').val(),
 		"deskNo": $('#j_deskNo').val()
 	}
@@ -218,7 +327,7 @@ function getOnlineList(){
 	}
 
 	let reqGetOnlineListCmd = {
-		"code": 101004,
+		"cmd": 101004,
 		"playKind": $('#j_playerKind').val(),
 		"deskNo": $('#j_deskNo').val()
 	}
@@ -238,7 +347,7 @@ function sendChat(){
 	}
 
 	let reqChatCmd = {
-		"code": 101006,
+		"cmd": 101006,
 		"playKind": $('#j_playerKind').val(),
 		"deskNo": $('#j_deskNo').val(),
 		"chat":{
@@ -252,6 +361,11 @@ function sendChat(){
 }
 
 function onDispather(rtnData){
+	if(!rtnData.hasOwnProperty("cmd")){
+		alert(JSON.stringify(rtnData));
+		return;
+	}
+	
 	if(rtnData.hasOwnProperty("code") && rtnData.code != 0){
 		alert(rtnData.message);
 		return;
@@ -294,6 +408,28 @@ function onDispather(rtnData){
 	    onPushSysChatCmd(rtnData);
 	    break;
 	    
+	    
+	    case 102001:
+	    onRtnGameSeatInfoCmd(rtnData);
+	    break;
+	    
+	    case 1102001:
+	    onPushSitdownCmd(rtnData);
+	    break;
+	    
+	    case 102007:
+	    onReqStandUpCmd(rtnData);
+	    break;
+	    
+	    case 151001:
+	    showMsg("已准备好了！");
+	    break;
+	    
+	    case 1151001:
+	    onPushReadyNextCmd(rtnData);
+	    break;
+	    
+	    
 	}
 }
 
@@ -322,6 +458,9 @@ function onRtnGameInfoCmd(rtnCmd){
 	if(rtnCmd.pauseMs > 0){
 		showMsg("游戏还需要暂停毫秒:" + rtnCmd.pauseMs);
 	}
+	$('#j_left').removeAttr('disabled');
+	$('#s_sitdown').removeAttr('disabled');
+	$('#s_quickSitdown').removeAttr('disabled');
 	
 	//@45@78@1
 	var strList = rtnCmd.address.split("@");
@@ -349,11 +488,11 @@ function onRtnGameInfoCmd(rtnCmd){
 	}
 	
 	//加载底牌
-	$('#p_currentProgress').html('');
+	$('#p_commonCards').html('');
 	extGameInfo.commonCards.forEach(function(element) {
 		//console.log(element);
 		let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
-		$('#p_currentProgress').html($('#p_currentProgress').html() + imgHtml);
+		$('#p_commonCards').html($('#p_currentProgress').html() + imgHtml);
 	});
 	if(extGameInfo.currentProgress == "sended"){
 		$('#p_currentProgress').css("background","blue");
@@ -449,3 +588,66 @@ function onPushSysChatCmd(pushCmd){
 }
 
 
+
+var seatReady = true;
+/***当前轮的跳过次数****/
+var skipCount;
+/***当前轮的跳过次数****/
+var timeoutCount;
+/***剩余的手牌****/
+var cards;
+
+function onRtnGameSeatInfoCmd(rtnCmd){
+	if(rtnCmd.nextMaster){
+		$('#s_nextMaster_img').attr('src','/img/head/' + rtnCmd.nextMaster.headPic + '.jpeg')
+		$('#s_nextMaster_img').attr('alt', '' + rtnCmd.nextMaster.id);
+		$('#s_nextMaster_label').html(rtnCmd.nextMaster.nickname);
+	}
+	$('#s_stopAssistant').html(rtnCmd.stopAssistant);
+	$('#s_broadcasting').html(rtnCmd.broadcasting);
+	$('#s_applyBroadcasted').html(rtnCmd.applyBroadcasted);
+	
+	$('#s_sitdown').attr('disabled', true);
+	$('#s_quickSitdown').attr('disabled', true);
+	$('#s_standup').removeAttr('disabled');
+	
+	currentPosition = pushCmd.position;
+	$('#s_position').val(currentPosition);
+	
+	seatReady = rtnCmd.ready;
+	skipCount = rtnCmd.skipCount;
+	timeoutCount = rtnCmd.timeoutCount;
+	cards = rtnCmd.cards;
+	
+	//显示剩余手牌
+	if(cards){
+		cards.forEach(function(subElement) {
+			let imgHtml = '<img alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
+			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
+		});
+	}
+}
+
+function onPushSitdownCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.player.id +'" class="headPic_item" src="/img/head/' + pushCmd.player.headPic + '.jpeg">'+ pushCmd.player.nickname +' 在'+ pushCmd.position +'席位中坐下了</div>';
+	showMsg(divHtml);
+}
+
+
+function onReqStandUpCmd(rtnCmd){
+	$('#s_sitdown').removeAttr('disabled');
+	$('#s_quickSitdown').removeAttr('disabled');
+	$('#s_standup').attr('disabled', true);
+	
+	$('#s_nextMaster_img').attr('src','')
+	$('#s_nextMaster_img').attr('alt', '');
+	$('#s_nextMaster_label').html('');
+	
+	let divHtml = '<div>你已席位中站起来了</div>';
+	showMsg(divHtml);
+}
+
+function onPushReadyNextCmd(pushCmd){
+	let divHtml = '<div>'+ pushCmd.position +'席位已准备好了</div>';
+	showMsg(divHtml);
+}

@@ -263,8 +263,8 @@ public class WebGameDispatcher {
 	private static ReqCmd parseReqCmd(String message) {
 		JSONObject jsonObject = JSON.parseObject(message);
 		
-		int code = jsonObject.getIntValue("code");
-		switch(code) {
+		int cmd = jsonObject.getIntValue("cmd");
+		switch(cmd) {
 		case ReqJoinCmd.CMD:
 			return JSON.parseObject(message, ReqJoinCmd.class);
 		case HeartCmd.CMD:
