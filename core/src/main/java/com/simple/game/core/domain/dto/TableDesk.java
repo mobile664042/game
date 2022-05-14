@@ -51,7 +51,7 @@ public class TableDesk implements AddressNo{
 	
 	public TableDesk(TableGame game) {
 		this.currentGame = game;
-		for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+		for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMaxPosition(); position++) {
 			GameSeat gameSeat = buildGameSeat(position); 
 			seatPlayingMap.put(position, gameSeat);
 		}
@@ -167,7 +167,7 @@ public class TableDesk implements AddressNo{
 		
 		gameSeat.standUp(player);
 		if(gameSeat.getFansCount() == 0) {
-			this.removeGameSeat(position);
+//			this.removeGameSeat(position);
 		}
 		logger.info("{}在席位:{}站起来了", player.getNickname(), gameSeat.getAddrNo());
 	}
@@ -260,9 +260,9 @@ public class TableDesk implements AddressNo{
 	protected GameSeat getGameSeat(int position) {
 		return seatPlayingMap.get(position);
 	}
-	protected GameSeat removeGameSeat(int position) {
-		return seatPlayingMap.remove(position);
-	}
+//	protected GameSeat removeGameSeat(int position) {
+//		return seatPlayingMap.remove(position);
+//	}
 	protected GameSeat getIdelGameSeat() {
 		for(GameSeat gameSeat : seatPlayingMap.values()) {
 			if(gameSeat.isIdle()) {

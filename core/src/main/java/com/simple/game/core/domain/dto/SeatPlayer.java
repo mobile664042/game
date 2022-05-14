@@ -12,9 +12,7 @@ import lombok.ToString;
  * @author zhibozhang
  *
  */
-//@Data
 @Getter
-@ToString
 public class SeatPlayer {
 	/***玩家****/
 	protected Player player;

@@ -3,7 +3,6 @@ package com.simple.game.core.domain.dto;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
 
 import lombok.Data;
-import lombok.ToString;
 
 /***
  * 游戏玩家
@@ -12,7 +11,6 @@ import lombok.ToString;
  *
  */
 @Data
-@ToString
 public class Player {
 	private long id;
 	/**名称***/

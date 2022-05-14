@@ -78,7 +78,7 @@ public class GameSeat implements AddressNo{
 	}
 	
 	public boolean isIdle(){
-		return this.master == null;
+		return this.getMaster().get() == null;
 	}
 	
 	public void handleChangeMaster() {
@@ -345,9 +345,10 @@ public class GameSeat implements AddressNo{
 			//主席位站起, 全部清空
 			doStandUpMaster();
 			this.clear();
+			master.set(null);
 			
 			//广播
-			logger.info("{}席位的全体同仁都站起来了");
+			logger.info("{}席位的全体同仁都站起来了", this.position);
 		}
 		else if(seatPlayer.getSeatPost() == SeatPost.assistant) {
 			//主席位站起

@@ -17,6 +17,8 @@ import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.manager.CoinManager;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameOverCmd;
+import com.simple.game.ddz.domain.cmd.push.game.notify.NotifySendCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
@@ -326,21 +328,21 @@ public class DdzDesk extends TableDesk{
 		//发送到客户端
 		{
 			GameSeat gameSeat = this.seatPlayingMap.get(1);
-			PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+			NotifySendCardCmd pushCmd = new NotifySendCardCmd();
 			pushCmd.setPosition(1);
 			pushCmd.getCards().addAll(this.ddzCard.getFirstCards());
 			gameSeat.broadcast(pushCmd);
 		}
 		{
 			GameSeat gameSeat = this.seatPlayingMap.get(2);
-			PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+			NotifySendCardCmd pushCmd = new NotifySendCardCmd();
 			pushCmd.setPosition(1);
 			pushCmd.getCards().addAll(this.ddzCard.getSecondCards());
 			gameSeat.broadcast(pushCmd);
 		}
 		{
 			GameSeat gameSeat = this.seatPlayingMap.get(3);
-			PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+			NotifySendCardCmd pushCmd = new NotifySendCardCmd();
 			pushCmd.setPosition(1);
 			pushCmd.getCards().addAll(this.ddzCard.getThirdCards());
 			gameSeat.broadcast(pushCmd);
@@ -459,9 +461,12 @@ public class DdzDesk extends TableDesk{
 		//处理逃跑的人
 		handleEscapeResult(gameResultRecord);
 		
+		//发送广播
+		NotifyGameOverCmd notifyCmd = NotifyGameOverCmd.valueOf(gameResultRecord);
+		this.getTableGame().broadcast(notifyCmd);
+		
 		//游戏进入下一轮
 		handleNext();
-		//发送广播
 	}
 	private void handleNext() {
 		currentProgress = GameProgress.ready;

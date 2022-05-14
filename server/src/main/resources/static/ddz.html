@@ -211,20 +211,20 @@ hr {
 							 
 							<div>
 								准备出的牌--&gt; <input type="text" value="120, 121, 123, 123, 123, 123, 123" style="height:30px; width: 330px" id="p_cards" placeholder="填写你要出的牌！" />
-								<button id="p_playCard">出牌</button>
+								<button id="p_playCard" onclick="playcard()" >出牌</button>
 								(尾号)花色规则：
 								0:♠  1:<font color="red" style="font-size: large;">♥</font>  2:♣  3:<font color="red" style="font-size: large;">♦</font>
 								201:大王
 								200:小王
 							</div>
 							<div>
-								<button id="p_skip">要不起</button>
-								<button id="p_robLandlord">抢地主</button>
-								<button id="p_rejectLandlord">不抢地主</button>
+								<button id="p_skip" onclick="skipPlaycard()">要不起</button>
+								<button id="p_robLandlord" onclick="robLandlord()">抢地主</button>
+								<button id="p_rejectLandlord" disabled="true">不抢地主</button>
 								<button id="p_ready" onclick="ready()">准备</button>
-								<button id="p_surrender">投降</button>
-								<button id="p_dubble">加倍</button>
-								<button id="p_showCard">明牌</button>
+								<button id="p_surrender onclick="surrender()">投降</button>
+								<button id="p_dubble" disabled="true">加倍</button>
+								<button id="p_showCard" disabled="true">明牌</button>
 							</div>
 						</div>
 					</fieldset>	
@@ -236,31 +236,31 @@ hr {
 							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写position" /> 
 							<br/>
 			
-							<button id="g_pause">暂停</button>
-							<button id="g_resume">恢复</button>
-							<button id="g_kickout">踢走</button>
-							<button id="g_applyManager">申请管理员</button>
-							<button id="g_changeManager">更换管理员</button>
+							<button id="g_pause" disabled="true">暂停</button>
+							<button id="g_resume" disabled="true">恢复</button>
+							<button id="g_kickout" disabled="true">踢走</button>
+							<button id="g_applyManager" disabled="true">申请管理员</button>
+							<button id="g_changeManager" disabled="true">更换管理员</button>
 							
 							<button id="g_getOnlineList" onclick="getOnlineList()">获取在线玩家</button>
-							<button id="g_getSeatPlayerList">获取席位粉丝</button>
-							<button id="g_getAssistantList">获取席位辅助</button>
-							<button id="g_applySeatSuccessor">申请席位继承人</button>
-							<button id="g_setSeatSuccessor">设置席位继承人</button>
-							<button id="g_applyAssistant">申请辅助</button>
-							<button id="g_aproveApplyAssistant">同意成为辅助</button>
-							<button id="g_applyBroadcastLive">申请直播</button>
-							<button id="g_cancleBroadcastLive">取消直播</button>
-							<button id="g_approveBroadcastLive">同意直播</button>
-							<button id="g_broadcastLive">直播</button>
-							<button id="g_reward">打賞</button>
+							<button id="g_getSeatPlayerList" onclick="getSeatPlayerList()">获取席位粉丝</button>
+							<button id="g_getAssistantList" onclick="getAssistantList()">获取席位辅助</button>
+							<button id="g_applySeatSuccessor" disabled="true">申请席位继承人</button>
+							<button id="g_setSeatSuccessor" disabled="true">设置席位继承人</button>
+							<button id="g_applyAssistant" disabled="true">申请辅助</button>
+							<button id="g_aproveApplyAssistant" disabled="true">同意成为辅助</button>
+							<button id="g_applyBroadcastLive" disabled="true">申请直播</button>
+							<button id="g_cancleBroadcastLive" disabled="true">取消直播</button>
+							<button id="g_approveBroadcastLive" disabled="true">同意直播</button>
+							<button id="g_broadcastLive" disabled="true">直播</button>
+							<button id="g_reward" disabled="true" disabled="true">打賞</button>
 			
-							<button id="g_stopOnlooker">取消旁观</button>
-							<button id="g_bootOnlooker">开启旁观</button>
-							<button id="g_stopAssistant">取消辅助</button>
-							<button id="g_bootAssistant">开启辅助</button>
-							<button id="g_sendflower">送花</button>
-							<button id="g_sendHeart">送爱心</button>
+							<button id="g_stopOnlooker" disabled="true">取消旁观</button>
+							<button id="g_bootOnlooker" disabled="true">开启旁观</button>
+							<button id="g_stopAssistant" disabled="true">取消辅助</button>
+							<button id="g_bootAssistant" disabled="true">开启辅助</button>
+							<button id="g_sendflower" disabled="true">送花</button>
+							<button id="g_sendHeart" disabled="true">送爱心</button>
 						</div>
 					</fieldset>	
 				</td>

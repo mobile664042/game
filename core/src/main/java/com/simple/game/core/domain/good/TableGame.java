@@ -102,6 +102,7 @@ public abstract class TableGame extends BaseGame{
 		player.setAddress(tableDesk);
 		
 		RtnGameInfoCmd rtnCmd = getGameInfo();
+		rtnCmd.setPlayerId(player.getId());
 		logger.info("{}进入{}游戏, 返回:{} ", player.getNickname(), gameItem.getName(), rtnCmd.toLogStr());
 		return rtnCmd;
 	}
