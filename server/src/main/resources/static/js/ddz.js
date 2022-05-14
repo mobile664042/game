@@ -1002,17 +1002,27 @@ function onReqRobLandlordCmd(rtnCmd){
 	extGameInfo.commonCards = rtnCmd.cards;
 	if(extGameInfo.commonCards){
 		//加载底牌
-		extGameInfo.commonCards.forEach(function(element, index) {
+		extGameInfo.commonCards.forEach(function(element) {
 			//console.log(element);
 			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
 			
 			//自己的手牌也要加上
+			extSeatInfo.cards[extSeatInfo.cards.length] = element;
+		});
+		
+		//重新加载排序
+		extSeatInfo.cards.sort(mysort);
+		$('#p_residue_cards').html('');
+		extSeatInfo.cards.forEach(function(element) {
 			imgHtml = '<img id="p_mycard'+ element +'" alt="'+ element +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
-			extSeatInfo.cards[extSeatInfo.cards.length+index] = element;
 		});
 	}
+}
+
+function mysort(a,b){
+	return a-b;
 }
 
 function onPushRobLandlordCmd(pushCmd){
