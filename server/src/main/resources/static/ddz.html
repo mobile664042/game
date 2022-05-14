@@ -210,14 +210,8 @@ hr {
 							</div>
 							 
 							<div>
-								准备出的牌--&gt; <input type="text" value="120, 121, 123, 123, 123, 123, 123" style="height:30px; width: 330px" id="p_cards" placeholder="填写你要出的牌！" />
-								<button id="p_playCard" onclick="playcard()" >出牌</button><label id="p_leftSecond" title="倒计时"></label>
-								(尾号)花色规则：
-								0:♠  1:<font color="red" style="font-size: large;">♥</font>  2:♣  3:<font color="red" style="font-size: large;">♦</font>
-								201:大王
-								200:小王
-							</div>
-							<div>
+								<button id="p_playCard" onclick="playcard()">出牌</button>
+								<label id="p_leftSecond" style="margin-right:5px;"  title="倒计时"></label>
 								<button id="p_skip" onclick="skipPlaycard()">要不起</button>
 								<button id="p_robLandlord" onclick="robLandlord()">抢地主</button>
 								<button id="p_rejectLandlord" disabled="true">不抢地主</button>

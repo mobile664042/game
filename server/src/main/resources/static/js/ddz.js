@@ -302,20 +302,16 @@ function playcard(){
 		return;
 	}
 	
+	let cardList = [];
+	$("img[name=selectedCard").each(function(index, element) {
+		let card = parseInt(element.alt); 
+		cardList[index] = card;
+	});
 	
-	let mycards = $('#p_cards').val();
-	if(!mycards){
+	if(cardList.length == 0){
 		alert("请选择你要出的牌");
 		return;
 	}
-	
-	let array = mycards.split(",");
-	
-	let cardList = [];
-	array.forEach(function(element, index) {
-		let card = parseInt(element); 
-		cardList[index] = card;
-	});
 	
 	if(extGameInfo.currentProgress != 'robbedLandlord'){
 		alert("还未到打牌阶段");
@@ -498,6 +494,18 @@ function getAssistantList(){
 	let sendMessage = JSON.stringify(reqGetAssistantListCmd);
 	console.log("发送：" + sendMessage);
 	webSocket.send(sendMessage);
+}
+
+function selectCard(cardImg){
+	let cardItem = $(cardImg);
+	if(cardItem.attr('name')){
+		cardItem.attr('name', '');
+		cardItem.css("margin-bottom","0px");
+	}
+	else{
+		cardItem.attr('name', 'selectedCard');
+		cardItem.css("margin-bottom","12px");
+	}
 }
 
 //心跳检测
@@ -719,7 +727,9 @@ function showMsg(message){
 		let content = $('#s_show').html().substring(str.length-1000);
 		$('#s_show').html(content);
 	}
-	$("#s_show").scrollTop($("#s_show").scrollHeight);
+	//$("#s_show").scrollTop($("#s_show").scrollHeight));
+	let s_show = document.getElementById('s_show');
+	s_show.scrollTop = s_show.scrollHeight;
 }
 function chatMsg(message){
 	$('#c_chatPanel').html($('#c_chatPanel').html() + "<br/>" + message);
@@ -727,9 +737,24 @@ function chatMsg(message){
 	let size = $('#c_chatPanel').html().length;
 	if(size > 1000){
 		let content = $('#c_chatPanel').html().substring(str.length-1000);
-		$('#s_show').html(content);
+		$('#c_chatPanel').html(content);
 	}
-	$("#c_chatPanel").scrollTop($("#c_chatPanel").scrollHeight);
+	//$("#c_chatPanel").scrollTop($("#c_chatPanel").scrollHeight));
+	let c_chatPanel = document.getElementById('c_chatPanel');
+	c_chatPanel.scrollTop = c_chatPanel.scrollHeight;
+}
+
+function deskMsg(message){
+	$('#p_deskPanel').html($('#p_deskPanel').html() + message);
+	
+	let size = $('#p_deskPanel').html().length;
+	if(size > 1000){
+		let content = $('#p_deskPanel').html().substring(str.length-1000);
+		$('#p_deskPanel').html(content);
+	}
+	//$("#p_deskPanel").scrollTop($("#p_deskPanel").scrollHeight));
+	let p_deskPanel = document.getElementById('p_deskPanel');
+	p_deskPanel.scrollTop = p_deskPanel.scrollHeight;
 }
 
 /////////////---------具体游戏部分--------///////////////////////
@@ -842,13 +867,14 @@ function onRtnGameInfoCmd(rtnCmd){
 			if(element.cards){
 				element.cards.forEach(function(subElement) {
 					let imgHtml = '<img alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
-					$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
+					//$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
+					deskMsg(imgHtml);
 				});
 			}
-			$('#p_deskPanel').html($('#p_deskPanel').html() + '<hr/>');
+			deskMsg('<hr/>');
 		});
 	}
-	$('#p_deskPanel').html($('#p_deskPanel').html() + '<hr/>');
+	deskMsg('<hr/>');
 	
 	if(extGameInfo.currentProgress == "surrender"){
 		$('#p_currentProgress').css("background","darkred")
@@ -926,7 +952,7 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 	//显示剩余手牌
 	if(extSeatInfo.cards){
 		extSeatInfo.cards.forEach(function(subElement) {
-			let imgHtml = '<img id="p_mycard'+ subElement +'" alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
+			let imgHtml = '<img id="p_mycard'+ subElement +'" alt="'+ subElement +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
 			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
 		});
 	}
@@ -978,7 +1004,7 @@ function onReqRobLandlordCmd(rtnCmd){
 		//加载底牌
 		extGameInfo.commonCards.forEach(function(element, index) {
 			//console.log(element);
-			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
+			let imgHtml = '<img alt="'+ element +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
 			
 			//自己的手牌也要加上
@@ -1037,13 +1063,13 @@ function onReqPlayCardCmd(rtnCmd){
 		//将牌加入到已出的牌中
 		extSeatInfo.willLeftCards.forEach(function(element) {
 			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
-			$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
+			deskMsg(imgHtml);
 		});
 	}
 	else{
-		$("#p_deskPanel").html($("#p_deskPanel").html() + '不出');
+		deskMsg('不出');
 	}
-	$("#p_deskPanel").html($("#p_deskPanel").html() + '<hr/>');
+	deskMsg('<hr/>');
 	
 	extSeatInfo.willLeftCards = [];
 	$('#p_cards').val('');
@@ -1082,13 +1108,13 @@ function onPushPlayCardCmd(pushCmd){
 	if(pushCmd.cards && pushCmd.cards.length > 0){
 		pushCmd.cards.forEach(function(element) {
 			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
-			$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
+			deskMsg(imgHtml);
 		});
 	}
 	else{
-		$("#p_deskPanel").html($("#p_deskPanel").html() + '要不起');
+		deskMsg('要不起');
 	}
-	$('#p_deskPanel').html($('#p_deskPanel').html() + '<hr/>');
+	deskMsg('<hr/>');
 	
 	leftSecond=12;
 	let nextPosition = pushCmd.position + 1;
@@ -1138,7 +1164,7 @@ function onNotifySendCardCmd(rtnCmd){
 	$('#p_residue_cards').html('');
 	if(extSeatInfo.cards){
 		extSeatInfo.cards.forEach(function(subElement) {
-			let imgHtml = '<img id="p_mycard'+ subElement +'" alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
+			let imgHtml = '<img id="p_mycard'+ subElement +'" alt="'+ subElement +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
 			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
 		});
 	}
