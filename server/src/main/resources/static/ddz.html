@@ -180,7 +180,7 @@ hr {
 						<legend>打牌</legend>
 						<div>
 							<div>
-							 	剩余的手牌--&gt;  
+							 	剩余的手牌--&gt;  <label id="p_leftSecond" title="倒计时"></label>
 							 	<div style="padding-bottom: 15px" id="p_residue_cards">
 									<img alt="3" class="pkPic_item" src="/img/pk/30.png">
 									<img alt="4" class="pkPic_item" src="/img/pk/41.png">
@@ -211,7 +211,6 @@ hr {
 							 
 							<div>
 								<button id="p_playCard" onclick="playcard()">出牌</button>
-								<label id="p_leftSecond" style="margin-right:5px;"  title="倒计时"></label>
 								<button id="p_skip" onclick="skipPlaycard()">要不起</button>
 								<button id="p_robLandlord" onclick="robLandlord()">抢地主</button>
 								<button id="p_rejectLandlord" disabled="true">不抢地主</button>

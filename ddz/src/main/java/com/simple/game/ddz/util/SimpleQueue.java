@@ -9,7 +9,6 @@ package com.simple.game.ddz.util;
 public class SimpleQueue<T> {
 	private final  T[] data;
 	private int index = 0;
-	private T last;
 	
 	@SuppressWarnings("unchecked")
 	public SimpleQueue(int capacity) {
@@ -26,10 +25,6 @@ public class SimpleQueue<T> {
 		}
 		data[index] = item;
 		
-		if(item != null) {
-			last = item;
-		}
-		
 		++index;
 	}
 	public void clear() {
@@ -40,7 +35,6 @@ public class SimpleQueue<T> {
 	}
 	
 	public boolean isNull() {
-//		for(int i=0; i<=index; i++) {
 		for(int i=0; i<index; i++) {
 			if(data[i] != null) {
 				return false;
@@ -53,7 +47,12 @@ public class SimpleQueue<T> {
 		return data[index];
 	}
 	public T getLast() {
-		return last;
+		for(int i=data.length-1; i>=0; i--) {
+			if(data[i] != null) {
+				return data[i];
+			}
+		}
+		return null;
 	}
 	public T getFirst() {
 		return data[0];

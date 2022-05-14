@@ -464,10 +464,10 @@ public class DdzDesk extends TableDesk{
 		
 		GameResultRecord gameResultRecord = null;
 		if(currentProgress == GameProgress.gameover) {
-			handleNormalResult();
+			gameResultRecord = handleNormalResult();
 		}
 		else if(currentProgress == GameProgress.surrender) {
-			handleSurrenderResult();
+			gameResultRecord = handleSurrenderResult();
 		}
 		
 		//处理逃跑的人
@@ -521,7 +521,7 @@ public class DdzDesk extends TableDesk{
 		}
 	}
 	
-	private void handleNormalResult() {
+	private GameResultRecord handleNormalResult() {
 		int doubleCount = this.ddzCard.getDoubleCount();
 		if(this.ddzCard.isSpring()) {
 			doubleCount += 1;
@@ -608,6 +608,8 @@ public class DdzDesk extends TableDesk{
 			}
 		}
 		ResultManager.save(gameResultRecord);
+		
+		return gameResultRecord;
 	}
 	
 	/***

@@ -79,6 +79,21 @@ public class DdzRuler {
 				throw new BizException("这两个牌型相同，但数量不相等不可以比较大小");
 			}
 			
+			if(o.type == CardType.single) {
+				if(cards.get(0) == PokerKind.STRONG_KING) {
+					return 1;
+				}
+				else if(o.cards.get(0) == PokerKind.STRONG_KING) {
+					return -1;
+				}
+				else if(o.cards.get(0) == PokerKind.WEAK_KING) {
+					return 1;
+				}
+				else if(o.cards.get(0) == PokerKind.STRONG_KING) {
+					return -1;
+				}
+			}
+			
 			//牌型想同时
 			if(masterCard == 2) {
 				return 1;
@@ -136,7 +151,7 @@ public class DdzRuler {
 			return spanCard;
 		}
 		if(list.size() == 3) {
-			if(list.get(0)/10 == list.get(1)/10 && list.get(1) == list.get(2)/10) {
+			if(list.get(0)/10 == list.get(1)/10 && list.get(1)/10 == list.get(2)/10) {
 				spanCard.type = CardType.three;
 				spanCard.masterCard = list.get(0)/10; 
 				return spanCard;	
@@ -144,17 +159,17 @@ public class DdzRuler {
 			throw new BizException("无效的牌型");
 		}
 		if(list.size() == 4) {
-			if(list.get(0)/10 == list.get(1)/10 && list.get(1) == list.get(2)/10 && list.get(2) == list.get(3)/10) {
+			if(list.get(0)/10 == list.get(1)/10 && list.get(1)/10 == list.get(2)/10 && list.get(2)/10 == list.get(3)/10) {
 				spanCard.type = CardType.plain_bombs;
 				spanCard.masterCard = list.get(0)/10;
 				return spanCard;	
 			}
-			if(list.get(0)/10 == list.get(1)/10 && list.get(1) == list.get(2)/10) {
+			if(list.get(0)/10 == list.get(1)/10 && list.get(1)/10 == list.get(2)/10) {
 				spanCard.type = CardType.three_one;
 				spanCard.masterCard = list.get(0)/10;
 				return spanCard;	
 			}
-			if(list.get(1)/10 == list.get(2)/10 && list.get(2) == list.get(3)/10) {
+			if(list.get(1)/10 == list.get(2)/10 && list.get(2)/10 == list.get(3)/10) {
 				spanCard.type = CardType.three_one;
 				spanCard.masterCard = list.get(1)/10;
 				return spanCard;	
@@ -162,17 +177,17 @@ public class DdzRuler {
 			throw new BizException("无效的牌型");
 		}
 		if(list.size() == 5) {
-			if(list.get(0)/10 == list.get(1)/10 && list.get(1) == list.get(2)/10 && list.get(2) == list.get(3)/10) {
+			if(list.get(0)/10 == list.get(1)/10 && list.get(1)/10 == list.get(2)/10 && list.get(2)/10 == list.get(3)/10) {
 				spanCard.type = CardType.four_one;
 				spanCard.masterCard = list.get(0)/10;
 				return spanCard;	
 			}
-			if(list.get(1)/10 == list.get(2)/10 && list.get(2) == list.get(3)/10 && list.get(3) == list.get(4)/10) {
+			if(list.get(1)/10 == list.get(2)/10 && list.get(2)/10 == list.get(3)/10 && list.get(3)/10 == list.get(4)/10) {
 				spanCard.type = CardType.four_one;
 				spanCard.masterCard = list.get(1)/10;
 				return spanCard;	
 			}
-			if(list.get(0)/10 == list.get(1)/10 && list.get(1) == list.get(2)/10) {
+			if(list.get(0)/10 == list.get(1)/10 && list.get(1)/10 == list.get(2)/10) {
 				if(list.get(3)/10 == list.get(4)/10) {
 					spanCard.type = CardType.three_twin;
 					spanCard.masterCard = list.get(1)/10;
@@ -180,7 +195,7 @@ public class DdzRuler {
 				}
 				throw new BizException("无效的牌型");
 			}
-			if(list.get(2)/10 == list.get(3)/10 && list.get(3) == list.get(4)/10) {
+			if(list.get(2)/10 == list.get(3)/10 && list.get(3)/10 == list.get(4)/10) {
 				if(list.get(0)/10 == list.get(1)/10) {
 					spanCard.type = CardType.three_twin;
 					spanCard.masterCard = list.get(2)/10;
@@ -197,12 +212,12 @@ public class DdzRuler {
 			throw new BizException("无效的牌型");
 		}
 		if(list.size() == 6) {
-			if(list.get(0)/10 == list.get(1)/10 && list.get(1) == list.get(2)/10 && list.get(2) == list.get(3)/10) {
+			if(list.get(0)/10 == list.get(1)/10 && list.get(1)/10 == list.get(2)/10 && list.get(2) == list.get(3)/10) {
 				spanCard.type = CardType.four_two;
 				spanCard.masterCard = list.get(0)/10;
 				return spanCard;	
 			}
-			if(list.get(2)/10 == list.get(3)/10 && list.get(3) == list.get(4)/10 && list.get(4) == list.get(5)/10) {
+			if(list.get(2)/10 == list.get(3)/10 && list.get(3)/10 == list.get(4)/10 && list.get(4) == list.get(5)/10) {
 				spanCard.type = CardType.four_two;
 				spanCard.masterCard = list.get(2)/10;
 				return spanCard;	
@@ -240,7 +255,16 @@ public class DdzRuler {
 	static boolean isOrderCard(List<Integer> order) {
 		for(int i=0; i<order.size() -1; i++) {
 			if(order.get(i) / 10 != (order.get(i+1) / 10) -1) {
-				return false;
+				if(i == 0 && order.get(i) / 10 == 1) {
+					//如果第一张牌是A, 需要最后一张牌是否是K
+					Integer last = order.get(order.size() -1) / 10;
+					if(last != 13) {
+						return false;	
+					}
+				}
+				else {
+					return false;
+				}
 			}
 		}
 		return true;

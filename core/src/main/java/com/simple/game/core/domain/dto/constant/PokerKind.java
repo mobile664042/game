@@ -19,6 +19,7 @@ import java.util.Random;
  */
 public enum PokerKind {
 	
+	
 	C_52(
 			10,11,12,13,
 			20,21,22,23,
@@ -49,9 +50,10 @@ public enum PokerKind {
 			110,111,112,113,
 			120,121,122,123,
 			130,131,132,133,
-			200,201
+			PokerKind.WEAK_KING,PokerKind.STRONG_KING
 	);
-	
+	public static final int STRONG_KING = 201;
+	public static final int WEAK_KING = 200;
 	private List<Integer> cards;
 	
 	private PokerKind(int ...list) {

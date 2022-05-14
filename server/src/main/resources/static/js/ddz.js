@@ -723,8 +723,8 @@ function showMsg(message){
 	$('#s_show').html($('#s_show').html() + "<br/>" + message);
 
 	let size = $('#s_show').html().length;
-	if(size > 1000){
-		let content = $('#s_show').html().substring(str.length-1000);
+	if(size > 10000){
+		let content = $('#s_show').html().substring($('#s_show').html().length-10000);
 		$('#s_show').html(content);
 	}
 	//$("#s_show").scrollTop($("#s_show").scrollHeight));
@@ -735,8 +735,8 @@ function chatMsg(message){
 	$('#c_chatPanel').html($('#c_chatPanel').html() + "<br/>" + message);
 	
 	let size = $('#c_chatPanel').html().length;
-	if(size > 1000){
-		let content = $('#c_chatPanel').html().substring(str.length-1000);
+	if(size > 10000){
+		let content = $('#c_chatPanel').html().substring($('#c_chatPanel').html().length-10000);
 		$('#c_chatPanel').html(content);
 	}
 	//$("#c_chatPanel").scrollTop($("#c_chatPanel").scrollHeight));
@@ -748,8 +748,8 @@ function deskMsg(message){
 	$('#p_deskPanel').html($('#p_deskPanel').html() + message);
 	
 	let size = $('#p_deskPanel').html().length;
-	if(size > 1000){
-		let content = $('#p_deskPanel').html().substring(str.length-1000);
+	if(size > 10000){
+		let content = $('#p_deskPanel').html().substring($('#p_deskPanel').html().length-10000);
 		$('#p_deskPanel').html(content);
 	}
 	//$("#p_deskPanel").scrollTop($("#p_deskPanel").scrollHeight));
@@ -1004,10 +1004,11 @@ function onReqRobLandlordCmd(rtnCmd){
 		//加载底牌
 		extGameInfo.commonCards.forEach(function(element, index) {
 			//console.log(element);
-			let imgHtml = '<img alt="'+ element +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + element + '.png">';
+			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
 			
 			//自己的手牌也要加上
+			imgHtml = '<img id="p_mycard'+ element +'" alt="'+ element +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
 			extSeatInfo.cards[extSeatInfo.cards.length+index] = element;
 		});
@@ -1037,7 +1038,7 @@ function onPushRobLandlordCmd(pushCmd){
 
 function onReqPlayCardCmd(rtnCmd){
 	//地主;
-	if(rtnCmd.position == extGameInfo.landlordPosition){
+	if(extGameInfo.currentPosition == extGameInfo.landlordPosition){
 		let spanHtml = '<span class="landlord_item">我: </span>';
 		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
 	}
@@ -1053,7 +1054,6 @@ function onReqPlayCardCmd(rtnCmd){
 			    if (extSeatInfo.cards[i] == extSeatInfo.willLeftCards[j] ) {
 					//删除图片
 					$('#p_mycard'+extSeatInfo.cards[i]).remove();
-				
 			        extSeatInfo.cards.splice(i, 1);
 			        break;
 			    }
