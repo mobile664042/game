@@ -5,8 +5,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.util.SimpleQueue;
 
 import lombok.Getter;
@@ -22,6 +26,8 @@ import lombok.Getter;
  */
 @Getter
 public class DdzCard {
+	private static Logger logger = LoggerFactory.getLogger(DdzCard.class);
+	
 	/****全部牌***/
 	private final List<Integer> allCards = new LinkedList<Integer>();
 	/****公共牌(每一轮完成之前，保持不变)***/
@@ -52,7 +58,7 @@ public class DdzCard {
 	
 	
 	
-	public void setLandlord(int position) {
+	public RtnRobLandlordCmd setLandlord(int position) {
 		landlordPosition = position;
 		currentPosition = position;
 		if(landlordPosition == 1) {
@@ -70,6 +76,9 @@ public class DdzCard {
 			//自动排序，方便后面自动过最小牌
 			Collections.sort(thirdCards);
 		}
+		RtnRobLandlordCmd rtnCmd = new RtnRobLandlordCmd();
+		rtnCmd.setCards(commonCards);
+		return rtnCmd;
 	}
 	
 	public void shuffleCards() {
@@ -91,6 +100,8 @@ public class DdzCard {
 		Collections.sort(firstCards);
 		Collections.sort(secondCards);
 		Collections.sort(thirdCards);
+		
+		logger.info("发牌: common:{}  \n 1:{} \n 2:{} \n 3:{}", commonCards, firstCards, secondCards, thirdCards);
 	}
 
 	

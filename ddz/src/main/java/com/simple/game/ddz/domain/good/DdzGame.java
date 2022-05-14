@@ -16,7 +16,7 @@ import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
-import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
@@ -95,10 +95,11 @@ public class DdzGame extends TableGame{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public void robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
+	public RtnRobLandlordCmd robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		getDdzDesk().robLandlord(playerId, position, score, outParam);
+		RtnRobLandlordCmd rtnCmd = getDdzDesk().robLandlord(playerId, position, score, outParam);
 		logger.info("{}抢地主,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), tableDesk.getAddrNo(), position);
+		return rtnCmd;
 	}
 	
 	/***

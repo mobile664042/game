@@ -25,6 +25,7 @@ import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd.OutCard;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.DoubleKind;
@@ -58,6 +59,8 @@ public class DdzDesk extends TableDesk{
 
 	/***是否在进行中****/
 	protected GameProgress currentProgress = GameProgress.ready;
+	private boolean settling = false;
+	
 	
 	/***投降位***/
 	protected int surrenderPosition;
@@ -70,7 +73,7 @@ public class DdzDesk extends TableDesk{
 	/***最近一次过牌时间***/
 	protected long lastPlayCardTime;
 	
-	public synchronized boolean onScan() {
+	public /* synchronized */ boolean onScan() {
 		if(currentProgress == GameProgress.ready) {
 			if(this.currentGame.getOnlineCount() == 0) {
 				return false;
@@ -78,7 +81,7 @@ public class DdzDesk extends TableDesk{
 			
 			int readyCount = 0;
 			handleDisconnectPlayer();
-			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMaxPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 				if(gameSeat == null) {
 					logger.error("系统有重大bug!!! 席位没找到");
@@ -90,12 +93,12 @@ public class DdzDesk extends TableDesk{
 					forceStandUpPosition(gameSeat);
 				}
 				
-				if(!gameSeat.isReady()) {
+				if(gameSeat.getMaster().get() == null) {
 					return false;
 				}
 				readyCount++;
 			}
-			if(readyCount <= 3) {
+			if(readyCount < 3) {
 				return false;
 			}
 			
@@ -110,15 +113,16 @@ public class DdzDesk extends TableDesk{
 			shuffleCards();
 			//2.发牌，3.出牌
 			sendCards();
-			currentProgress = GameProgress.sended;		
+			currentProgress = GameProgress.sended;	
+			return true;
 		}
 		else if(currentProgress == GameProgress.sended) {
 			//判断等待抢地主是否超时
-			handleWaitRobLandlordTimeout();
+			return handleWaitRobLandlordTimeout();
 		}
 		else if(currentProgress == GameProgress.robbedLandlord) {
 			//判断等待出牌是否超时
-			handleWaitPlayCardTimeout();
+			return handleWaitPlayCardTimeout();
 		}
 		else if(currentProgress == GameProgress.gameover || currentProgress == GameProgress.surrender ) {
 			//结算游戏
@@ -361,16 +365,17 @@ public class DdzDesk extends TableDesk{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public synchronized void robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
+	public synchronized RtnRobLandlordCmd robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.sended) {
 			throw new BizException("不是发完牌状态，无法进行抢地主");
 		}
 		
 		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
-		this.ddzCard.setLandlord(position);
+		RtnRobLandlordCmd rtnCmd = this.ddzCard.setLandlord(position);
 		currentProgress = GameProgress.robbedLandlord;
 		
 		outParam.setParam(seatPlayer);
+		return rtnCmd;
 	}
 	
 	
@@ -444,11 +449,15 @@ public class DdzDesk extends TableDesk{
 	/***
 	 * 游戏结算
 	 */
-	private void settle() {
+	private boolean settle() {
 		if(currentProgress != GameProgress.gameover && currentProgress != GameProgress.surrender) {
 			logger.error("游戏出现严重的bug，状态不对就调用了");
 			throw new BizException("游戏还未结束");
 		}
+		if(settling) {
+			return false;
+		}
+		settling = true;
 		
 		GameResultRecord gameResultRecord = null;
 		if(currentProgress == GameProgress.gameover) {
@@ -467,6 +476,8 @@ public class DdzDesk extends TableDesk{
 		
 		//游戏进入下一轮
 		handleNext();
+		settling = false;
+		return true;
 	}
 	private void handleNext() {
 		currentProgress = GameProgress.ready;

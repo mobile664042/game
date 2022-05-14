@@ -242,8 +242,8 @@ public class WebGameDispatcher {
 				return ;
 			}
 			else if(reqCmd instanceof ReqRobLandlordCmd) {
-				ddzService.robLandlord((ReqRobLandlordCmd)reqCmd);
-				responseReq(reqCmd, gameSession);
+				RtnCmd rtnCmd = ddzService.robLandlord((ReqRobLandlordCmd)reqCmd);
+				writeRtnCmd(rtnCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqSurrenderCmd) {

@@ -11,6 +11,7 @@ import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.good.DdzGame;
 import com.simple.game.ddz.domain.manager.DdzGameManager;
 
@@ -56,14 +57,16 @@ public class DdzService extends TableService{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public void robLandlord(ReqRobLandlordCmd reqCmd) {
+	public RtnRobLandlordCmd robLandlord(ReqRobLandlordCmd reqCmd) {
 		DdzGame tableGame = (DdzGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
 		OutParam<SeatPlayer> outParam = OutParam.build();
-		tableGame.robLandlord(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getScore(), outParam);
+		RtnRobLandlordCmd rtnCmd = tableGame.robLandlord(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getScore(), outParam);
 		PushRobLandlordCmd pushCmd = reqCmd.valueOfPushRobLandlordCmd();
+		pushCmd.setCards(rtnCmd.getCards());
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+		return rtnCmd;
 	}
 	
 	/***
