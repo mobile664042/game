@@ -713,9 +713,23 @@ function onDispather(rtnData){
 
 function showMsg(message){
 	$('#s_show').html($('#s_show').html() + "<br/>" + message);
+
+	let size = $('#s_show').html().length;
+	if(size > 1000){
+		let content = $('#s_show').html().substring(str.length-1000);
+		$('#s_show').html(content);
+	}
+	$("#s_show").scrollTop($("#s_show").scrollHeight);
 }
 function chatMsg(message){
 	$('#c_chatPanel').html($('#c_chatPanel').html() + "<br/>" + message);
+	
+	let size = $('#c_chatPanel').html().length;
+	if(size > 1000){
+		let content = $('#c_chatPanel').html().substring(str.length-1000);
+		$('#s_show').html(content);
+	}
+	$("#c_chatPanel").scrollTop($("#c_chatPanel").scrollHeight);
 }
 
 /////////////---------具体游戏部分--------///////////////////////
@@ -998,18 +1012,18 @@ function onPushRobLandlordCmd(pushCmd){
 function onReqPlayCardCmd(rtnCmd){
 	//地主;
 	if(rtnCmd.position == extGameInfo.landlordPosition){
-		let spanHtml = '<span class="landlord_item">' + rtnCmd.position +'我: </span>';
+		let spanHtml = '<span class="landlord_item">我: </span>';
 		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
 	}
 	else{
-		let spanHtml = '<span class="farmer_item">' + rtnCmd.position +'我: </span>';
+		let spanHtml = '<span class="farmer_item">我: </span>';
 		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
 	}
 	
 	if(extSeatInfo.willLeftCards && extSeatInfo.willLeftCards.length > 0){
 		//删除剩余的牌
 		for (let i = extSeatInfo.cards.length - 1; i >= 0; i--) {
-			for (let j = 0; j < extSeatInfo.willLeftCards.length-1; j++) {
+			for (let j = 0; j < extSeatInfo.willLeftCards.length; j++) {
 			    if (extSeatInfo.cards[i] == extSeatInfo.willLeftCards[j] ) {
 					//删除图片
 					$('#p_mycard'+extSeatInfo.cards[i]).remove();
@@ -1029,6 +1043,7 @@ function onReqPlayCardCmd(rtnCmd){
 	else{
 		$("#p_deskPanel").html($("#p_deskPanel").html() + '不出');
 	}
+	$("#p_deskPanel").html($("#p_deskPanel").html() + '<hr/>');
 	
 	extSeatInfo.willLeftCards = [];
 	$('#p_cards').val('');
@@ -1038,25 +1053,42 @@ function onReqPlayCardCmd(rtnCmd){
 function onPushPlayCardCmd(pushCmd){
 	//地主;
 	if(pushCmd.position == extGameInfo.landlordPosition){
-		let spanHtml = '<span class="landlord_item">' + element.position +': </span>';
+		let spanHtml = '<span class="landlord_item">' + pushCmd.position +': </span>';
 		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
 	}
 	else{
-		let spanHtml = '<span class="farmer_item">' + element.position +': </span>';
+		let spanHtml = '<span class="farmer_item">' + pushCmd.position +': </span>';
 		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
 	}
 	
-	if(pushCmd.cards){
+	//判断是不是超时被强制出牌
+	if(pushCmd.position == extGameInfo.currentPosition){
+		//删除剩余的牌
+		for (let i = extSeatInfo.cards.length - 1; i >= 0; i--) {
+			for (let j = 0; j < pushCmd.cards.length; j++) {
+			    if (extSeatInfo.cards[i] == pushCmd.cards[j] ) {
+					//删除图片
+					$('#p_mycard'+extSeatInfo.cards[i]).remove();
+				
+			        extSeatInfo.cards.splice(i, 1);
+			        break;
+			    }
+			}
+		}
+		let divHtml = '<div>你超时被强制出牌！</div>';
+		showMsg(divHtml);
+	}
+	
+	if(pushCmd.cards && pushCmd.cards.length > 0){
 		pushCmd.cards.forEach(function(element) {
 			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
 		});
 	}
 	else{
-		$("#p_deskPanel").html($("#p_deskPanel").html() + '不出');
+		$("#p_deskPanel").html($("#p_deskPanel").html() + '要不起');
 	}
 	$('#p_deskPanel').html($('#p_deskPanel').html() + '<hr/>');
-	
 	
 	leftSecond=12;
 	let nextPosition = pushCmd.position + 1;
@@ -1064,7 +1096,7 @@ function onPushPlayCardCmd(pushCmd){
 		nextPosition = 1;
 	}
 	
-	leftSecondMsg="等待'+ nextPosition +'席位出牌";
+	leftSecondMsg='等待'+ nextPosition +'席位出牌';
 	if(extSeatInfo && extSeatInfo.currentPosition == nextPosition){
 		leftSecondMsg="等待我出牌";
 	}

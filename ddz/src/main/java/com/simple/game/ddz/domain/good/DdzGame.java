@@ -13,9 +13,6 @@ import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.exception.BizException;
-import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
-import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
-import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
@@ -55,8 +52,8 @@ public class DdzGame extends TableGame{
 		}
 		
 		preReadyNext(player);
-		PushReadyNextCmd result = getDdzDesk().readyNext(playerId, position, outParam);
-		this.broadcast(result, playerId);
+		getDdzDesk().readyNext(playerId, position, outParam);
+//		this.broadcast(result, playerId);
 		logger.info("{}已准备进行新一轮了,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), tableDesk.getAddrNo(), position);
 	}
 	protected void preReadyNext(Player player) {
@@ -110,8 +107,8 @@ public class DdzGame extends TableGame{
 	 */
 	public void playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		PushPlayCardCmd result = getDdzDesk().playCard(playerId, position, cards, outParam);
-		this.broadcast(result, playerId);
+		getDdzDesk().playCard(playerId, position, cards, outParam);
+//		this.broadcast(result, playerId);
 		logger.info("{}出牌,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), tableDesk.getAddrNo(), position);
 	}
 	
@@ -124,8 +121,8 @@ public class DdzGame extends TableGame{
 	 */
 	public void surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		this.operatorVerfy();
-		PushSurrenderCmd result = getDdzDesk().surrender(playerId, position, outParam);
-		this.broadcast(result, playerId);
+		getDdzDesk().surrender(playerId, position, outParam);
+//		this.broadcast(result, playerId);
 		logger.info("{}投降认输,所在席位:{}--{}--{}", outParam.getParam().getPlayer().getNickname(), gameItem.getName(), tableDesk.getAddrNo(), outParam.getParam().getGameSeat().getPosition());
 	}
 	

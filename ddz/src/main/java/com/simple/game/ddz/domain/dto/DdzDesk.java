@@ -280,6 +280,8 @@ public class DdzDesk extends TableDesk{
 		
 		//广播
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+		pushCmd.setPlayKind(pushCmd.getPlayKind());
+		pushCmd.setDeskNo(this.getDeskNo());
 		pushCmd.setPosition(position);
 		pushCmd.getCards().addAll(outCards);
 		this.getTableGame().broadcast(pushCmd, true);
@@ -379,7 +381,7 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	
-	public synchronized PushPlayCardCmd playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
+	public synchronized void playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行出牌");
 		}
@@ -388,10 +390,10 @@ public class DdzDesk extends TableDesk{
 		boolean isGameOver = this.ddzCard.playCard(position, cards);
 		afterPlayCard(isGameOver);
 		outParam.setParam(seatPlayer);
-		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
-		pushCmd.setPosition(position);
-		pushCmd.getCards().addAll(cards);
-		return pushCmd;
+//		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+//		pushCmd.setPosition(position);
+//		pushCmd.getCards().addAll(cards);
+//		return pushCmd;
 	}
 	
 	private void afterPlayCard(boolean isGameOver) {
@@ -403,7 +405,7 @@ public class DdzDesk extends TableDesk{
 	}
 	
 
-	public synchronized PushReadyNextCmd readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
+	public synchronized void readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.ready) {
 			throw new BizException("不是准备状态，无法进行出牌");
 		}
@@ -412,9 +414,10 @@ public class DdzDesk extends TableDesk{
 		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
 		outParam.setParam(seatPlayer);
 		DdzGameSeat extGameSeat = (DdzGameSeat)seatPlayer.getGameSeat();
-		PushReadyNextCmd pushCmd = extGameSeat.readyNext();
-		pushCmd.setPosition(position);
-		return pushCmd;
+		extGameSeat.readyNext();
+//		PushReadyNextCmd pushCmd = extGameSeat.readyNext();
+//		pushCmd.setPosition(position);
+//		return pushCmd;
 	}
 	
 	/***
@@ -423,7 +426,7 @@ public class DdzDesk extends TableDesk{
 	 * @param playerId
 	 * @param position
 	 */
-	public synchronized PushSurrenderCmd surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
+	public synchronized void surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行投降");
 		}
@@ -434,9 +437,9 @@ public class DdzDesk extends TableDesk{
 		currentProgress = GameProgress.surrender;			
 		surrenderPosition = position;
 		
-		PushSurrenderCmd pushCmd = new PushSurrenderCmd();
-		pushCmd.setPosition(position);
-		return pushCmd;
+//		PushSurrenderCmd pushCmd = new PushSurrenderCmd();
+//		pushCmd.setPosition(position);
+//		return pushCmd;
 	}
 	
 

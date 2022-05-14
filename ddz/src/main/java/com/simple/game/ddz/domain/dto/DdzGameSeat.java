@@ -103,16 +103,16 @@ public class DdzGameSeat extends GameSeat{
 		this.ready = ready;
 	}
 	
-	public PushReadyNextCmd readyNext() {
+	public void readyNext() {
 		//判断游戏币够不够
 		if(master.get().getPlayer().getBcoin() < ((DdzDeskItem)this.desk.getTableGame().getDeskItem()).getMinReadyCoin()) {
 			throw new BizException(String.format("%s的钱不够%s,无法准备下一轮", master.get().getPlayer().getId(), ((DdzDeskItem)this.desk.getTableGame().getDeskItem()).getMinReadyCoin()));
 		}
 		this.ready = true;
-		return toPushReadyNextCmd();
+//		return toPushReadyNextCmd();
 	}
 	
-	public PushReadyNextCmd toPushReadyNextCmd() {
-		return new PushReadyNextCmd();
-	}
+//	public PushReadyNextCmd toPushReadyNextCmd() {
+//		return new PushReadyNextCmd();
+//	}
 }

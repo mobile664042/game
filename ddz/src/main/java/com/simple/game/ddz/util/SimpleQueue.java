@@ -40,7 +40,8 @@ public class SimpleQueue<T> {
 	}
 	
 	public boolean isNull() {
-		for(int i=0; i<=index; i++) {
+//		for(int i=0; i<=index; i++) {
+		for(int i=0; i<index; i++) {
 			if(data[i] != null) {
 				return false;
 			}
