@@ -670,8 +670,7 @@ function onDispather(rtnData){
 	    break;
 	    
 	    case 151001:
-	    showMsg("已准备好了！");
-	    leftSecond=0;
+	    onRtnReadyNextCmd(rtnData);
 	    break;
 	    case 1151001:
 	    onPushReadyNextCmd(rtnData);
@@ -765,11 +764,27 @@ var pauseMs;
 //管理员的id
 var managerId;
 //当前的席位
-//var extSeatInfo.currentPosition;
 
 //当前的游戏信息
+//extGameInfo.currentProgress
+//extGameInfo.surrenderPosition
+//extGameInfo.commonCards
+//extGameInfo.landlordPosition
+//extGameInfo.battlefield
+//extGameInfo.doubleCount
+//extGameInfo.landlordPlayCardCount
+//extGameInfo.farmerPlayCardCount
+//extGameInfo.seatPlayingMap
 var extGameInfo = {};
-//当前的席位信息
+
+//
+//当前的席位信息拥有属性
+//extSeatInfo.willLeftCards
+//extSeatInfo.currentPosition
+//extSeatInfo.seatReady
+//extSeatInfo.skipCount
+//extSeatInfo.timeoutCount
+//extSeatInfo.cards;
 var extSeatInfo = {};
 
 function onRtnGameInfoCmd(rtnCmd){
@@ -806,6 +821,9 @@ function onRtnGameInfoCmd(rtnCmd){
 	extGameInfo.landlordPlayCardCount = rtnCmd.landlordPlayCardCount;
 	extGameInfo.farmerPlayCardCount = rtnCmd.farmerPlayCardCount;
 	extSeatInfo.currentPosition = rtnCmd.currentPosition;
+	
+	//把其他席位上的玩家也保留上。
+	extGameInfo.seatPlayingMap = rtnCmd.seatPlayingMap;
 	
 	//清理初使值
 	$("#p_deskPanel").html('');
@@ -855,14 +873,21 @@ function onRtnGameInfoCmd(rtnCmd){
 			//console.log(element);
 			//let imgHtml = '<img alt="'+ element +'" class="headPic_item" src="/img/head/' + element + '.jpeg">';
 			
+			let seatPlayer = extGameInfo.seatPlayingMap[element.positiont.toString()];
+			let playerHtml = '<img class="headPic_item" src="/img/head/'+ seatPlayer.headPic +'.jpeg">' + seatPlayer.nickname;
 			//地主;
 			if(element.position == extGameInfo.landlordPosition){
-				let spanHtml = '<span class="landlord_item">' + element.position +': </span>';
-				$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
+//				let spanHtml = '<span class="landlord_item">' + element.position +': </span>';
+				let spanHtml = '<span class="landlord_item">' + element.position;
+				spanHtml += playerHtml + ': </span>';
+				deskMsg(spanHtml);
 			}
 			else{
-				let spanHtml = '<span class="farmer_item">' + element.position +': </span>';
-				$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
+//				let spanHtml = '<span class="farmer_item">' + element.position +': </span>';
+				let spanHtml = '<span class="farmer_item">' + element.position;
+				spanHtml += playerHtml + ': </span>';
+				
+				deskMsg(spanHtml);
 			}
 			if(element.cards){
 				element.cards.forEach(function(subElement) {
@@ -959,6 +984,11 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 }
 
 function onPushSitdownCmd(pushCmd){
+	//如果是主席位，需要加入到参与玩家中
+	if(pushCmd.player.seatPost == 'master'){
+		extGameInfo.seatPlayingMap[pushCmd.player.position.toString()] = pushCmd.player;
+	}
+	
 	let divHtml = '<div><img alt="'+ pushCmd.player.id +'" class="headPic_item" src="/img/head/' + pushCmd.player.headPic + '.jpeg">'+ pushCmd.player.nickname +' 在'+ pushCmd.position +'席位中坐下了</div>';
 	showMsg(divHtml);
 }
@@ -978,8 +1008,42 @@ function onReqStandUpCmd(rtnCmd){
 }
 
 function onPushStandUpCmd(pushCmd){
+	//判断是否是主席位
+	if(pushCmd.seatPost == 'master'){
+		extGameInfo.seatPlayingMap[pushCmd.position.toString()] = null;
+	}
+	
 	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname +'在' + pushCmd.position +'席位站起来了！</div>';
 	showMsg(divHtml);
+}
+
+function onRtnReadyNextCmd(pushCmd){
+		
+	//TODO 清理游状态，准备下一局
+	extGameInfo.currentProgress='ready';
+	extGameInfo.surrenderPosition=0;
+	extGameInfo.commonCards=[];
+	extGameInfo.landlordPosition=0;
+	extGameInfo.battlefield=[];
+	extGameInfo.doubleCount=0;
+	extGameInfo.landlordPlayCardCount=0;
+	extGameInfo.farmerPlayCardCount=0;
+	//extGameInfo.seatPlayingMap
+	
+	extSeatInfo.willLeftCards=[];
+	//extSeatInfo.currentPosition
+	extSeatInfo.seatReady=false;
+	extSeatInfo.skipCount = 0;
+	extSeatInfo.timeoutCount = 0;
+	extSeatInfo.cards = [];
+	
+	//清理界面
+	$("#p_deskPanel").html('');
+	$('#p_commonCards').html('');
+	$('#p_landlord_position').html('');
+	$('#p_doubleCount').html('');
+
+	showMsg("已准备好了！");
 }
 
 function onPushReadyNextCmd(pushCmd){
@@ -1050,11 +1114,11 @@ function onReqPlayCardCmd(rtnCmd){
 	//地主;
 	if(extGameInfo.currentPosition == extGameInfo.landlordPosition){
 		let spanHtml = '<span class="landlord_item">我: </span>';
-		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
+		deskMsg(spanHtml);
 	}
 	else{
 		let spanHtml = '<span class="farmer_item">我: </span>';
-		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
+		deskMsg(spanHtml);
 	}
 	
 	if(extSeatInfo.willLeftCards && extSeatInfo.willLeftCards.length > 0){
@@ -1087,46 +1151,63 @@ function onReqPlayCardCmd(rtnCmd){
 	leftSecondMsg="等待下家出牌";
 }
 function onPushPlayCardCmd(pushCmd){
-	//地主;
-	if(pushCmd.position == extGameInfo.landlordPosition){
-		let spanHtml = '<span class="landlord_item">' + pushCmd.position +': </span>';
-		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
-	}
-	else{
-		let spanHtml = '<span class="farmer_item">' + pushCmd.position +': </span>';
-		$("#p_deskPanel").html($("#p_deskPanel").html() + spanHtml);
-	}
-	
 	//判断是不是超时被强制出牌
-	if(pushCmd.position == extGameInfo.currentPosition){
-		//删除剩余的牌
-		for (let i = extSeatInfo.cards.length - 1; i >= 0; i--) {
-			for (let j = 0; j < pushCmd.cards.length; j++) {
-			    if (extSeatInfo.cards[i] == pushCmd.cards[j] ) {
-					//删除图片
-					$('#p_mycard'+extSeatInfo.cards[i]).remove();
-				
-			        extSeatInfo.cards.splice(i, 1);
-			        break;
-			    }
+	if(pushCmd.position == extSeatInfo.currentPosition){
+		//删除剩余的牌 TODO 还有bug
+		if(pushCmd.cards && pushCmd.cards.length > 0){
+			for (let i = extSeatInfo.cards.length - 1; i >= 0; i--) {
+				for (let j = 0; j < pushCmd.cards.length; j++) {
+				    if (extSeatInfo.cards[i] == pushCmd.cards[j] ) {
+					
+						let spanHtml = '<span class="landlord_item">超时强制出牌: </span>';
+						deskMsg(spanHtml);
+			
+				        let imgHtml = '<img alt="'+ extSeatInfo.cards[i] +'" class="pkPic_item" src="/img/pk/' + extSeatInfo.cards[i] + '.png">';
+						deskMsg(imgHtml);
+						//删除图片
+						$('#p_mycard'+extSeatInfo.cards[i]).remove();
+				        extSeatInfo.cards.splice(i, 1);
+				    }
+				}
 			}
+			
+			let divHtml = '<div>你超时被强制出牌！</div>';
+			showMsg(divHtml);
 		}
-		let divHtml = '<div>你超时被强制出牌！</div>';
-		showMsg(divHtml);
-	}
-	
-	if(pushCmd.cards && pushCmd.cards.length > 0){
-		pushCmd.cards.forEach(function(element) {
-			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
+		else{
+			let divHtml = '<div>你超时被强制不出牌！</div>';
+			showMsg(divHtml);
 			deskMsg(imgHtml);
-		});
+		}
 	}
 	else{
-		deskMsg('要不起');
+		let seatPlayer = extGameInfo.seatPlayingMap[pushCmd.position.toString()];
+		let playerHtml = '<img class="headPic_item" src="/img/head/'+ seatPlayer.headPic +'.jpeg">' + seatPlayer.nickname;
+				
+		//地主;
+		if(pushCmd.position == extGameInfo.landlordPosition){
+			let spanHtml = '<span class="landlord_item">' + pushCmd.position;
+			spanHtml += playerHtml + ': </span>';
+			deskMsg(spanHtml);
+		}
+		else{
+			let spanHtml = '<span class="farmer_item">' + pushCmd.position;
+			spanHtml += playerHtml + ': </span>';
+			deskMsg(spanHtml);
+		}
+		if(pushCmd.cards && pushCmd.cards.length > 0){
+			pushCmd.cards.forEach(function(element) {
+				let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
+				deskMsg(imgHtml);
+			});
+		}
+		else{
+			deskMsg('要不起');
+		}
 	}
 	deskMsg('<hr/>');
 	
-	leftSecond=12;
+	leftSecond=17;
 	let nextPosition = pushCmd.position + 1;
 	if(nextPosition >= 4){
 		nextPosition = 1;
@@ -1191,8 +1272,28 @@ function onNotifyGameOverCmd(rtnCmd){
 	let divHtml = '<div>游戏结束: '+resultMessage+'</div>';
 	showMsg(divHtml);
 	
-	leftSecond=20;
+	leftSecond=300;
 	leftSecondMsg="等待准备一局";
+	
+	
+	//显示结果
+	rtnCmd.list.forEach(function(element) {
+		if(element.position == extSeatInfo.currentPosition){
+			let divHtml = '<div>游戏结束: 底注' + rtnCmd.unitPrice;
+			if(element.changeCoin > 0){
+				divHtml += ", 你赢了 " + element.changeCoin + " !";
+			}
+			else if(element.changeCoin < 0){
+				divHtml += ", 你输了 " + (-element.changeCoin) + " !";
+			}
+			else {
+				divHtml += ", 历害了，不输不赢";
+			}
+			divHtml += '</div><hr/>';
+			deskMsg(divHtml);
+		}
+	});
+
 }
 
 
