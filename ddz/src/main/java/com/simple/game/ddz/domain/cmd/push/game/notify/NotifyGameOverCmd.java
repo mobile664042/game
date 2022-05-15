@@ -19,6 +19,9 @@ public class NotifyGameOverCmd extends PushCmd{
 	/***单份结果(unitPrice的对doubleCount计算结果)****/
 	private long singleResult;
 	
+	/***单价****/
+	private int unitPrice;
+	
 	@Data
 	static public class ResultItem{
 		private long position; 
@@ -33,6 +36,7 @@ public class NotifyGameOverCmd extends PushCmd{
 		NotifyGameOverCmd notifyCmd = new NotifyGameOverCmd();
 		notifyCmd.setDoubleCount(gameResultRecord.getDoubleCount());
 		notifyCmd.setSingleResult(gameResultRecord.getSingleResult());
+		notifyCmd.setUnitPrice(gameResultRecord.getUnitPrice());
 		
 		for(int position : gameResultRecord.getMap().keySet()) {
 			com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem tempItem = gameResultRecord.getMap().get(position);

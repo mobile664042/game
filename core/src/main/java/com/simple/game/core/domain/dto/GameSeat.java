@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplySeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyChangeSeatMasterCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushStandUpCmd;
 import com.simple.game.core.domain.cmd.push.seat.notify.PushNotifyApplyAssistantCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.constant.SeatPost;
@@ -130,12 +131,12 @@ public class GameSeat implements AddressNo{
 			return;
 		}
 		
-		standUp(this.master.get().getPlayer());
+		standUp(this.master.get().getPlayer(), true);
 	}
 	
 	protected void preSitdown(Player player) {}
 	
-	public void sitdown(Player player) {
+	public SeatPlayer sitdown(Player player) {
 		preSitdown(player);
 		//判断是否经坐下
 		SeatPlayer old = seatPlayerMap.get(player.getId());
@@ -169,6 +170,8 @@ public class GameSeat implements AddressNo{
 		
 		seatPlayerMap.put(player.getId(), seatPlayer);
 		player.setAddress(this);
+		
+		return seatPlayer;
 	}
 	
 	protected void doSitdownMaster() {
@@ -332,10 +335,22 @@ public class GameSeat implements AddressNo{
 	 * @param master
 	 * @return
 	 */
-	protected void doStandUpMaster() {
+	protected void doStandUpMaster(boolean isSys, SeatPlayer seatPlayer) {
+		if(!isSys) {
+			return;
+		}
+		//给其他人发广播
+		PushStandUpCmd pushCmd = new PushStandUpCmd();
+		pushCmd.setPlayerId(seatPlayer.getPlayer().getId());
+		pushCmd.setNickname(seatPlayer.getPlayer().getNickname());
+		pushCmd.setHeadPic(seatPlayer.getPlayer().getHeadPic());
+		pushCmd.setSeatPost(seatPlayer.getSeatPost());
+		pushCmd.setPosition(position);
+		//发送广播
+		seatPlayer.getGameSeat().getDesk().getTableGame().broadcast(pushCmd);
 	}
 	
-	public void standUp(Player player) {
+	public void standUp(Player player, boolean isSys) {
 		SeatPlayer seatPlayer = this.seatPlayerMap.get(player.getId());
 		if(seatPlayer == null) {
 			throw new BizException(String.format("%s不在席位上，不可以站起", player.getId()));
@@ -343,7 +358,7 @@ public class GameSeat implements AddressNo{
 		
 		if(seatPlayer.getSeatPost() == SeatPost.master) {
 			//主席位站起, 全部清空
-			doStandUpMaster();
+			doStandUpMaster(isSys, seatPlayer);
 			this.clear();
 			master.set(null);
 			
@@ -386,7 +401,7 @@ public class GameSeat implements AddressNo{
 			throw new BizException(String.format("不可以对自己进行强制站起"));
 		}
 		
-		this.standUp(player);
+		this.standUp(player, false);
 	}
 	
 	public RtnGameSeatInfoCmd getGameSeatInfo() {

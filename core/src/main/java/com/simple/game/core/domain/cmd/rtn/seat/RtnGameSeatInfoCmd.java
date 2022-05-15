@@ -3,6 +3,7 @@ package com.simple.game.core.domain.cmd.rtn.seat;
 import com.simple.game.core.domain.cmd.req.seat.ReqSitdownCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
+import com.simple.game.core.domain.dto.constant.SeatPost;
 
 import lombok.Data;
 
@@ -14,6 +15,10 @@ public class RtnGameSeatInfoCmd extends RtnCmd{
 	/***(下一轮)主席位继任者****/
 	protected PlayerVo nextMaster;
 	
+	/**加入后的角色***/
+	protected SeatPost seatPost;
+	
+	protected boolean ready;
 	protected boolean stopOnlooker;
 	protected boolean stopAssistant;
 	/***是否审核通过直播***/

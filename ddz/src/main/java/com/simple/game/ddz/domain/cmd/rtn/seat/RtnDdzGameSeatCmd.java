@@ -33,5 +33,6 @@ public class RtnDdzGameSeatCmd extends RtnGameSeatInfoCmd{
 		this.setBroadcasting(parent.isBroadcasting());
 		this.setApplyBroadcasted(parent.isApplyBroadcasted());
 		this.setPosition(parent.getPosition());
+		this.setSeatPost(parent.getSeatPost());
 	}
 }

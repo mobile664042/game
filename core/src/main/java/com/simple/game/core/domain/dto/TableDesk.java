@@ -1,6 +1,7 @@
 package com.simple.game.core.domain.dto;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,14 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
+import com.simple.game.core.domain.cmd.vo.PlayerVo;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.domain.ext.Gift;
 import com.simple.game.core.domain.good.BaseGame;
 import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.exception.BizException;
-
-import lombok.ToString;
 
 /***
  * 游戏桌
@@ -27,7 +27,6 @@ import lombok.ToString;
  * @author zhibozhang
  *
  */
-@ToString
 public class TableDesk implements AddressNo{
 	/****桌号位序***/
 	private final static AtomicInteger NUMBER_INDEX = new AtomicInteger(101); 
@@ -75,10 +74,12 @@ public class TableDesk implements AddressNo{
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
 		
-		gameSeat.sitdown(player);
-		
+		SeatPlayer seatPlayer = gameSeat.sitdown(player);
 		logger.info("{}进入游戏:并在席位{}坐下", player.getNickname(), gameSeat.getAddrNo(), position);
-		return gameSeat.getGameSeatInfo();
+		
+		RtnGameSeatInfoCmd rtnCmd =  gameSeat.getGameSeatInfo();
+		rtnCmd.setSeatPost(seatPlayer.getSeatPost());
+		return rtnCmd;
 	}
 	
 	/***
@@ -118,9 +119,11 @@ public class TableDesk implements AddressNo{
 			throw new BizException(String.format("已经没有空闲的席位了"));
 		}
 		
-		gameSeat.sitdown(player);
+		SeatPlayer seatPlayer = gameSeat.sitdown(player);
 		logger.info("{}进入游戏: 抢到{}席位并坐下", player.getNickname(), gameSeat.getAddrNo());
-		return gameSeat.getGameSeatInfo();
+		RtnGameSeatInfoCmd rtnCmd =  gameSeat.getGameSeatInfo();
+		rtnCmd.setSeatPost(seatPlayer.getSeatPost());
+		return rtnCmd;
 	}
 	
 	/***
@@ -165,7 +168,7 @@ public class TableDesk implements AddressNo{
 			throw new BizException(String.format("%s无效的席位号", position));
 		}
 		
-		gameSeat.standUp(player);
+		gameSeat.standUp(player, false);
 		if(gameSeat.getFansCount() == 0) {
 //			this.removeGameSeat(position);
 		}
@@ -275,7 +278,22 @@ public class TableDesk implements AddressNo{
 		return new GameSeat(this, position);
 	}
 	
-
+	/***
+	 * key position
+	 * @return
+	 */
+	public HashMap<String, PlayerVo> getSeatMasterPlayer(){
+		HashMap<String, PlayerVo> map = new HashMap<String, PlayerVo>(seatPlayingMap.size());
+		for(Integer position : seatPlayingMap.keySet()) {
+			GameSeat gameSeat = seatPlayingMap.get(position);
+			SeatPlayer master = gameSeat.getMaster().get();
+			if(master != null && master.getPlayer() != null) {
+				PlayerVo vo = master.getPlayer().valueOfPlayerVo();
+				map.put(position + "", vo);
+			}
+		}
+		return map;
+	}
 
 	public boolean applyBroadcastLive(Player player, OutParam<SeatPlayer> outParam) {
 		SeatPlayer seatPlayer = this.getSeatPlayer(player.getId());

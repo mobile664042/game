@@ -78,6 +78,8 @@ public abstract class TableGame extends BaseGame{
 		rtnCmd.setPauseMs(this.getPauseTime());
 		rtnCmd.setManagerId(this.getManagerId());
 		rtnCmd.setAddress(tableDesk.getAddrNo());
+		rtnCmd.setSeatPlayingMap(tableDesk.getSeatMasterPlayer());
+		
 		return rtnCmd;
 	}
 	

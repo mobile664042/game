@@ -89,11 +89,20 @@ public abstract class TableService extends BaseService{
 		
 		OutParam<Player> outParam = OutParam.build();
 		RtnGameSeatInfoCmd rtnCmd = tableGame.sitdown(reqCmd.getPlayerId(), reqCmd.getPosition(), outParam);
-		
-		
+
 		PushSitdownCmd pushCmd = reqCmd.valueOfPushSitdownCmd();
 		Player player = outParam.getParam();
-		pushCmd.setPlayer(player.valueOfPlayerVo());
+		
+		SeatPlayerVo vo = new SeatPlayerVo();
+		vo.setId(player.getId());
+		vo.setNickname(player.getNickname());
+		vo.setGameLevel(player.getGameLevel());
+		vo.setExpValue(player.getExpValue());
+		vo.setVipLevel(player.getVipLevel());
+		vo.setHeadPic(player.getHeadPic());
+		vo.setSeatPost(rtnCmd.getSeatPost());
+		vo.setPosition(rtnCmd.getPosition());
+		pushCmd.setPlayer(vo);
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
@@ -141,11 +150,20 @@ public abstract class TableService extends BaseService{
 		OutParam<Player> outParam = OutParam.build();
 		RtnGameSeatInfoCmd rtnCmd = tableGame.quickSitdown(reqCmd.getPlayerId(), outParam);
 		
-		
 		PushSitdownCmd pushCmd = reqCmd.valueOfPushSitdownCmd();
 		pushCmd.setPosition(rtnCmd.getPosition());
+		
 		Player player = outParam.getParam();
-		pushCmd.setPlayer(player.valueOfPlayerVo());
+		SeatPlayerVo vo = new SeatPlayerVo();
+		vo.setId(player.getId());
+		vo.setNickname(player.getNickname());
+		vo.setGameLevel(player.getGameLevel());
+		vo.setExpValue(player.getExpValue());
+		vo.setVipLevel(player.getVipLevel());
+		vo.setHeadPic(player.getHeadPic());
+		vo.setSeatPost(rtnCmd.getSeatPost());
+		vo.setPosition(rtnCmd.getPosition());
+		pushCmd.setPlayer(vo);
 		
 		//发送广播
 		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());

@@ -18,14 +18,15 @@ public class DdzGameItem extends GameItem{
 	private DoubleKind doubleKind = DoubleKind.exponential;
 
 	/***最长等待抢地主时长****/
-	private int maxRobbedLandlordSecond = 16;
+	private int maxRobbedLandlordSecond = 20;
 	
 
 	/***最长等待下一轮时长****/
-	private int maxReadyNextSecond = 20;
+	private int maxReadyNextSecond = 300;
+//	private int maxReadyNextSecond = 20;
 	
 	/***最长等待过牌时长(如果此时是自己出牌，自动选择最少的一张牌)****/
-	private int maxPlayCardSecond = 12;
+	private int maxPlayCardSecond = 17;
 	
 	/***一局游戏允许最大超时次数****/
 	private int maxPlayCardOuttimeCount = 2;

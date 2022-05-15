@@ -1,8 +1,11 @@
 package com.simple.game.core.domain.cmd.rtn.game;
 
+import java.util.HashMap;
+
 import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
+import com.simple.game.core.domain.cmd.vo.PlayerVo;
 
 import lombok.Data;
 
@@ -30,6 +33,12 @@ public class RtnGameInfoCmd extends RtnCmd{
 	 */
 	private Long managerId;
 	private long playerId;
+	
+	/***
+	 * 席位上的主席位玩家
+	 * key position(必须使用字符串，不然json解析会出bug)
+	 */
+	protected HashMap<String, PlayerVo> seatPlayingMap;
 	
 	@Override
 	public int getCmd() {

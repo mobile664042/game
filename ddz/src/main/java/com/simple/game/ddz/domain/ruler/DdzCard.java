@@ -47,7 +47,7 @@ public class DdzCard {
 	private SimpleQueue<DdzRuler.SpanCard> battlefield = new SimpleQueue<DdzRuler.SpanCard>(2);
 	
 	/***总共翻倍几次***/
-	private int doubleCount;
+	private int doubleCount = 1;
 	
 	
 	/***地主出几次牌***/
@@ -295,6 +295,22 @@ public class DdzCard {
 		}
 		return landlordPlayCardCount == 1;
 	}
-	
+
+	/****
+	 * 清理所有状态
+	 */
+	public void readyNext() {
+		allCards.clear();
+		commonCards.clear();
+		firstCards.clear();
+		secondCards.clear();
+		thirdCards.clear();
+		landlordPosition = 0;
+		currentPosition = 0;
+		battlefield.clear();
+		doubleCount = 1;
+		landlordPlayCardCount = 0;
+		farmerPlayCardCount = 0;
+	}
 	
 }

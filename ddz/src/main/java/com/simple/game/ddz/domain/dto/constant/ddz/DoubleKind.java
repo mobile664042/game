@@ -27,14 +27,10 @@ public enum DoubleKind {
 			return unitPrice * (doubleCount);
 		}
 		
-		if(this == cumulation) {
-			long result = unitPrice;
-			for(int i=0; i<=doubleCount; i++) {
-				result *= 2;
-			}
-			return result;
+		long result = unitPrice;
+		for(int i=0; i<doubleCount-1; i++) {
+			result *= 2;
 		}
-		
-		return 0;
+		return result;
 	}
 }
