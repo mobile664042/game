@@ -127,6 +127,11 @@ function joinGameDesk(){
 	}
 	
 	let websocketUrl = "ws://127.0.0.1:2022/websocket/ddz/" + logoinToken;
+	let domain = getQueryVariable("domain");
+	if(domain){
+		websocketUrl = "ws://"+domain+"/websocket/ddz/" + logoinToken;
+	}
+	console.log("使用地址：" + websocketUrl);
 	webSocket = new WebSocket(websocketUrl);
 
 	function onMessage(event) {
@@ -1124,6 +1129,17 @@ function onReqRobLandlordCmd(rtnCmd){
 
 function mysort(a,b){
 	return a-b;
+}
+function getQueryVariable(variable){
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i=0;i<vars.length;i++) {
+		var pair = vars[i].split("=");
+		if(pair[0] == variable){
+			return pair[1];
+		}
+	}
+	return(false);
 }
 
 function onPushRobLandlordCmd(pushCmd){
