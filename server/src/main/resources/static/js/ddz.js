@@ -1023,6 +1023,10 @@ function onReqStandUpCmd(rtnCmd){
 	
 	let divHtml = '<div>你在席位中站起来了</div>';
 	$('#p_ready').attr('disabled', true);
+	$('#s_standup').attr('disabled', true);
+	$('#s_sitdown').removeAttr('disabled');
+	$('#s_quickSitdown').removeAttr('disabled');
+	
 	showMsg(divHtml);
 }
 
