@@ -445,12 +445,12 @@ public class DdzDesk extends TableDesk{
 			throw new BizException("不是抢完状态，无法进行投降");
 		}
 		
-		this.checkSeatPlayer(playerId, position);
+		SeatPlayer seatPlayer = this.checkSeatPlayer(playerId, position);
 		
 		//进入surrender状态了
 		currentProgress = GameProgress.surrender;			
 		surrenderPosition = position;
-		
+		outParam.setParam(seatPlayer);
 //		PushSurrenderCmd pushCmd = new PushSurrenderCmd();
 //		pushCmd.setPosition(position);
 //		return pushCmd;
@@ -487,13 +487,13 @@ public class DdzDesk extends TableDesk{
 		//处理逃跑的人
 		handleEscapeResult(gameResultRecord);
 		
-		//发送广播
-		NotifyGameOverCmd notifyCmd = NotifyGameOverCmd.valueOf(gameResultRecord);
-		this.getTableGame().broadcast(notifyCmd);
-		
 		//游戏进入下一轮
 		handleNext();
 		settling = false;
+		
+		//发送广播
+		NotifyGameOverCmd notifyCmd = NotifyGameOverCmd.valueOf(gameResultRecord);
+		this.getTableGame().broadcast(notifyCmd);
 		return true;
 	}
 	private void handleNext() {

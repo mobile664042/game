@@ -83,6 +83,12 @@ public class DdzGameSeat extends GameSeat{
 		return rtnCmd;
 	}
 	
+	protected void clear() {
+		super.clear();
+		skipCount = 0;
+		timeoutCount = 0;
+	}
+	
 	/***
 	 * 是否掉线出牌
 	 * @return

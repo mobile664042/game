@@ -828,7 +828,6 @@ function onRtnGameInfoCmd(rtnCmd){
 	$('#r_login').attr('disabled', true);
 	$('#r_logout').attr('disabled', true);
 	$('#s_standup').attr('disabled', true);
-	$('#p_ready').removeAttr('disabled');
 	
 	//@45@78@1
 	var strList = rtnCmd.address.split("@");
@@ -984,6 +983,7 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 	$('#s_sitdown').attr('disabled', true);
 	$('#s_quickSitdown').attr('disabled', true);
 	$('#s_standup').removeAttr('disabled');
+	$('#p_ready').attr('disabled', true);
 	
 	extSeatInfo.currentPosition = rtnCmd.position;
 	$('#s_position').val(extSeatInfo.currentPosition);
@@ -1017,6 +1017,7 @@ function onReqStandUpCmd(rtnCmd){
 	clearExtSeatData();
 	
 	let divHtml = '<div>你在席位中站起来了</div>';
+	$('#p_ready').attr('disabled', true);
 	showMsg(divHtml);
 }
 
@@ -1029,6 +1030,7 @@ function onPushStandUpCmd(pushCmd){
 		if(extSeatInfo.currentPosition && extSeatInfo.currentPosition == pushCmd.position){
 			clearExtSeatData();
 			let divHtml = '<div>你在席位中被强制站起来了</div>';
+			$('#p_ready').attr('disabled', true);
 			showMsg(divHtml);
 		}
 	}
@@ -1075,10 +1077,6 @@ function clearExtSeatData(){
 	
 	//清理手牌
 	$('#p_residue_cards').html('');
-	
-	$('#s_sitdown').removeAttr('disabled');
-	$('#s_quickSitdown').removeAttr('disabled');
-	$('#s_standup').attr('disabled', true);
 	
 	$('#s_nextMaster_img').attr('src','')
 	$('#s_nextMaster_img').attr('alt', '');
@@ -1312,8 +1310,10 @@ function onNotifyGameOverCmd(rtnCmd){
 	leftSecond=globalConfig.maxReadyNextSecond;
 	leftSecondMsg="等待准备一局";
 	$('#p_ready').removeAttr('disabled');
+	$('#p_currentProgress').css("background","yellow");
 	
 	//显示结果
+	let finded = false;
 	rtnCmd.list.forEach(function(element) {
 		if(element.position == extSeatInfo.currentPosition){
 			let divHtml = '<div>游戏结束: 底注' + rtnCmd.unitPrice;
@@ -1326,11 +1326,17 @@ function onNotifyGameOverCmd(rtnCmd){
 			else {
 				divHtml += ", 历害了，不输不赢";
 			}
+			finded = true;
 			divHtml += '</div><hr/>';
 			deskMsg(divHtml);
 		}
 	});
-
+	if(!finded){
+		let divHtml = '<div>有人投降了，你不受影响</div>';
+		deskMsg(divHtml + "<hr/>");
+		showMsg(divHtml);
+	}
+	
 }
 
 function onNotifyGameSkipCmd(rtnCmd){

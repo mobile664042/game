@@ -375,7 +375,7 @@ public class GameSeat implements AddressNo{
 		}
 	}
 	
-	private void clear() {
+	protected void clear() {
 		seatPlayerMap.clear();
 		assistantMap.clear();
 		this.master.set(null);

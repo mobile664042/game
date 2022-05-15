@@ -91,12 +91,12 @@ public class DeskDdzAdminController {
     		myDdzGameService.destroyDesk(req);
     	}
     	{
-    		PauseReq req = new PauseReq();
-    		req.setGameCode("ddz");
-    		req.setDeskNo(101);
-    		req.setPlayKind(1);
-    		req.setSecond(24*3600*1000);
-    		myDdzGameService.pauseDdzDesk(req);
+    		//PauseReq req = new PauseReq();
+    		//req.setGameCode("ddz");
+    		//req.setDeskNo(101);
+    		//req.setPlayKind(1);
+    		//req.setSecond(24*3600*1000);
+    		//myDdzGameService.pauseDdzDesk(req);
     	}
     	
     	log.info("初使化默认游戏桌完成");
