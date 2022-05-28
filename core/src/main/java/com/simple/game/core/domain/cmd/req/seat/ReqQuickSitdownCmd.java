@@ -22,8 +22,14 @@ public class ReqQuickSitdownCmd extends ReqGameCmd{
 
 	public PushSitdownCmd valueOfPushSitdownCmd() {
 		PushSitdownCmd pushCmd = new PushSitdownCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		return pushCmd;
+	}
+	
+	public ReqSitdownCmd valueOfReqSitdownCmd(int position) {
+		ReqSitdownCmd reqCmd = new ReqSitdownCmd();
+		reqCmd.setPosition(position);
+		return reqCmd;
 	}
 }

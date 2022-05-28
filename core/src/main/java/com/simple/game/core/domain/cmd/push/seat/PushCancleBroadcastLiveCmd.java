@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class PushCancleBroadcastLiveCmd extends PushSeatCmd{
 	private long playerId;
+	private String nickname;
+	private String headPic;
 	
 	@Override
 	public int getCmd() {

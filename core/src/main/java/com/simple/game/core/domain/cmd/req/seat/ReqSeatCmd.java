@@ -6,5 +6,5 @@ import lombok.Data;
 
 @Data
 public abstract class ReqSeatCmd extends ReqGameCmd{
-	protected int position;
+//	protected int position;
 }

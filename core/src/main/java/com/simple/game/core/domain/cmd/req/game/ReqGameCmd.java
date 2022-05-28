@@ -6,6 +6,6 @@ import lombok.Data;
 
 @Data
 public abstract class ReqGameCmd extends ReqCmd{
-	protected int playKind;
-	protected int deskNo;
+//	protected int playKind;
+//	protected int deskNo;
 }

@@ -21,10 +21,10 @@ public class ReqApplyBroadcastLiveCmd extends ReqSeatCmd{
 
 	public PushApplyBroadcastLiveCmd valueOfPushApplyBroadcastLiveCmd() {
 		PushApplyBroadcastLiveCmd pushCmd = new PushApplyBroadcastLiveCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

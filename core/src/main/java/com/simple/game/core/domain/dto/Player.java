@@ -34,8 +34,8 @@ public class Player {
 	/**带入币(桌面币，不一定等于bankCoin, 一般使用这个做游戏计算，变动次数多)***/
 	private long bcoin;
 	
-	/**游戏地址(通过它可以快速的找到玩家)***/
-	private AddressNo address;
+//	/**游戏地址(通过它可以快速的找到玩家)***/
+//	private AddressNo address;
 	
 	/**在线信息***/
 	private OnlineInfo online;
@@ -60,8 +60,4 @@ public class Player {
 	}
 	
 	
-
-	public OnlineUserInfo toOnlineUserInfo() {
-		return null;
-	}
 }

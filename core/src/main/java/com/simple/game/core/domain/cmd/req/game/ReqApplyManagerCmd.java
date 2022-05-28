@@ -21,9 +21,9 @@ public class ReqApplyManagerCmd extends ReqGameCmd{
 
 	public PushApplyManagerCmd valueOfPushApplyManagerCmd() {
 		PushApplyManagerCmd pushCmd = new PushApplyManagerCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
 		return pushCmd;
 	}
 }

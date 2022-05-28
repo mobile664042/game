@@ -21,10 +21,10 @@ public class ReqApplyAssistantCmd extends ReqSeatCmd{
 
 	public PushApplyAssistantCmd valueOfPushApplyAssistantCmd() {
 		PushApplyAssistantCmd pushCmd = new PushApplyAssistantCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
+//		pushCmd.setPlayerId(playerId);
 		return pushCmd;
 	}
 }

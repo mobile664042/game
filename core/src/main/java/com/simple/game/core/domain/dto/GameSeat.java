@@ -8,18 +8,42 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simple.game.core.constant.GameConstant;
 import com.simple.game.core.domain.cmd.push.PushCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplySeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyChangeSeatMasterCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushApproveApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushBootAssistantCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushBootOnlookerCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushSetSeatSuccessorCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushSitdownCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushStandUpCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushStopAssistantCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushStopOnlookerCmd;
 import com.simple.game.core.domain.cmd.push.seat.notify.PushNotifyApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApplySeatSuccessorCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApproveApplyAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBootAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqBootOnlookerCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqForceStandUpCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqGetAssistantListCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqGetSeatPlayerListCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqSetSeatSuccessorCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqSitdownCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStandUpCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStopAssistantCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqStopOnlookerCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGetAssistantListCmd;
+import com.simple.game.core.domain.cmd.rtn.seat.RtnGetSeatPlayerListCmd;
+import com.simple.game.core.domain.cmd.vo.SeatPlayerVo;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.SimpleUtil;
 
 import lombok.Getter;
-import lombok.ToString;
 
 /***
  * 游戏席位
@@ -27,9 +51,7 @@ import lombok.ToString;
  * @author zhibozhang
  *
  */
-//@Data
 @Getter
-@ToString
 public class GameSeat implements AddressNo{
 	private static Logger logger = LoggerFactory.getLogger(GameSeat.class);
 
@@ -39,11 +61,10 @@ public class GameSeat implements AddressNo{
 	/***席位号从1号开始****/
 	protected final int position;
 	
-//	/***扩展属性****/
-//	private Object extConfig;
-	
 	/***席位主要人员****/
 	protected final AtomicReference<SeatPlayer> master = new AtomicReference<SeatPlayer>();
+	
+	protected final ConcurrentHashMap<String, SeatPlugin> pluginMap = new ConcurrentHashMap<String, SeatPlugin>();
 	
 	/***(下一轮)主席位继任者****/
 	protected SeatPlayer nextMaster;
@@ -58,6 +79,13 @@ public class GameSeat implements AddressNo{
 	 */
 	protected final ConcurrentHashMap<Long, SeatPlayer> seatPlayerMap = new ConcurrentHashMap<Long, SeatPlayer>();
 	
+	void putPlugin(SeatPlugin plugin) {
+		pluginMap.put(plugin.getPluginName(), plugin);
+	}
+	
+	public SeatPlugin getPlugin(String pluginName) {
+		return pluginMap.get(pluginName);
+	}
 	
 	protected boolean stopOnlooker = false;
 	protected boolean stopAssistant = false;
@@ -67,6 +95,8 @@ public class GameSeat implements AddressNo{
 	
 	/***是否申请直播***/
 	protected boolean applyBroadcasted = false;
+	
+	
 	
 
 	public GameSeat(TableDesk desk, int position) {
@@ -83,7 +113,7 @@ public class GameSeat implements AddressNo{
 	}
 	
 	public void handleChangeMaster() {
-		if(nextMaster == null) {
+		if(nextMaster == null || master.get() == null) {
 			return;
 		}
 		
@@ -94,10 +124,11 @@ public class GameSeat implements AddressNo{
 			nextMaster = null;
 			
 			PushNotifyChangeSeatMasterCmd pushCmd = new PushNotifyChangeSeatMasterCmd();
+			pushCmd.setPosition(position);
 			pushCmd.setPlayerId(master.get().getPlayer().getId());
 			pushCmd.setNickname(master.get().getPlayer().getNickname());
 			pushCmd.setHeadPic(master.get().getPlayer().getHeadPic());
-			this.getDesk().getTableGame().broadcast(pushCmd, true);
+			this.getDesk().broadcast(pushCmd, true);
 			logger.info("{}的主席位由{}担任", this.position, master.get().player.getId());
 		}
 		catch(BizException e) {
@@ -105,12 +136,12 @@ public class GameSeat implements AddressNo{
 			nextMaster = null;
 			
 			PushNotifyChangeSeatMasterCmd pushCmd = new PushNotifyChangeSeatMasterCmd();
+			pushCmd.setPosition(position);
 			pushCmd.setPlayerId(old.getPlayer().getId());
 			pushCmd.setNickname(old.getPlayer().getNickname());
 			pushCmd.setHeadPic(old.getPlayer().getHeadPic());
-			this.getDesk().getTableGame().broadcast(pushCmd, true);
+			this.getDesk().broadcast(pushCmd, true);
 			logger.warn("playerId={}, 不满足{}主席位重新坐下条件！", old.player.getId(), this.position, e);
-			
 		}
 	}
 	
@@ -126,22 +157,24 @@ public class GameSeat implements AddressNo{
 	}
 	
 	public void standupAll() {
-		if(this.master.get() == null) {
-			logger.warn("主席位是空的，不需要站起，是不是产生bug了？");
-			return;
+		List<Long> list = new ArrayList<Long>(this.seatPlayerMap.keySet());
+		logger.warn("准备站起席位所有人：" + list);
+		for(long playerId : list) {
+			this.standUp(playerId, false);
 		}
-		
-		standUp(this.master.get().getPlayer(), true);
 	}
 	
 	protected void preSitdown(Player player) {}
 	
-	public SeatPlayer sitdown(Player player) {
+	public final void sitdown(GameSessionInfo gameSessionInfo, ReqSitdownCmd reqCmd) {
+		desk.operatorVerfy();
+		
+		Player player = desk.getPlayer(gameSessionInfo.getPlayerId());
 		preSitdown(player);
 		//判断是否经坐下
 		SeatPlayer old = seatPlayerMap.get(player.getId());
 		if(old != null) {
-			throw new BizException(String.format("已经在桌位%s中，不可再坐下", old.getGameSeat().getPosition()));
+			throw new BizException(String.format("已经在桌位%s中，不可再坐下", reqCmd.getPosition()));
 		}
 		
 		SeatPlayer seatPlayer = null;
@@ -152,29 +185,73 @@ public class GameSeat implements AddressNo{
 				doSitdownMaster();
 			}
 			else {
-				throw new BizException(String.format("主席之位已被%s抢走了，请重试吧", master.get().getPlayer().getNickname()));
+				throw new BizException(String.format("主席之位已被%s抢走了，请重试吧", player.getNickname()));
 			}
 		}
 		else {
 			//判断是否超过最大限度，不需要加锁判断，减少时死锁，提高性能，允许极少量的误差
-			if(seatPlayerMap.size() >= desk.getTableGame().getGameItem().getSeatMaxFans()) {
-				throw new BizException(String.format("人员已挤不下去了(已有%s)", desk.getTableGame().getGameItem().getSeatMaxFans()));
+			if(seatPlayerMap.size() >= desk.getGameItem().getSeatMaxFans()) {
+				throw new BizException(String.format("人员已挤不下去了(已有%s)", desk.getGameItem().getSeatMaxFans()));
 			}
 			if(this.isStopOnlooker()) {
 				throw new BizException(String.format("已禁止旁观！！"));
 			}
 			seatPlayer = buildSeatPlayer(player, SeatPost.onlooker);
 		}
-		
-		
-		
 		seatPlayerMap.put(player.getId(), seatPlayer);
-		player.setAddress(this);
+		gameSessionInfo.setAddress(this);
 		
-		return seatPlayer;
+		PushSitdownCmd pushCmd = reqCmd.valueOfPushSitdownCmd();
+		SeatPlayerVo vo = new SeatPlayerVo();
+		vo.setId(player.getId());
+		vo.setNickname(player.getNickname());
+		vo.setGameLevel(player.getGameLevel());
+		vo.setExpValue(player.getExpValue());
+		vo.setVipLevel(player.getVipLevel());
+		vo.setHeadPic(player.getHeadPic());
+		vo.setSeatPost(seatPlayer.getSeatPost());
+		vo.setPosition(reqCmd.getPosition());
+		pushCmd.setPlayer(vo);
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		
+		RtnGameSeatInfoCmd rtnCmd =  this.getGameSeatInfo();
+		rtnCmd.setSeatPost(seatPlayer.getSeatPost());
+		player.getOnline().getSession().write(rtnCmd);		
 	}
 	
 	protected void doSitdownMaster() {
+	}
+	
+	public void getSeatPlayerList(GameSessionInfo gameSessionInfo, ReqGetSeatPlayerListCmd reqCmd) {
+		Player player = desk.getPlayer(gameSessionInfo.getPlayerId());
+		List<SeatPlayer> list = new ArrayList<SeatPlayer>(seatPlayerMap.values());
+		int fromIndex = reqCmd.getFromPage() * TableDesk.PAGE_SIZE;
+		int toIndex = fromIndex + TableDesk.PAGE_SIZE;
+		
+		List<SeatPlayerVo> voList = new ArrayList<SeatPlayerVo>(list.size());
+		RtnGetSeatPlayerListCmd rtnCmd = new RtnGetSeatPlayerListCmd();
+		rtnCmd.setList(voList);
+		for(int i=fromIndex; i<list.size() && i<toIndex; i++) {
+			SeatPlayer seatPlayer = list.get(i);
+			SeatPlayerVo vo = seatPlayer.valueOfSeatPlayerVo();
+			voList.add(vo);
+		}
+		player.getOnline().getSession().write(rtnCmd);
+	}
+	public void getAssistantList(GameSessionInfo gameSessionInfo, ReqGetAssistantListCmd reqCmd) {
+		Player player = desk.getPlayer(gameSessionInfo.getPlayerId());
+		List<SeatPlayer> list = new ArrayList<SeatPlayer>(assistantMap.values());
+		
+		List<SeatPlayerVo> voList = new ArrayList<SeatPlayerVo>(list.size());
+		RtnGetAssistantListCmd rtnCmd = new RtnGetAssistantListCmd();
+		rtnCmd.setList(voList);
+		for(int i=0; i<list.size(); i++) {
+			SeatPlayer seatPlayer = list.get(i);
+			SeatPlayerVo vo = seatPlayer.valueOfSeatPlayerVo();
+			voList.add(vo);
+		}
+		player.getOnline().getSession().write(rtnCmd);
 	}
 	
 	/***
@@ -184,32 +261,21 @@ public class GameSeat implements AddressNo{
 	 * @param position
 	 * @return
 	 */
-	public List<SeatPlayer> getSeatPlayerList() {
-		return new ArrayList<SeatPlayer>(seatPlayerMap.values());
-	}
-	public List<SeatPlayer> getAssistantList() {
-		return new ArrayList<SeatPlayer>(assistantMap.values());
-	}
 	protected SeatPlayer buildSeatPlayer(Player player, SeatPost seatPost){
 		return new SeatPlayer(player, this, seatPost);
 	}
 	
-
-	/***
-	 * 申请成为助手
-	 * @param player
-	 */
-	public void applyAssistant(Player player) {
-		SeatPlayer target = this.seatPlayerMap.get(player.getId());
-		if(target == null) {
-			throw new BizException(String.format("不在席位上，不可以申请辅助"));
+	public void applyAssistant(GameSessionInfo gameSessionInfo, ReqApplyAssistantCmd reqCmd) {
+		desk.operatorVerfy();
+		long playerId = gameSessionInfo.getPlayerId();
+		if(master.get() == null) {
+			throw new BizException(String.format("不存在主席位了, 不可以申请辅助"));
 		}
-		if(target.getGameSeat().getMaster().get() == null) {
-			throw new BizException(String.format("不存在主席位了不可以申请辅助"));
-		}
-		if(target.getGameSeat().getMaster().get().getPlayer().getId() == player.getId()) {
+		if(master.get().getPlayer().getId() == playerId) {
 			throw new BizException(String.format("已经是主席位了不可以申请辅助"));
 		}
+		
+		SeatPlayer target = this.seatPlayerMap.get(playerId);
 		if(target.getSeatPost() == SeatPost.assistant) {
 			throw new BizException(String.format("已经是辅助了不可以申请辅助"));
 		}
@@ -220,89 +286,111 @@ public class GameSeat implements AddressNo{
 		
 		target.applyAssistanted = true;
 		
+		Player player = target.getPlayer();
 		//发送到主席位中去
-		SeatPlayer master = target.getGameSeat().getMaster().get();
-		PushNotifyApplyAssistantCmd pushCmd = new PushNotifyApplyAssistantCmd();
-		pushCmd.setPlayerId(position);
+		{
+			PushNotifyApplyAssistantCmd pushCmd = new PushNotifyApplyAssistantCmd();
+			pushCmd.setPlayerId(position);
+			pushCmd.setNickname(player.getNickname());
+			pushCmd.setHeadPic(player.getHeadPic());
+			master.get().getPlayer().getOnline().push(pushCmd);
+			logger.info("{}向主席位{}发送辅助申请", target.getPlayer().getNickname(), master.get().getPlayer().getNickname());
+		}
+		
+		PushApplyAssistantCmd pushCmd = reqCmd.valueOfPushApplyAssistantCmd();
+		pushCmd.setPosition(position);
+		pushCmd.setPlayerId(player.getId());
 		pushCmd.setNickname(player.getNickname());
 		pushCmd.setHeadPic(player.getHeadPic());
-		master.getPlayer().getOnline().push(pushCmd);
-		logger.info("{}向主席位{}发送辅助申请", target.getPlayer().getNickname(), master.getPlayer().getNickname());
+		
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
+	
+	public void approveApplyAssistant(GameSessionInfo gameSessionInfo, ReqApproveApplyAssistantCmd reqCmd) {
+		desk.operatorVerfy();
+		checkSeatMaster(gameSessionInfo.getPlayerId());
 
-	public void approveApplyAssistant(Player master, Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(master.getId());
-
-		SeatPlayer other = this.seatPlayerMap.get(player.getId());
+		SeatPlayer other = this.seatPlayerMap.get(reqCmd.getOtherId());
 		if(other == null) {
-			throw new BizException(String.format("%s不在席位上，不可以同意申请辅助", player.getId()));
+			throw new BizException(String.format("%s不在席位上，不可以同意申请辅助", reqCmd.getOtherId()));
 		}
-		if(other.getGameSeat().getPosition() != seartMaster.getGameSeat().getPosition()) {
-			throw new BizException(String.format("%s与%s不在同一个席位，不可以同意申请辅助", master.getId(), player.getId()));
+		if(other.getGameSeat().getPosition() != position) {
+			throw new BizException(String.format("%s与%s不在同一个席位，不可以同意申请辅助", gameSessionInfo.getPlayerId(), reqCmd.getOtherId()));
 		}
 		if(!other.isApplyAssistanted()) {
-			throw new BizException(String.format("%s并没有申请辅助", player.getId()));
+			throw new BizException(String.format("%s并没有申请辅助", reqCmd.getOtherId()));
 		}
 		
 		other.getGameSeat().assistantMap.put(other.getPlayer().getId(), other);
 		other.seatPost = SeatPost.assistant;
 		other.applyAssistanted = false;
 		
-//		return other.toPushNotifyApplyAssistantCmd();
+		PushApproveApplyAssistantCmd pushCmd = reqCmd.valueOfPushApplyAssistantCmd();
+		pushCmd.setPosition(position);
+		pushCmd.setPlayerId(other.getPlayer().getId());
+		pushCmd.setNickname(other.getPlayer().getNickname());
+		pushCmd.setHeadPic(other.getPlayer().getHeadPic());
+		
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 
 
 	/***操作验证***/
-	protected SeatPlayer checkSeatMaster(long playerId) {
-		SeatPlayer seartMaster = this.seatPlayerMap.get(playerId);
-		if(seartMaster == null) {
-			throw new BizException(String.format("%s不在席位上，不可以进行管理操作", playerId));
+	protected void checkSeatMaster(long playerId) {
+		if(master.get() == null || master.get().getPlayer() == null || master.get().getPlayer().getId() != playerId) {
+			throw new BizException(String.format("你不在主席位上"));
 		}
-		if(seartMaster.getSeatPost() != SeatPost.master) {
-			throw new BizException(String.format("%s不在主席位上，不可以进行管理操作", playerId));
-		}
-		return seartMaster;
 	}
 
-	public void stopOnlooker(Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(player.getId());
-		seartMaster.getGameSeat().stopOnlooker = true;
+	public void stopOnlooker(GameSessionInfo gameSessionInfo, ReqStopOnlookerCmd reqCmd) {
+		checkSeatMaster(gameSessionInfo.getPlayerId());
+		stopOnlooker = false;
+		PushStopOnlookerCmd pushCmd = reqCmd.valueOfPushStopOnlookerCmd();
+		pushCmd.setPosition(position);
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
-	public void stopAssistant(Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(player.getId());
-		seartMaster.getGameSeat().stopAssistant = true;
-	}
-
-	public void bootOnlooker(Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(player.getId());
-		seartMaster.getGameSeat().stopOnlooker = false;
-	}
-	public void bootAssistant(Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(player.getId());
-		seartMaster.getGameSeat().stopAssistant = false;
-	}
-	public SeatPlayer preStandUp(long masterId, long playerId) {
-		if(masterId == playerId) {
-			throw new BizException(String.format("%s不可以对自己使用强制站起", playerId));
-		}
-		SeatPlayer master = checkSeatMaster(masterId);
-		SeatPlayer other = this.seatPlayerMap.get(playerId);
-		if(other == null) {
-			throw new BizException(String.format("%s与%s不在同一个席位，不可以同意申请辅助", masterId, playerId));
-		}
-		return master;
+	public void stopAssistant(GameSessionInfo gameSessionInfo, ReqStopAssistantCmd reqCmd) {
+		checkSeatMaster(gameSessionInfo.getPlayerId());
+		stopAssistant = true;
+		PushStopAssistantCmd pushCmd = reqCmd.valueOfPushStopAssistantCmd();
+		pushCmd.setPosition(position);
+		
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 
-	public void applySeatSuccessor(Player player) {
-		if(player.getId() == this.master.get().getPlayer().getId()) {
+	public void bootOnlooker(GameSessionInfo gameSessionInfo, ReqBootOnlookerCmd reqCmd) {
+		checkSeatMaster(gameSessionInfo.getPlayerId());
+		stopOnlooker = false;
+		PushBootOnlookerCmd pushCmd = reqCmd.valueOfPushBootOnlookerCmd();
+		pushCmd.setPosition(position);
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+	}
+	public void bootAssistant(GameSessionInfo gameSessionInfo, ReqBootAssistantCmd reqCmd) {
+		checkSeatMaster(gameSessionInfo.getPlayerId());
+		stopAssistant = false;
+		PushBootAssistantCmd pushCmd = reqCmd.valueOfPushBootAssistantCmd();
+		pushCmd.setPosition(position);
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+	}
+	protected void preStandUp(SeatPlayer seatPlayer) {};
+
+	public void applySeatSuccessor(GameSessionInfo gameSessionInfo, ReqApplySeatSuccessorCmd reqCmd) {
+		if(gameSessionInfo.getPlayerId() == this.master.get().getPlayer().getId()) {
 			throw new BizException(String.format("你已是主席位"));
 		}
 		
-		SeatPlayer other = this.seatPlayerMap.get(player.getId());
+		SeatPlayer other = this.seatPlayerMap.get(gameSessionInfo.getPlayerId());
 		if(other == null) {
-			throw new BizException(String.format("%s不在席位上，不可以申请席位继任者", player.getId()));
+			throw new BizException(String.format("%s不在席位上，不可以申请席位继任者", gameSessionInfo.getPlayerId()));
 		}
+		Player player = other.getPlayer();
 		
 		//向主席位发送告知
 		PushNotifyApplySeatSuccessorCmd pushCmd = new PushNotifyApplySeatSuccessorCmd();
@@ -313,57 +401,62 @@ public class GameSeat implements AddressNo{
 		logger.info("{}向主席位{}发送更换管理员申请", player.getNickname(), master.get().getPlayer().getNickname());
 	}
 	
-	public void setSeatSuccessor(Player master, Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(master.getId());
+	public void setSeatSuccessor(GameSessionInfo gameSessionInfo, ReqSetSeatSuccessorCmd reqCmd) {
+		desk.operatorVerfy();
+		checkSeatMaster(gameSessionInfo.getPlayerId());
 
-		SeatPlayer other = this.seatPlayerMap.get(player.getId());
+		SeatPlayer other = this.seatPlayerMap.get(reqCmd.getOtherId());
 		if(other == null) {
-			throw new BizException(String.format("%s不在席位上，不可以设置席位继认者", player.getId()));
+			throw new BizException(String.format("%s不在席位上，不可以设置席位继认者", gameSessionInfo.getPlayerId()));
 		}
-		if(other.getGameSeat().getPosition() != seartMaster.getGameSeat().getPosition()) {
-			throw new BizException(String.format("%s与%s不在同一个席位，不可以设置席位继认者", master.getId(), player.getId()));
+		if(other.getGameSeat().getPosition() != position) {
+			throw new BizException(String.format("%s与%s不在同一个席位，不可以设置席位继认者", master.get().getPlayer().getId(), reqCmd.getOtherId()));
 		}
 		if(!other.isApplyAssistanted()) {
-			throw new BizException(String.format("%s不是辅助，不可以成为席位继认者", player.getId()));
+			throw new BizException(String.format("%s不是辅助，不可以成为席位继认者", reqCmd.getOtherId()));
 		}
 		
 		this.nextMaster = other;
+		Player player = other.getPlayer();
+		
+		PushSetSeatSuccessorCmd pushCmd = reqCmd.valueOfPushSetSeatSuccessorCmd();
+		pushCmd.setPlayerId(player.getId());
+		pushCmd.setNickname(player.getNickname());
+		pushCmd.setHeadPic(player.getHeadPic());
+		pushCmd.setPosition(position);
+		
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
 	/***
-	 * 主席位离开了
-	 * @param master
-	 * @return
+	 * 从席位中站起来
+	 * @param player
 	 */
-	protected void doStandUpMaster(boolean isSys, SeatPlayer seatPlayer) {
-		if(!isSys) {
-			return;
-		}
-		//给其他人发广播
-		PushStandUpCmd pushCmd = new PushStandUpCmd();
-		pushCmd.setPlayerId(seatPlayer.getPlayer().getId());
-		pushCmd.setNickname(seatPlayer.getPlayer().getNickname());
-		pushCmd.setHeadPic(seatPlayer.getPlayer().getHeadPic());
-		pushCmd.setSeatPost(seatPlayer.getSeatPost());
-		pushCmd.setPosition(position);
-		//发送广播
-		seatPlayer.getGameSeat().getDesk().getTableGame().broadcast(pushCmd);
+	public final void standUp(GameSessionInfo gameSessionInfo, ReqStandUpCmd reqCmd) {
+		standUp(gameSessionInfo.getPlayerId());
 	}
 	
-	public void standUp(Player player, boolean isSys) {
-		SeatPlayer seatPlayer = this.seatPlayerMap.get(player.getId());
+	public void standUp(long playerId) {
+		standUp(playerId, true);
+	}
+	/***
+	 * 从席位中站起来
+	 * @param playerId
+	 * @param excludeSelf 广播信息的时候否排除自身
+	 */
+	public void standUp(long playerId, boolean excludeSelf) {
+		SeatPlayer seatPlayer = this.seatPlayerMap.get(playerId);
 		if(seatPlayer == null) {
-			throw new BizException(String.format("%s不在席位上，不可以站起", player.getId()));
+			throw new BizException(String.format("%s不在席位上，不可以站起", playerId));
 		}
 		
+		preStandUp(seatPlayer);
+		
+		Player player = seatPlayer.getPlayer();
 		if(seatPlayer.getSeatPost() == SeatPost.master) {
-			//主席位站起, 全部清空
-			doStandUpMaster(isSys, seatPlayer);
 			this.clear();
 			master.set(null);
-			
-			//广播
-			logger.info("{}席位的全体同仁都站起来了", this.position);
 		}
 		else if(seatPlayer.getSeatPost() == SeatPost.assistant) {
 			//主席位站起
@@ -372,6 +465,23 @@ public class GameSeat implements AddressNo{
 		}
 		else {
 			seatPlayerMap.remove(player.getId());
+		}
+		GameSessionInfo gameSessionInfo = (GameSessionInfo)player.getOnline().getSession().getAttachment().get(GameConstant.GAME_SESSION_INFO);
+		gameSessionInfo.setAddress(desk);
+		
+		PushStandUpCmd pushCmd = new PushStandUpCmd();
+		pushCmd.setSeatPost(null);
+		pushCmd.setPosition(position);
+		pushCmd.setPlayerId(playerId);
+		pushCmd.setNickname(player.getNickname());
+		pushCmd.setHeadPic(player.getHeadPic());
+		
+		//发送广播
+		if(excludeSelf) {
+			desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		}
+		else {
+			desk.broadcast(pushCmd);
 		}
 	}
 	
@@ -387,21 +497,21 @@ public class GameSeat implements AddressNo{
 		this.applyBroadcasted = false;
 	}
 
-	public void forceStandUp(Player master, Player player) {
-		SeatPlayer seartMaster = checkSeatMaster(master.getId());
+	public void forceStandUp(GameSessionInfo gameSessionInfo, ReqForceStandUpCmd reqCmd) {
+		checkSeatMaster(gameSessionInfo.getPlayerId());
 
-		SeatPlayer other = this.seatPlayerMap.get(player.getId());
+		SeatPlayer other = this.seatPlayerMap.get(reqCmd.getOtherId());
 		if(other == null) {
-			throw new BizException(String.format("%s不在席位上，不可以强制粉丝站起", player.getId()));
+			throw new BizException(String.format("%s不在席位上，不可以强制粉丝站起", reqCmd.getOtherId()));
 		}
-		if(other.getGameSeat().getPosition() != seartMaster.getGameSeat().getPosition()) {
-			throw new BizException(String.format("%s与%s不在同一个席位，不可以强制粉丝站起", master.getId(), player.getId()));
+		if(other.getGameSeat().getPosition() != position) {
+			throw new BizException(String.format("%s与%s不在同一个席位，不可以强制粉丝站起", gameSessionInfo.getPlayerId(), reqCmd.getOtherId()));
 		}
-		if(master.getId() == player.getId()) {
+		if(gameSessionInfo.getPlayerId() == reqCmd.getOtherId()) {
 			throw new BizException(String.format("不可以对自己进行强制站起"));
 		}
 		
-		this.standUp(player, false);
+		this.standUp(reqCmd.getOtherId());
 	}
 	
 	public RtnGameSeatInfoCmd getGameSeatInfo() {
@@ -440,6 +550,14 @@ public class GameSeat implements AddressNo{
 
 	public void setStopAssistant(boolean stopAssistant) {
 		this.stopAssistant = stopAssistant;
+	}
+
+	public void setBroadcasting(boolean broadcasting) {
+		this.broadcasting = broadcasting;
+	}
+
+	public void setApplyBroadcasted(boolean applyBroadcasted) {
+		this.applyBroadcasted = applyBroadcasted;
 	}
 
 }

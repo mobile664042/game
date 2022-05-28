@@ -1,23 +1,32 @@
 package com.simple.game.core.domain.dto;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
+import com.simple.game.core.constant.GameConstant;
+import com.simple.game.core.domain.cmd.push.game.PushApplyManagerCmd;
+import com.simple.game.core.domain.cmd.push.game.PushChangeManagerCmd;
+import com.simple.game.core.domain.cmd.push.game.PushJoinCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplyManagerCmd;
+import com.simple.game.core.domain.cmd.push.seat.PushApproveBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqApplyManagerCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqChangeManagerCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqKickoutCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqPauseCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
-import com.simple.game.core.domain.dto.constant.SeatPost;
-import com.simple.game.core.domain.ext.Chat;
-import com.simple.game.core.domain.ext.Gift;
-import com.simple.game.core.domain.good.BaseGame;
-import com.simple.game.core.domain.good.TableGame;
+import com.simple.game.core.domain.dto.config.DeskItem;
+import com.simple.game.core.domain.dto.config.GameItem;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.core.util.GameSession;
 
 /***
  * 游戏桌
@@ -27,11 +36,13 @@ import com.simple.game.core.exception.BizException;
  * @author zhibozhang
  *
  */
-public class TableDesk implements AddressNo{
-	/****桌号位序***/
-	private final static AtomicInteger NUMBER_INDEX = new AtomicInteger(101); 
-	
+public abstract class TableDesk extends BaseDesk implements AddressNo{
 	private final static Logger logger = LoggerFactory.getLogger(TableDesk.class);
+	/****管理员***/
+	protected final AtomicReference<Player> manager = new AtomicReference<Player>();
+	
+	
+	protected DeskItem deskItem;
 	
 	/***
 	 * 正在进行席位
@@ -40,233 +51,124 @@ public class TableDesk implements AddressNo{
 	protected final ConcurrentHashMap<Integer, GameSeat> seatPlayingMap = new ConcurrentHashMap<Integer, GameSeat>();
 	
 	/***
-	 * 桌号
+	 * 支持的插件
 	 */
-	private final int deskNo;
-	
-	/***当前正在进行的游戏****/
-	protected TableGame currentGame;
+	protected final ConcurrentHashMap<String, DeskPlugin> pluginMap = new ConcurrentHashMap<String, DeskPlugin>();
 	
 	
-	public TableDesk(TableGame game) {
-		this.currentGame = game;
-		for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMaxPosition(); position++) {
+	public TableDesk(GameItem gameItem, DeskItem deskItem) {
+		super(gameItem);
+		this.deskItem = deskItem;
+		for(int position = deskItem.getMinPosition(); position <= deskItem.getMaxPosition(); position++) {
 			GameSeat gameSeat = buildGameSeat(position); 
 			seatPlayingMap.put(position, gameSeat);
 		}
-		deskNo = NUMBER_INDEX.getAndIncrement();
+		logger.info("游戏桌加载{}席位, 耗时:{}", (deskItem.getMaxPosition() - deskItem.getMinPosition() + 1));
 	} 
 
 	public String getAddrNo() {
-		return "@" + currentGame.getDeskItem().getPlayKind()  + "@" +  deskNo;
+		return "@" + deskItem.getPlayKind()  + "@" +  deskNo;
 	}
 	
+	public DeskItem getDeskItem() {
+		return deskItem;
+	}
 	
+	void putPlugin(DeskPlugin plugin) {
+		pluginMap.put(plugin.getPluginName(), plugin);
+	}
+	
+	public DeskPlugin getPlugin(String pluginName) {
+		return pluginMap.get(pluginName);
+	}
+	public final void kickout(GameSessionInfo gameSessionInfo, ReqKickoutCmd reqCmd) {
+		checkAndGetManager(gameSessionInfo.getPlayerId());
+		left(reqCmd.getOtherId());
+	}
+
+	protected void preJoin(Player player) {
+		//不需要加锁判断，减少时死锁，提高性能，允许极少量的误差
+		if(playerMap.size()+1 > deskItem.getMaxPersion()) {
+			throw new BizException(String.format("人员已挤不下去了(已有%s)", deskItem.getMaxPersion()));
+		}
+	}
 	/***
-	 * 选择某个席位座下
-	 * 
-	 * @param player
-	 * @param position
+	 * 进入游戏
 	 */
-	public final RtnGameSeatInfoCmd sitdown(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
+	public void join(ReqJoinCmd reqCmd, GameSession gameSession) {
+		this.operatorVerfy();
+		GameSessionInfo gameSessionInfo = (GameSessionInfo)gameSession.getAttachment().get(GameConstant.GAME_SESSION_INFO);
+		if(gameSessionInfo.getAddress() != null) {
+			rejoin(gameSession);
+			return;
 		}
 		
-		SeatPlayer seatPlayer = gameSeat.sitdown(player);
-		logger.info("{}进入游戏:并在席位{}坐下", player.getNickname(), gameSeat.getAddrNo(), position);
+		String nickName = (String)gameSession.getAttachment().get(GameConstant.NICKNAME);
+    	int sex = (Integer)gameSession.getAttachment().get(GameConstant.SEX);
+    	String telphone = (String)gameSession.getAttachment().get(GameConstant.TELPHONE);
+    	int headPic = (Integer)gameSession.getAttachment().get(GameConstant.HEADPIC);
 		
-		RtnGameSeatInfoCmd rtnCmd =  gameSeat.getGameSeatInfo();
-		rtnCmd.setSeatPost(seatPlayer.getSeatPost());
-		return rtnCmd;
-	}
-	
-	/***
-	 * 获取桌位玩家
-	 * 需要页面这个接口的访问频率
-	 */
-	public List<SeatPlayer> getSeatPlayerList(int position, int fromPage) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		List<SeatPlayer> list = gameSeat.getSeatPlayerList();
-		List<SeatPlayer> result = new ArrayList<SeatPlayer>();
-		int fromIndex = fromPage * BaseGame.PAGE_SIZE;
-		int toIndex = fromIndex + BaseGame.PAGE_SIZE;
-		for(int i=fromIndex; i<list.size() && i<toIndex; i++) {
-			result.add(list.get(i));
-		}
-		return result;
-	}
-	public List<SeatPlayer> getAssistantList(int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		return gameSeat.getAssistantList();
-	}
-	
-	/***
-	 * 快速坐下
-	 * 
-	 * @param player
-	 */
-	public final RtnGameSeatInfoCmd quickSitdown(Player player) {
-		GameSeat gameSeat = getIdelGameSeat();
-		if(gameSeat == null) {
-			throw new BizException(String.format("已经没有空闲的席位了"));
-		}
-		
-		SeatPlayer seatPlayer = gameSeat.sitdown(player);
-		logger.info("{}进入游戏: 抢到{}席位并坐下", player.getNickname(), gameSeat.getAddrNo());
-		RtnGameSeatInfoCmd rtnCmd =  gameSeat.getGameSeatInfo();
-		rtnCmd.setSeatPost(seatPlayer.getSeatPost());
-		return rtnCmd;
-	}
-	
-	/***
-	 * 申请辅助
-	 * @param playerId
-	 */
-	public void applyAssistant(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("已经没有空闲的席位了"));
-		}
+		Player player = new Player();
+		player.setId(gameSessionInfo.getPlayerId());
+		player.setNickname(nickName);
+		player.setSex(sex);
+		player.setTelphone(telphone);
+		player.setHeadPic(String.valueOf(headPic));
+		player.setBcoin(reqCmd.getBcoin());
 		
 		//是否有进入的限制条件
-		gameSeat.applyAssistant(player);
-		logger.info("{}在游戏席位: {}申请辅助", player.getNickname(), gameSeat.getAddrNo());
-		//等待主席位应答
+		this.preJoin(player);
+		
+		playerMap.put(player.getId(), player);
+		gameSessionInfo.setAddress(this);
+		changeSession(player, gameSession);
+//		player.getOnline().getSession().getAttachment().put(GameConstant.GAME_SESSION_INFO, gameSessionInfo);
+		
+		RtnGameInfoCmd rtnCmd = getGameInfo();
+		rtnCmd.setPlayerId(player.getId());
+		logger.info("{}进入{}游戏, 返回:{} ", player.getNickname(), gameItem.getName(), rtnCmd.toLogStr());
+		
+		//发送广播
+		PushJoinCmd pushCmd = reqCmd.valueOfPushJoinCmd();
+		pushCmd.setPlayer(player.valueOfPlayerVo());
+		this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		
+		//把结果写回给用户
+		gameSession.write(rtnCmd);
+	}
+	protected void rejoin(GameSession gameSession) {
+		GameSessionInfo gameSessionInfo = (GameSessionInfo)gameSession.getAttachment().get(GameConstant.GAME_SESSION_INFO);
+		Player player = getPlayer(gameSessionInfo.getPlayerId());
+		logger.info("{}重新进入{}游戏:所在位置{}, 请求游戏桌{}", player.getNickname(), gameItem.getName(), gameSessionInfo.getAddress().getAddrNo(), this.getAddrNo());
+		
+		RtnGameInfoCmd rtnCmd = getGameInfo();
+		rtnCmd.setAddress(gameSessionInfo.getAddress().getAddrNo());
+		gameSession.write(rtnCmd);
+	}
+	protected RtnGameInfoCmd getGameInfo() {
+		RtnGameInfoCmd rtnCmd = new RtnGameInfoCmd();
+		rtnCmd.setPauseMs(this.getPauseTime());
+		rtnCmd.setManagerId(this.getManagerId());
+		rtnCmd.setAddress(this.getAddrNo());
+		rtnCmd.setSeatPlayingMap(this.getSeatMasterPlayer());
+		return rtnCmd;
 	}
 	
-	/***
-	 * 同意XXX成为辅助
-	 * @param player
-	 * @param id
-	 */
-	public void approveApplyAssistant(Player master, int position, Player other, OutParam<Player> outParam) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("已经没有空闲的席位了"));
+	public Long getManagerId() {
+		if(manager.get() == null) {
+			return null;
 		}
-		
-		gameSeat.approveApplyAssistant(master, other);
-		outParam.setParam(other);
-		logger.info("{}同意席位:{}的{}成为辅助", master.getNickname(), gameSeat.getAddrNo(), position, other.getNickname());
+		return manager.get().getId();	
 	}
 	
-	/***
-	 * 从席位中站起来
-	 * @param player
-	 */
-	public final void standUp(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		
-		gameSeat.standUp(player, false);
-		if(gameSeat.getFansCount() == 0) {
-//			this.removeGameSeat(position);
-		}
-		logger.info("{}在席位:{}站起来了", player.getNickname(), gameSeat.getAddrNo());
+	public Player getManager() {
+		return manager.get();	
 	}
 	
-	public void stopAssistant(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		gameSeat.stopAssistant(player);
-		logger.info("{}在席位:{}停止申请助手", player.getNickname(), gameSeat.getAddrNo());
-	}	
-	
-	public void stopOnlooker(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		gameSeat.stopOnlooker(player);
-		logger.info("{}在席位:{}停止申请旁观者", player.getNickname(), gameSeat.getAddrNo());
-	}
-	public void bootAssistant(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		gameSeat.bootAssistant(player);
-		logger.info("{}在席位:{}开启申请助手", player.getNickname(), gameSeat.getAddrNo());
-	}
-	public void bootOnlooker(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		gameSeat.bootOnlooker(player);
-		logger.info("{}在席位:{}开启申请旁观者", player.getNickname(), gameSeat.getAddrNo());
-	}
-
-	public void applySeatSuccessor(Player player, int position) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}		
-		gameSeat.applySeatSuccessor(player);
-		logger.info("{}在席位:{}申请主席位继任者", player.getNickname(), gameSeat.getAddrNo());
-	}
-	/***
-	 * 设置(下一轮)主席位继任人
-	 * @param player
-	 */
-	public final void setSeatSuccessor(Player master, int position, Player other, OutParam<Player> outParam) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("%s无效的席位号", position));
-		}
-		
-		gameSeat.setSeatSuccessor(master, other);
-		outParam.setParam(other);
-		logger.info("{}在席位:{}将主席位继任者传给{}成功", other.getNickname(), gameSeat.getAddrNo(), other.getNickname());
-	}
-	/***
-	 * 强制席中的某人站起
-	 * @param masterId
-	 * @param playerId
-	 */
-	public void forceStandUp(Player master, int position, Player other) {
-		GameSeat gameSeat = getGameSeat(position);
-		if(gameSeat == null) {
-			throw new BizException(String.format("已经没有空闲的席位了"));
-		}
-		
-		gameSeat.forceStandUp(master, other);
-		logger.info("{}在席位:{}请 {}站起", master.getNickname(), gameSeat.getAddrNo(), other.getNickname());
-	}
-	
-	public void reward(Player player, List<Integer> positionList, Gift gift) {
-		checkPosistion(positionList);
-		
-		//TODO 需判断扣款
-		//SeatPlayer seatPlayer = getSeatPlayer(playerId);
-	}
-	/***
-	 *聊天
-	 */
-	public void chat(Player player, List<Integer> positionList, Chat message) {
-		checkPosistion(positionList);
-		//TODO 需判断扣款
-	}
-
-	protected GameSeat getGameSeat(int position) {
+	public GameSeat getGameSeat(int position) {
 		return seatPlayingMap.get(position);
 	}
-//	protected GameSeat removeGameSeat(int position) {
-//		return seatPlayingMap.remove(position);
-//	}
-	protected GameSeat getIdelGameSeat() {
+	public GameSeat getIdelGameSeat() {
 		for(GameSeat gameSeat : seatPlayingMap.values()) {
 			if(gameSeat.isIdle()) {
 				return gameSeat;
@@ -295,50 +197,122 @@ public class TableDesk implements AddressNo{
 		return map;
 	}
 
-	public boolean applyBroadcastLive(Player player, OutParam<SeatPlayer> outParam) {
-		SeatPlayer seatPlayer = this.getSeatPlayer(player.getId());
-		if(seatPlayer == null) {
-			throw new BizException(String.format("%s不在席位上，不可以同意申请直播", player.getId()));
-		}
-		if(seatPlayer.getSeatPost() == SeatPost.onlooker) {
-			throw new BizException(String.format("%s旁观人员，不可以同意申请直播", player.getId()));
+	/***
+	 * 申请成为管理员
+	 * 
+	 * 当无管理员时第一个自动成功管理员
+	 * 
+	 * @param playerId
+	 */
+	public boolean applyManager(GameSessionInfo gameSessionInfo, ReqApplyManagerCmd reqCmd) {
+		this.operatorVerfy();
+		
+		//判断是否是在游戏桌中
+		long playerId = gameSessionInfo.getPlayerId();
+		Player player = playerMap.get(playerId);
+		if(manager.get() != null) {
+			if(manager.get().getId() == playerId) {
+				throw new BizException(String.format("%s已是管理员, 不可再申请", playerId));
+			}
+			
+			//向这管理员发送告知
+			PushNotifyApplyManagerCmd pushCmd = new PushNotifyApplyManagerCmd();
+			pushCmd.setPlayerId(playerId);
+			pushCmd.setHeadPic(player.getHeadPic());
+			pushCmd.setNickname(player.getNickname());
+			manager.get().getOnline().push(pushCmd);
+			logger.info("{}向管理员{}发送更换管理员申请", player.getNickname(), manager.get().getNickname());
+			return false;
 		}
 		
-		if(seatPlayer.getGameSeat().isBroadcasting()) {
-			throw new BizException(String.format("该主席位已经是直播了，不可以再申请直播！！"));
-		}
-		
-		outParam.setParam(seatPlayer);
-		if(this.getTableGame().getManagerId() == player.getId()) {
-			seatPlayer.getGameSeat().broadcasting = true;
-			seatPlayer.getGameSeat().applyBroadcasted = false ;
+		if(manager.compareAndSet(null, player)) {
+			manager.set(player);
+			logger.info("{}在游戏桌:{}--{},抢到管理员之位", player.getNickname(), deskItem.getPlayKind(), this.getAddrNo());
+			
+			PushApplyManagerCmd pushCmd = reqCmd.valueOfPushApplyManagerCmd();
+			pushCmd.setPlayerId(playerId);
+			pushCmd.setNickname(player.getNickname());
+			pushCmd.setHeadPic(player.getHeadPic());
+			this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+			
 			return true;
 		}
-		return false;
+
+		throw new BizException(String.format("管理员之位已被%s强走了，请重试吧", manager.get().getNickname()));
 	}
 	
-	public void cancelBroadcastLive(Player player, OutParam<SeatPlayer> outParam) {
-		SeatPlayer seatPlayer = this.getSeatPlayer(player.getId());
-		if(seatPlayer == null) {
-			throw new BizException(String.format("%s不在席位上，不可以同意申请直播", player.getId()));
-		}
-		if(seatPlayer.getSeatPost() == SeatPost.onlooker) {
-			throw new BizException(String.format("%s旁观人员，不可以取消直播", player.getId()));
-		}
+	/***
+	 * 更改管理员
+	 * @param player
+	 * @param playerId 为空时，表示无管理人员
+	 */
+	public void changeManager(GameSessionInfo gameSessionInfo, ReqChangeManagerCmd reqCmd) {
+		checkAndGetManager(gameSessionInfo.getPlayerId());
 		
-		if(!seatPlayer.getGameSeat().isBroadcasting()) {
-			if(!seatPlayer.getGameSeat().isApplyBroadcasted()) {
-				throw new BizException(String.format("该主席位不是直播，也没人申请直播！！"));
+		if(reqCmd.getOtherId() != null && gameSessionInfo.getPlayerId() == reqCmd.getOtherId()) {
+			throw new BizException(String.format("管理员不可以将自己改为管理员"));
+		}
+		if(reqCmd.getOtherId() != null) {
+			Player other = playerMap.get(reqCmd.getOtherId());
+			if(other == null) {
+				throw new BizException(String.format("非法请求，不在游戏桌中"));
 			}
+			manager.set(other);
+			PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
+			pushCmd.setPlayerId(gameSessionInfo.getPlayerId());
+			pushCmd.setNickname(other.getNickname());
+			pushCmd.setHeadPic(other.getHeadPic());
+			this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 		}
-		
-		seatPlayer.getGameSeat().broadcasting = false;
-		seatPlayer.getGameSeat().applyBroadcasted = false;
-		outParam.setParam(seatPlayer);
-		logger.info("{}取消直播席位:{}", player.getNickname(), seatPlayer.getGameSeat().getAddrNo());
+		else {
+			//取消管理员之位
+			manager.set(null);
+			PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
+			this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		}
+		logger.info("{}在游戏桌:{}--{},将管理员之位传给:{}", gameSessionInfo.getPlayerId(), deskItem.getPlayKind(), this.getAddrNo(), reqCmd.getOtherId());
+	}
+	protected void checkAndGetManager(long managerId) {
+		if(manager.get() == null) {
+			throw new BizException(String.format("还没设置管理员"));
+		}
+		if(manager.get().getId() != managerId) {
+			throw new BizException(String.format("%s不是管理员", managerId));
+		}
 	}
 	
-	public void approveBroadcastLive(int position) {
+	
+	/***游戏暂停****/
+	public void pause(GameSessionInfo gameSessionInfo, ReqPauseCmd reqCmd) {
+		this.operatorVerfy();
+		checkAndGetManager(gameSessionInfo.getPlayerId());
+		
+		Player player = playerMap.get(gameSessionInfo.getPlayerId());
+		pause(reqCmd.getSeconds());
+		
+		logger.info("{}在游戏桌:{}--{},暂停游戏{}秒", player.getNickname(), deskItem.getPlayKind(), this.getAddrNo(), reqCmd.getSeconds());
+	}
+	
+	/***游戏取消暂停(恢复正常)****/
+	public void resume(GameSessionInfo gameSessionInfo, ReqResumeCmd reqCmd) {
+		this.operatorVerfy();
+		checkAndGetManager(gameSessionInfo.getPlayerId());
+		
+		Player player = playerMap.get(gameSessionInfo.getPlayerId());
+		resume();
+		
+		logger.info("{}在游戏桌:{}--{},恢复游戏", player.getNickname(), deskItem.getPlayKind(), this.getAddrNo());
+	}
+	
+	public void approveBroadcastLive(GameSessionInfo gameSessionInfo, ReqApproveBroadcastLiveCmd reqCmd) {
+		if(getManagerId() == null) {
+			throw new BizException(String.format("%s不是管理员，不可以同意申请直播", gameSessionInfo.getPlayerId()));
+		}
+		if(getManagerId() != gameSessionInfo.getPlayerId()) {
+			throw new BizException(String.format("%s不是管理员，不可以同意申请直播", gameSessionInfo.getPlayerId()));
+		}
+		
+		int position = reqCmd.getPosition();
 		GameSeat gameSeat = this.seatPlayingMap.get(position);
 		if(gameSeat == null) {
 			throw new BizException(String.format("%s席位没有人入座", position));
@@ -351,21 +325,12 @@ public class TableDesk implements AddressNo{
 		}
 		gameSeat.broadcasting = true;
 		gameSeat.applyBroadcasted = false;
+		
+		PushApproveBroadcastLiveCmd pushCmd = reqCmd.valueOfPushApproveBroadcastLiveCmd();
+		pushCmd.setPosition(position);
+		broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 
-	public void broadcastLive(Player player, OutParam<SeatPlayer> outParam) {
-		SeatPlayer seatPlayer = this.getSeatPlayer(player.getId());
-		if(seatPlayer == null) {
-			throw new BizException(String.format("%s不在席位上，不可以直播", player.getId()));
-		}
-		if(seatPlayer.getSeatPost() != SeatPost.master) {
-			throw new BizException(String.format("%s不是主席位，不可以直播", player.getId()));
-		}
-		outParam.setParam(seatPlayer);
-		
-		logger.info("{}正在直播:席位:{}", player.getNickname(), seatPlayer.getGameSeat().getAddrNo());
-	}
-	
 	protected void checkPosistion(List<Integer> positionList) throws BizException{
 		for(int position : positionList) {
 			if(this.seatPlayingMap.containsKey(position)) {
@@ -383,14 +348,4 @@ public class TableDesk implements AddressNo{
 		}
 		return null;
 	}
-
-	public TableGame getTableGame() {
-		return (TableGame)this.currentGame;
-	}
-
-	public int getDeskNo() {
-		return deskNo;
-	}
-
-	
 }

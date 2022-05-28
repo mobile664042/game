@@ -22,8 +22,8 @@ public class ReqPauseCmd extends ReqGameCmd{
 
 	public PushPauseCmd valueOfPushPauseCmd() {
 		PushPauseCmd pushCmd = new PushPauseCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		pushCmd.setSeconds(seconds);
 		return pushCmd;
 	}

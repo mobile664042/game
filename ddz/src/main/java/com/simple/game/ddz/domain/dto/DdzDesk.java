@@ -7,13 +7,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.cmd.push.game.PushLeftCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
-import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.manager.CoinManager;
 import com.simple.game.core.exception.BizException;
@@ -24,12 +21,10 @@ import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd.OutCard;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
-import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.DoubleKind;
 import com.simple.game.ddz.domain.dto.constant.ddz.GameProgress;
-import com.simple.game.ddz.domain.good.DdzGame;
 import com.simple.game.ddz.domain.manager.GameResultRecord;
 import com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem;
 import com.simple.game.ddz.domain.manager.ResultManager;
@@ -52,8 +47,8 @@ public class DdzDesk extends TableDesk{
 	
 	protected final DdzCard ddzCard = new DdzCard();
 	
-	public DdzDesk(DdzGame game) {
-		super(game);
+	public DdzDesk(DdzGameItem gameItem, DdzDeskItem deskItem) {
+		super(gameItem, deskItem);
 	} 
 
 	/***是否在进行中****/
@@ -74,14 +69,14 @@ public class DdzDesk extends TableDesk{
 	
 	public /* synchronized */ boolean onScan() {
 		if(currentProgress == GameProgress.ready) {
-			if(this.currentGame.getOnlineCount() == 0) {
+			if(this.playerMap.size() == 0) {
 				return false;
 			}
 			
 			boolean standuped = false;
 			int readyCount = 0;
 			handleDisconnectPlayer();
-			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMaxPosition(); position++) {
+			for(int position = deskItem.getMinPosition(); position <= deskItem.getMaxPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 				if(gameSeat == null) {
 					logger.error("系统有重大bug!!! 席位没找到");
@@ -110,7 +105,7 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//更换主席位
-			for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+			for(int position = deskItem.getMinPosition(); position <= deskItem.getMinPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 				gameSeat.handleChangeMaster();
 			}
@@ -206,7 +201,7 @@ public class DdzDesk extends TableDesk{
 	 * 处理掉线的用户
 	 */
 	private void handleDisconnectPlayer() {
-		for(Player player : this.getTableGame().getOfflineMap().values()) {
+		for(Player player : offlineMap.values()) {
 			long time = System.currentTimeMillis() - player.getOnline().getDisconnectTime();
 			if(time == 0 || time / 1000 < this.getDdzGameItem().getMaxDisconnectSecond()) {
 				continue;
@@ -225,15 +220,7 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//强制下线
-			OutParam<Player> outParam = OutParam.build();
-			this.getTableGame().left(player.getId(), outParam);
-			PushLeftCmd pushCmd = new PushLeftCmd();
-			pushCmd.setPlayKind(this.getTableGame().getDeskItem().getPlayKind());
-			pushCmd.setDeskNo(this.getDeskNo());
-			pushCmd.setPlayerId(player.getId());
-			pushCmd.setNickname(outParam.getParam().getNickname());
-			pushCmd.setHeadPic(outParam.getParam().getHeadPic());
-			this.getTableGame().broadcast(pushCmd, true);
+			this.left(player.getId());
 		}
 	}
 	
@@ -248,7 +235,7 @@ public class DdzDesk extends TableDesk{
 		
 		//发送广播
 		NotifyGameSkipCmd notifyCmd = new NotifyGameSkipCmd();
-		this.getTableGame().broadcast(notifyCmd);
+		broadcast(notifyCmd);
 		return true;
 	}
 	
@@ -290,11 +277,9 @@ public class DdzDesk extends TableDesk{
 		
 		//广播
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
-		pushCmd.setPlayKind(pushCmd.getPlayKind());
-		pushCmd.setDeskNo(this.getDeskNo());
 		pushCmd.setPosition(position);
 		pushCmd.getCards().addAll(outCards);
-		this.getTableGame().broadcast(pushCmd, true);
+		this.broadcast(pushCmd, true);
 		return true;
 	}
 	
@@ -337,7 +322,7 @@ public class DdzDesk extends TableDesk{
 		return false;
 	}
 	
-	public boolean canStandUpMaster() {
+	public boolean canStandUp() {
 		return currentProgress == GameProgress.ready;
 	}
 	private void shuffleCards() {
@@ -381,29 +366,27 @@ public class DdzDesk extends TableDesk{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public synchronized RtnRobLandlordCmd robLandlord(long playerId, int position, int score, OutParam<SeatPlayer> outParam) {
+	public synchronized List<Integer> robLandlord(int position, int score) {
 		if(currentProgress != GameProgress.sended) {
 			throw new BizException("不是发完牌状态，无法进行抢地主");
 		}
 		
-		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
-		RtnRobLandlordCmd rtnCmd = this.ddzCard.setLandlord(position);
+		List<Integer> commonCards = this.ddzCard.setLandlord(position);
 		currentProgress = GameProgress.robbedLandlord;
 		lastPlayCardTime = System.currentTimeMillis();
-		outParam.setParam(seatPlayer);
-		return rtnCmd;
+		return commonCards;
 	}
 	
 	
-	public synchronized void playCard(long playerId, int position, List<Integer> cards, OutParam<SeatPlayer> outParam) {
+	public synchronized void playCard(int position, List<Integer> cards) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行出牌");
 		}
 		
-		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
+//		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
 		boolean isGameOver = this.ddzCard.playCard(position, cards);
 		afterPlayCard(isGameOver);
-		outParam.setParam(seatPlayer);
+//		outParam.setParam(seatPlayer);
 //		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
 //		pushCmd.setPosition(position);
 //		pushCmd.getCards().addAll(cards);
@@ -419,20 +402,20 @@ public class DdzDesk extends TableDesk{
 	}
 	
 
-	public synchronized void readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
-		if(currentProgress != GameProgress.ready) {
-			throw new BizException("不是准备状态，无法进行出牌");
-		}
-		
-		//判断游戏币是否允足，能否满足下一轮开始
-		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
-		outParam.setParam(seatPlayer);
-		DdzGameSeat extGameSeat = (DdzGameSeat)seatPlayer.getGameSeat();
-		extGameSeat.readyNext();
-//		PushReadyNextCmd pushCmd = extGameSeat.readyNext();
+//	public void readyNext(GameSessionInfo gameSessionInfo, ReqReadyNextCmd reqCmd) {
+////	public synchronized void readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
+//		if(currentProgress != GameProgress.ready) {
+//			throw new BizException("不是准备状态，无法进行出牌");
+//		}
+//		
+//		//判断游戏币是否允足，能否满足下一轮开始
+//		SeatPlayer seatPlayer = checkSeatPlayer(gameSessionInfo);
+//		DdzGameSeat extGameSeat = (DdzGameSeat)seatPlayer.getGameSeat();
+//		extGameSeat.readyNext();
+//		PushReadyNextCmd pushCmd = new PushReadyNextCmd();
 //		pushCmd.setPosition(position);
 //		return pushCmd;
-	}
+//	}
 	
 	/***
 	 * 投降认输
@@ -440,17 +423,17 @@ public class DdzDesk extends TableDesk{
 	 * @param playerId
 	 * @param position
 	 */
-	public synchronized void surrender(long playerId, int position, OutParam<SeatPlayer> outParam) {
+	public synchronized void surrender(int position) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行投降");
 		}
 		
-		SeatPlayer seatPlayer = this.checkSeatPlayer(playerId, position);
+//		SeatPlayer seatPlayer = this.checkSeatPlayer(playerId, position);
 		
 		//进入surrender状态了
 		currentProgress = GameProgress.surrender;			
 		surrenderPosition = position;
-		outParam.setParam(seatPlayer);
+//		outParam.setParam(seatPlayer);
 //		PushSurrenderCmd pushCmd = new PushSurrenderCmd();
 //		pushCmd.setPosition(position);
 //		return pushCmd;
@@ -493,7 +476,7 @@ public class DdzDesk extends TableDesk{
 		
 		//发送广播
 		NotifyGameOverCmd notifyCmd = NotifyGameOverCmd.valueOf(gameResultRecord);
-		this.getTableGame().broadcast(notifyCmd);
+		this.broadcast(notifyCmd);
 		return true;
 	}
 	private void handleNext() {
@@ -512,7 +495,7 @@ public class DdzDesk extends TableDesk{
 			return;
 		}
 		
-		for(int position = currentGame.getDeskItem().getMinPosition(); position <= currentGame.getDeskItem().getMinPosition(); position++) {
+		for(int position = deskItem.getMinPosition(); position <= deskItem.getMinPosition(); position++) {
 			DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 			if(gameSeat.getSkipCount() <= this.getDdzGameItem().getEscape2SkipCount()) {
 				continue;
@@ -791,25 +774,6 @@ public class DdzDesk extends TableDesk{
 		return gameResultRecord;
 	}
 	
-	private SeatPlayer checkSeatPlayer(long playerId, int position) {
-		GameSeat gameSeat = this.seatPlayingMap.get(position);
-		if(gameSeat == null) {
-			throw new BizException("无效的请求");
-		}
-		if(gameSeat.getMaster().get() == null) {
-			throw new BizException("主席位空缺不能操作"); 
-		}
-		if(gameSeat.getMaster().get().getPlayer().getId() == playerId) {
-			return gameSeat.getMaster().get(); 
-		}
-		SeatPlayer seatPlayer = gameSeat.getAssistantMap().get(playerId);
-		if(seatPlayer == null) {
-			throw new BizException("旁观人员不能操作");
-		}
-		return seatPlayer;
-	}
-	
-	
 	
 	protected DoubleKind getDoubleKind() {
 		DdzGameItem config = getDdzGameItem();
@@ -819,10 +783,10 @@ public class DdzDesk extends TableDesk{
 		return DoubleKind.exponential;
 	}
 	protected DdzGameItem getDdzGameItem() {
-		return (DdzGameItem)this.getTableGame().getGameItem();
+		return (DdzGameItem)this.gameItem;
 	}
 	protected DdzDeskItem getDdzDeskItem() {
-		return (DdzDeskItem)this.getTableGame().getDeskItem();
+		return (DdzDeskItem)this.deskItem;
 	}
 	@Override
 	protected GameSeat buildGameSeat(int position){

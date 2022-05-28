@@ -4,7 +4,6 @@ import com.simple.game.core.domain.cmd.vo.SeatPlayerVo;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 
 import lombok.Getter;
-import lombok.ToString;
 
 /***
  * 席位玩家

@@ -22,8 +22,8 @@ public class ReqChangeManagerCmd extends ReqGameCmd{
 
 	public PushChangeManagerCmd valueOfPushChatMultiCmd() {
 		PushChangeManagerCmd pushCmd = new PushChangeManagerCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		pushCmd.setPlayerId(otherId);
 		return pushCmd;
 	}

@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.alibaba.fastjson.JSON;
+import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
-import com.simple.game.core.domain.good.TableGame;
 import com.simple.game.core.domain.manager.GameManager;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
-import com.simple.game.ddz.domain.good.DdzGame;
 
 import lombok.Getter;
 
@@ -30,8 +30,8 @@ public class DdzGameManager extends GameManager {
 	private List<DeskItem> deskItemList;
 
 	@Override
-	public TableGame newInstanceload(GameItem gameItem, DeskItem deskItem) {
-		return new DdzGame((DdzGameItem)gameItem, (DdzDeskItem)deskItem);
+	public TableDesk newInstanceload(GameItem gameItem, DeskItem deskItem) {
+		return new DdzDesk((DdzGameItem)gameItem, (DdzDeskItem)deskItem);
 	}
 	
 	public static DdzGameManager buildDefault() {

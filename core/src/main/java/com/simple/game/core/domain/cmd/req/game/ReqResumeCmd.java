@@ -20,8 +20,8 @@ public class ReqResumeCmd extends ReqGameCmd{
 
 	public PushResumeCmd valueOfPushResumeCmd() {
 		PushResumeCmd pushCmd = new PushResumeCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		return pushCmd;
 	}
 }

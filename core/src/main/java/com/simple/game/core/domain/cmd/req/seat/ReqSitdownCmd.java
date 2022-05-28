@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class ReqSitdownCmd extends ReqSeatCmd{
 	public final static int CMD = 102001;
+	protected int position;
 	@Override
 	public int getCmd() {
 		return CMD;
@@ -20,8 +21,8 @@ public class ReqSitdownCmd extends ReqSeatCmd{
 
 	public PushSitdownCmd valueOfPushSitdownCmd() {
 		PushSitdownCmd pushCmd = new PushSitdownCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		pushCmd.setPosition(position);
 		return pushCmd;
 	}

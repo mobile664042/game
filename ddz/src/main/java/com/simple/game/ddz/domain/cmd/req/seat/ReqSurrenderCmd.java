@@ -21,9 +21,9 @@ public class ReqSurrenderCmd extends ReqSeatCmd{
 
 	public PushSurrenderCmd valueOfPushSurrenderCmd() {
 		PushSurrenderCmd pushCmd = new PushSurrenderCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

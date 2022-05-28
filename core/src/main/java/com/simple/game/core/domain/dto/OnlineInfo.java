@@ -29,7 +29,9 @@ public class OnlineInfo {
 	/** 最后登录ip ***/
 	private String loginIp;
 
-	/** session ***/
+	/** session
+	 * 可以缓存游戏在线信息（com.simple.game.core.domain.dto.GameSessionInfo）
+	 ****/
 	private GameSession session;
 
 	/** 掉线时间戳 ***/

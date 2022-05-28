@@ -26,9 +26,9 @@ public class ReqRewardCmd extends ReqGameCmd{
 
 	public PushRewardCmd valueOfPushRewardCmd() {
 		PushRewardCmd pushCmd = new PushRewardCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
 		pushCmd.setPositionList(positionList);
 		pushCmd.setGift(gift);
 		return pushCmd;

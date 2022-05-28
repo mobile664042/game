@@ -20,9 +20,9 @@ public class ReqStopAssistantCmd extends ReqSeatCmd{
 
 	public PushStopAssistantCmd valueOfPushStopAssistantCmd() {
 		PushStopAssistantCmd pushCmd = new PushStopAssistantCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 
 import com.simple.game.core.domain.cmd.req.game.ReqAdminPauseCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqAdminResumeCmd;
+import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.dto.config.DeskItem;
-import com.simple.game.core.domain.good.TableGame;
-import com.simple.game.ddz.domain.good.DdzGame;
+import com.simple.game.ddz.domain.dto.DdzDesk;
 import com.simple.game.ddz.domain.service.DdzAdminService;
 import com.simple.game.server.cmd.req.desk.BuildReq;
 import com.simple.game.server.cmd.req.desk.DestroyReq;
@@ -70,21 +70,21 @@ public class MyDdzGameService{
 
 
 	public List<DdzDeskRtn> getDeskList(int playKind) {
-		List<TableGame> list = adminService.getGameManager().getTableGameList(playKind);
+		List<TableDesk> list = adminService.getGameManager().getTableDeskList(playKind);
 		if(list == null) {
 			return null;
 		}
 		
 		List<DdzDeskRtn> result = new ArrayList<DdzDeskRtn>();
-		for(TableGame tableGame : list) {
-			DdzGame ddzGame = (DdzGame)tableGame;
+		for(TableDesk tableDesk : list) {
+			DdzDesk ddzDesk = (DdzDesk)tableDesk;
 			
 			DdzDeskRtn desk = new DdzDeskRtn();
-			desk.setDeskNo(tableGame.getDeskNo());
-			desk.setGameStatus(tableGame.getGameStatus());
-			desk.setOnlineCount(tableGame.getOnlineCount());
-			desk.setCurrentProgress(ddzGame.getCurrentProgress());
-			desk.setPauseTime((int)tableGame.getPauseTime());
+			desk.setDeskNo(tableDesk.getDeskNo());
+			desk.setGameStatus(ddzDesk.getGameStatus());
+			desk.setOnlineCount(tableDesk.getOnlineCount());
+			desk.setCurrentProgress(ddzDesk.getCurrentProgress());
+			desk.setPauseTime((int)tableDesk.getPauseTime());
 			result.add(desk);
 		}
 		

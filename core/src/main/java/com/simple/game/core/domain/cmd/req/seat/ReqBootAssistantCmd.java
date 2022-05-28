@@ -21,9 +21,9 @@ public class ReqBootAssistantCmd extends ReqSeatCmd{
 
 	public PushBootAssistantCmd valueOfPushBootAssistantCmd() {
 		PushBootAssistantCmd pushCmd = new PushBootAssistantCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

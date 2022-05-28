@@ -20,9 +20,9 @@ public class ReqBootOnlookerCmd extends ReqSeatCmd{
 
 	public PushBootOnlookerCmd valueOfPushBootOnlookerCmd() {
 		PushBootOnlookerCmd pushCmd = new PushBootOnlookerCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

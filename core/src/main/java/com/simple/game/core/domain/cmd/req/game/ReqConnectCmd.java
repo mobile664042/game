@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class ReqConnectCmd extends ReqGameCmd{
 	public final static int CMD = 101008;
-	private GameSession session;
+//	private GameSession session;
 	@Override
 	public int getCmd() {
 		return CMD;
@@ -22,9 +22,9 @@ public class ReqConnectCmd extends ReqGameCmd{
 
 	public PushConnectCmd valueOfPushConnectCmd() {
 		PushConnectCmd pushCmd = new PushConnectCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
 		return pushCmd;
 	}
 }

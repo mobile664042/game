@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class ReqApproveBroadcastLiveCmd extends ReqSeatCmd{
 	public final static int CMD = 102017;
+	protected int position;
 	
 	@Override
 	public int getCmd() {
@@ -21,8 +22,8 @@ public class ReqApproveBroadcastLiveCmd extends ReqSeatCmd{
 
 	public PushApproveBroadcastLiveCmd valueOfPushApproveBroadcastLiveCmd() {
 		PushApproveBroadcastLiveCmd pushCmd = new PushApproveBroadcastLiveCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		pushCmd.setPosition(position);
 		return pushCmd;
 	}

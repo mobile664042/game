@@ -21,9 +21,9 @@ public class ReqDisconnectCmd extends ReqGameCmd{
 
 	public PushDisconnectCmd valueOfPushDisconnectCmd() {
 		PushDisconnectCmd pushCmd = new PushDisconnectCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
 		return pushCmd;
 	}
 }

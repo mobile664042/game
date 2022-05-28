@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.simple.game.core.constant.GameConstant;
 import com.simple.game.core.domain.cmd.req.HeartCmd;
 import com.simple.game.core.domain.cmd.req.ReqCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqApplyManagerCmd;
@@ -13,6 +14,7 @@ import com.simple.game.core.domain.cmd.req.game.ReqChatCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqChatMultiCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqConnectCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqDisconnectCmd;
+import com.simple.game.core.domain.cmd.req.game.ReqGameCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqGetOnlineListCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqJoinCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqKickoutCmd;
@@ -33,6 +35,7 @@ import com.simple.game.core.domain.cmd.req.seat.ReqForceStandUpCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqGetAssistantListCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqGetSeatPlayerListCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqQuickSitdownCmd;
+import com.simple.game.core.domain.cmd.req.seat.ReqSeatCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqSetSeatSuccessorCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqSitdownCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqStandUpCmd;
@@ -40,7 +43,8 @@ import com.simple.game.core.domain.cmd.req.seat.ReqStopAssistantCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqStopOnlookerCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCommonCmd;
-import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
+import com.simple.game.core.domain.dto.GameSeat;
+import com.simple.game.core.domain.dto.GameSessionInfo;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
@@ -70,9 +74,20 @@ public class WebGameDispatcher {
 	 */
 	public void onMessage(String gameCode, String message, GameSession gameSession) {
 		if(MyConstant.DDZ.equals(gameCode)) {
+			GameSessionInfo gameSessionInfo = (GameSessionInfo)gameSession.getAttachment().get(MyConstant.GAME_SESSION_INFO);
 			ReqCmd reqCmd = parseAndCheck(message);
-			long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
-			reqCmd.setPlayerId(playerId);
+			
+			if(reqCmd instanceof ReqGameCmd) {
+				if(gameSessionInfo.getAddress() == null && !(reqCmd instanceof ReqJoinCmd)) {
+					throw new BizException("还未进入游戏不可执行这操作，" + message);
+				}
+				if(reqCmd instanceof ReqSeatCmd) {
+					if(!(gameSessionInfo.getAddress() instanceof GameSeat)) {
+						throw new BizException("还未坐下不可执行这操作，" + message);
+					}
+				}
+			}
+			
 			if(reqCmd instanceof ReqJoinCmd) {
 				doDdzJoin((ReqJoinCmd)reqCmd, gameSession);
 				return ;
@@ -82,149 +97,142 @@ public class WebGameDispatcher {
 				return ;
 			}
 			else if(reqCmd instanceof ReqGetOnlineListCmd) {
-				RtnCmd rtnCmd = ddzService.getOnlineList((ReqGetOnlineListCmd)reqCmd);
-				writeRtnCmd(rtnCmd, gameSession);
+				ddzService.getOnlineList(gameSessionInfo, (ReqGetOnlineListCmd)reqCmd);
 				return ;
 			}
 			else if(reqCmd instanceof ReqLeftCmd) {
-				ddzService.left((ReqLeftCmd)reqCmd);
+				ddzService.left(gameSessionInfo, (ReqLeftCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqChatCmd) {
-				ddzService.chat((ReqChatCmd)reqCmd);
+				ddzService.chat(gameSessionInfo, (ReqChatCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqChatMultiCmd) {
-				ddzService.chat((ReqChatMultiCmd)reqCmd);
+				ddzService.chat(gameSessionInfo, (ReqChatMultiCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqRewardCmd) {
-				ddzService.reward((ReqRewardCmd)reqCmd);
+				ddzService.reward(gameSessionInfo, (ReqRewardCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqApplyManagerCmd) {
-				ddzService.applyManager((ReqApplyManagerCmd)reqCmd);
+				ddzService.applyManager(gameSessionInfo, (ReqApplyManagerCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqChangeManagerCmd) {
-				ddzService.changeManager((ReqChangeManagerCmd)reqCmd);
+				ddzService.changeManager(gameSessionInfo, (ReqChangeManagerCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqKickoutCmd) {
-				ddzService.kickout((ReqKickoutCmd)reqCmd);
+				ddzService.kickout(gameSessionInfo, (ReqKickoutCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqResumeCmd) {
-				ddzService.resume((ReqResumeCmd)reqCmd);
+				ddzService.resume(gameSessionInfo, (ReqResumeCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqPauseCmd) {
-				ddzService.pause((ReqPauseCmd)reqCmd);
+				ddzService.pause(gameSessionInfo, (ReqPauseCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			
 			
 			else if(reqCmd instanceof ReqSitdownCmd) {
-				RtnCmd rtnCmd = ddzService.sitdown((ReqSitdownCmd)reqCmd);
-				//把结果写回给用户
-				gameSession.write(rtnCmd);
+				ddzService.sitdown(gameSessionInfo, (ReqSitdownCmd)reqCmd);
 				return ;
 			}
 			else if(reqCmd instanceof ReqQuickSitdownCmd) {
-				RtnCmd rtnCmd = ddzService.quickSitdown((ReqQuickSitdownCmd)reqCmd);
-				//把结果写回给用户
-				gameSession.write(rtnCmd);
+				ddzService.quickSitdown(gameSessionInfo, (ReqQuickSitdownCmd)reqCmd);
 				return ;
 			}
 			else if(reqCmd instanceof ReqStandUpCmd) {
-				ddzService.standUp((ReqStandUpCmd)reqCmd);
+				ddzService.standUp(gameSessionInfo, (ReqStandUpCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqForceStandUpCmd) {
-				ddzService.forceStandUp((ReqForceStandUpCmd)reqCmd);
+				ddzService.forceStandUp(gameSessionInfo, (ReqForceStandUpCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			
 			else if(reqCmd instanceof ReqGetSeatPlayerListCmd) {
-				RtnCmd rtnCmd = ddzService.getSeatPlayerList((ReqGetSeatPlayerListCmd)reqCmd);
-				writeRtnCmd(rtnCmd, gameSession);
+				ddzService.getSeatPlayerList(gameSessionInfo, (ReqGetSeatPlayerListCmd)reqCmd);
 				return ;
 			}
 			else if(reqCmd instanceof ReqGetAssistantListCmd) {
-				RtnCmd rtnCmd = ddzService.getAssistantList((ReqGetAssistantListCmd)reqCmd);
-				writeRtnCmd(rtnCmd, gameSession);
+				ddzService.getAssistantList(gameSessionInfo, (ReqGetAssistantListCmd)reqCmd);
 				return ;
 			}
 			else if(reqCmd instanceof ReqApplyAssistantCmd) {
-				ddzService.applyAssistant((ReqApplyAssistantCmd)reqCmd);
+				ddzService.applyAssistant(gameSessionInfo, (ReqApplyAssistantCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqApproveApplyAssistantCmd) {
-				ddzService.approveApplyAssistant((ReqApproveApplyAssistantCmd)reqCmd);
+				ddzService.approveApplyAssistant(gameSessionInfo, (ReqApproveApplyAssistantCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqStopAssistantCmd) {
-				ddzService.stopAssistant((ReqStopAssistantCmd)reqCmd);
+				ddzService.stopAssistant(gameSessionInfo, (ReqStopAssistantCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqBootAssistantCmd) {
-				ddzService.bootAssistant((ReqBootAssistantCmd)reqCmd);
+				ddzService.bootAssistant(gameSessionInfo, (ReqBootAssistantCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqStopOnlookerCmd) {
-				ddzService.stopOnlooker((ReqStopOnlookerCmd)reqCmd);
+				ddzService.stopOnlooker(gameSessionInfo, (ReqStopOnlookerCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqBootOnlookerCmd) {
-				ddzService.bootOnlooker((ReqBootOnlookerCmd)reqCmd);
+				ddzService.bootOnlooker(gameSessionInfo, (ReqBootOnlookerCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqApplySeatSuccessorCmd) {
-				ddzService.applySeatSuccessor((ReqApplySeatSuccessorCmd)reqCmd);
+				ddzService.applySeatSuccessor(gameSessionInfo, (ReqApplySeatSuccessorCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqSetSeatSuccessorCmd) {
-				ddzService.setSeatSuccessor((ReqSetSeatSuccessorCmd)reqCmd);
+				ddzService.setSeatSuccessor(gameSessionInfo, (ReqSetSeatSuccessorCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			
 			else if(reqCmd instanceof ReqApplyBroadcastLiveCmd) {
-				ddzService.applyBroadcastLive((ReqApplyBroadcastLiveCmd)reqCmd);
+				ddzService.applyBroadcastLive(gameSessionInfo, (ReqApplyBroadcastLiveCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqApproveBroadcastLiveCmd) {
-				ddzService.approveBroadcastLive((ReqApproveBroadcastLiveCmd)reqCmd);
+				ddzService.approveBroadcastLive(gameSessionInfo, (ReqApproveBroadcastLiveCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqCancleBroadcastLiveCmd) {
-				ddzService.cancleBroadcastLive((ReqCancleBroadcastLiveCmd)reqCmd);
+				ddzService.cancleBroadcastLive(gameSessionInfo, (ReqCancleBroadcastLiveCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqBroadcastLiveCmd) {
 				//TODO 需要获取直播数据
-				ddzService.broadcastLive((ReqBroadcastLiveCmd)reqCmd, null);
+				ddzService.broadcastLive(gameSessionInfo, (ReqBroadcastLiveCmd)reqCmd, null);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
@@ -232,22 +240,21 @@ public class WebGameDispatcher {
 
 			//具体的游戏部分
 			else if(reqCmd instanceof ReqPlayCardCmd) {
-				ddzService.playCard((ReqPlayCardCmd)reqCmd);
+				ddzService.playCard(gameSessionInfo, (ReqPlayCardCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqReadyNextCmd) {
-				ddzService.readyNext((ReqReadyNextCmd)reqCmd);
+				ddzService.readyNext(gameSessionInfo, (ReqReadyNextCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqRobLandlordCmd) {
-				RtnCmd rtnCmd = ddzService.robLandlord((ReqRobLandlordCmd)reqCmd);
-				writeRtnCmd(rtnCmd, gameSession);
+				ddzService.robLandlord(gameSessionInfo, (ReqRobLandlordCmd)reqCmd);
 				return ;
 			}
 			else if(reqCmd instanceof ReqSurrenderCmd) {
-				ddzService.surrender((ReqSurrenderCmd)reqCmd);
+				ddzService.surrender(gameSessionInfo, (ReqSurrenderCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
 				return ;
 			}
@@ -376,28 +383,20 @@ public class WebGameDispatcher {
 	
 	
 	private void doDdzJoin(ReqJoinCmd reqJoinCmd, GameSession gameSession) {
-    	long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
-    	String nickName = (String)gameSession.getAttachment().get(MyConstant.NICKNAME);
-    	int sex = (Integer)gameSession.getAttachment().get(MyConstant.SEX);
-    	String telphone = (String)gameSession.getAttachment().get(MyConstant.TELPHONE);
-    	int headPic = (Integer)gameSession.getAttachment().get(MyConstant.HEADPIC);
-    	reqJoinCmd.setPlayerId(playerId);
-    	reqJoinCmd.setNickname(nickName);
-    	reqJoinCmd.setSex(sex);
-    	reqJoinCmd.setTelphone(telphone);
-    	reqJoinCmd.setHeadPic(headPic);
-    	
+//    	long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
+//    	String nickName = (String)gameSession.getAttachment().get(MyConstant.NICKNAME);
+//    	int sex = (Integer)gameSession.getAttachment().get(MyConstant.SEX);
+//    	String telphone = (String)gameSession.getAttachment().get(MyConstant.TELPHONE);
+//    	int headPic = (Integer)gameSession.getAttachment().get(MyConstant.HEADPIC);
+//    	reqJoinCmd.setPlayerId(playerId);
+//    	reqJoinCmd.setNickname(nickName);
+//    	reqJoinCmd.setSex(sex);
+//    	reqJoinCmd.setTelphone(telphone);
+//    	reqJoinCmd.setHeadPic(headPic);
 		//TODO 
 		reqJoinCmd.setBcoin(100000);
-		reqJoinCmd.setSession(gameSession);
-		gameSession.getAttachment().put(MyConstant.PLAYER_ID, reqJoinCmd.getPlayerId());
-		
-		RtnGameInfoCmd rtnGameInfoCmd = ddzService.join(reqJoinCmd);
-		gameSession.getAttachment().put(MyConstant.PLAY_KIND, reqJoinCmd.getPlayKind());
-		gameSession.getAttachment().put(MyConstant.DESK_NO, reqJoinCmd.getDeskNo());
-		
-		//把结果写回给用户
-		gameSession.write(rtnGameInfoCmd);
+
+		ddzService.join(reqJoinCmd, gameSession);
 	}
 	
 	private static ReqCmd parseAndCheck(String message) {
@@ -422,30 +421,31 @@ public class WebGameDispatcher {
 	public void onClose(String gameCode, GameSession gameSession) {
 		if(MyConstant.DDZ.equals(gameCode)) {
 			ReqDisconnectCmd reqCmd = new ReqDisconnectCmd();
-	    	int playKind = (Integer)gameSession.getAttachment().get(MyConstant.PLAY_KIND);
-	    	int deskNo = (Integer)gameSession.getAttachment().get(MyConstant.DESK_NO);
-	    	long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
+//	    	int playKind = (Integer)gameSession.getAttachment().get(MyConstant.PLAY_KIND);
+//	    	int deskNo = (Integer)gameSession.getAttachment().get(MyConstant.DESK_NO);
+//	    	long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
 
-	    	reqCmd.setPlayKind(playKind);
-			reqCmd.setDeskNo(deskNo);
-			reqCmd.setPlayerId(playerId);
-			ddzService.disconnect(reqCmd);
+//	    	reqCmd.setPlayKind(playKind);
+//			reqCmd.setDeskNo(deskNo);
+//			reqCmd.setPlayerId(playerId);
+			GameSessionInfo gameSessionInfo = (GameSessionInfo)gameSession.getAttachment().get(GameConstant.GAME_SESSION_INFO);
+			ddzService.disconnect(gameSessionInfo, reqCmd);
     	}			
 	}
 
 	public void onReOpen(String gameCode, GameSession gameSession) {
 		if(MyConstant.DDZ.equals(gameCode)) {
 			ReqConnectCmd reqCmd = new ReqConnectCmd();
-	    	int playKind = (Integer)gameSession.getAttachment().get(MyConstant.PLAY_KIND);
-	    	int deskNo = (Integer)gameSession.getAttachment().get(MyConstant.DESK_NO);
-	    	long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
+//	    	int playKind = (Integer)gameSession.getAttachment().get(MyConstant.PLAY_KIND);
+//	    	int deskNo = (Integer)gameSession.getAttachment().get(MyConstant.DESK_NO);
+//	    	long playerId = (Long)gameSession.getAttachment().get(MyConstant.PLAYER_ID);
 
-	    	reqCmd.setPlayKind(playKind);
-			reqCmd.setDeskNo(deskNo);
-			reqCmd.setPlayerId(playerId);
-			reqCmd.setSession(gameSession);	
+//	    	reqCmd.setPlayKind(playKind);
+//			reqCmd.setDeskNo(deskNo);
+//			reqCmd.setPlayerId(playerId);
+//			reqCmd.setSession(gameSession);
 			
-			ddzService.connected(reqCmd);
+			ddzService.connected(gameSession, reqCmd);
 		}				
 	}
 	

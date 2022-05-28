@@ -21,9 +21,9 @@ public class ReqReadyNextCmd extends ReqSeatCmd{
 
 	public PushReadyNextCmd valueOfPushReadyNextCmd() {
 		PushReadyNextCmd pushCmd = new PushReadyNextCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

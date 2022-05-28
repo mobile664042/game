@@ -21,9 +21,9 @@ public class ReqSetSeatSuccessorCmd extends ReqSeatCmd{
 
 	public PushSetSeatSuccessorCmd valueOfPushSetSeatSuccessorCmd() {
 		PushSetSeatSuccessorCmd pushCmd = new PushSetSeatSuccessorCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		pushCmd.setPlayerId(otherId);
 		return pushCmd;
 	}

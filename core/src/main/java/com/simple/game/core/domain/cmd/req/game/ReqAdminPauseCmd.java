@@ -26,8 +26,8 @@ public class ReqAdminPauseCmd extends Cmd{
 
 	public PushPauseCmd valueOfPushPauseCmd() {
 		PushPauseCmd pushCmd = new PushPauseCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
 		pushCmd.setSeconds(seconds);
 		return pushCmd;
 	}

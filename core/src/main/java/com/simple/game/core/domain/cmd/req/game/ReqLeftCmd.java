@@ -20,9 +20,9 @@ public class ReqLeftCmd extends ReqGameCmd{
 
 	public PushLeftCmd valueOfPushLeftCmd() {
 		PushLeftCmd pushCmd = new PushLeftCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
 		return pushCmd;
 	}
 }

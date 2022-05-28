@@ -281,8 +281,6 @@ function ready(){
 	//选择座位坐下
 	let reqReadyNextCmd = {
 		"cmd": 151001,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
 		"position": $('#s_position').val()
 	}
 	
@@ -326,9 +324,6 @@ function playcard(){
 	//出牌
 	let reqPlayCardCmd = {
 		"cmd": 151003,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
-		"position": $('#s_position').val(),
 		"cards": cardList
 	}
 	
@@ -364,9 +359,6 @@ function skipPlaycard(){
 	//出牌
 	let reqPlayCardCmd = {
 		"cmd": 151003,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
-		"position": $('#s_position').val(),
 		"cards": []
 	}
 	
@@ -402,9 +394,6 @@ function robLandlord(){
 	//抢地主
 	let reqRobLandlordCmd = {
 		"cmd": 151002,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
-		"position": $('#s_position').val(),
 		"score": 3
 	}
 	
@@ -435,10 +424,7 @@ function surrender(){
 	
 	//投降
 	let reqSurrenderCmd = {
-		"cmd": 151004,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
-		"position": $('#s_position').val()
+		"cmd": 151004
 	}
 	
 	let sendMessage = JSON.stringify(reqSurrenderCmd);
@@ -463,9 +449,6 @@ function getSeatPlayerList(){
 	
 	let reqGetSeatPlayerListCmd = {
 		"cmd": 102002,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
-		"position": $('#s_position').val(),
 		"fromPage": 1
 	}
 	
@@ -490,10 +473,7 @@ function getAssistantList(){
 	}
 	
 	let reqGetAssistantListCmd = {
-		"cmd": 102002,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
-		"position": $('#s_position').val()
+		"cmd": 102002
 	}
 	
 	let sendMessage = JSON.stringify(reqGetAssistantListCmd);
@@ -555,9 +535,7 @@ function leftGameDesk(){
 	}
 
 	let reqLeftCmd = {
-		"cmd": 101005,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val()
+		"cmd": 101005
 	}
 	
 	let sendMessage = JSON.stringify(reqLeftCmd);
@@ -576,9 +554,7 @@ function getOnlineList(){
 	}
 
 	let reqGetOnlineListCmd = {
-		"cmd": 101004,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val()
+		"cmd": 101004
 	}
 	
 	let sendMessage = JSON.stringify(reqGetOnlineListCmd);
@@ -598,8 +574,6 @@ function sendChat(){
 
 	let reqChatCmd = {
 		"cmd": 101006,
-		"playKind": $('#j_playerKind').val(),
-		"deskNo": $('#j_deskNo').val(),
 		"chat":{
 			"kind":"text",
 			"content":$('#c_content').val()
@@ -869,11 +843,13 @@ function onRtnGameInfoCmd(rtnCmd){
 	}
 	
 	//加载底牌
-	extGameInfo.commonCards.forEach(function(element) {
-		//console.log(element);
-		let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
-		$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
-	});
+	if(extGameInfo.commonCards){
+		extGameInfo.commonCards.forEach(function(element) {
+			//console.log(element);
+			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
+			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
+		});
+	}
 	if(extGameInfo.currentProgress == "sended"){
 		$('#p_currentProgress').css("background","blue");
 		return;
@@ -1040,6 +1016,9 @@ function onPushStandUpCmd(pushCmd){
 			clearExtSeatData();
 			let divHtml = '<div>你在席位中被强制站起来了</div>';
 			$('#p_ready').attr('disabled', true);
+			$('#s_standup').attr('disabled', true);
+			$('#s_sitdown').removeAttr('disabled');
+			$('#s_quickSitdown').removeAttr('disabled');
 			showMsg(divHtml);
 		}
 	}

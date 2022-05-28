@@ -1,22 +1,15 @@
 package com.simple.game.ddz.domain.service;
 
-import com.simple.game.core.domain.cmd.OutParam;
-import com.simple.game.core.domain.dto.SeatPlayer;
+import com.simple.game.core.domain.dto.GameSessionInfo;
 import com.simple.game.core.domain.service.TableService;
-import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
-import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
-import com.simple.game.ddz.domain.cmd.push.seat.PushRobLandlordCmd;
-import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
-import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
-import com.simple.game.ddz.domain.good.DdzGame;
+import com.simple.game.ddz.domain.dto.DdzGameSeat;
 import com.simple.game.ddz.domain.manager.DdzGameManager;
 
 import lombok.Getter;
-import lombok.ToString;
 
 /***
  * 斗地主对外服务
@@ -26,7 +19,6 @@ import lombok.ToString;
  *
  */
 @Getter
-@ToString
 public class DdzService extends TableService{
 //	private final static Logger logger = LoggerFactory.getLogger(DdzService.class);
 	
@@ -40,14 +32,9 @@ public class DdzService extends TableService{
 	 * @param playerId
 	 * @param position
 	 */
-	public void readyNext(ReqReadyNextCmd reqCmd) {
-		DdzGame tableGame = (DdzGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		tableGame.readyNext(reqCmd.getPlayerId(), reqCmd.getPosition(), outParam);
-		PushReadyNextCmd pushCmd = reqCmd.valueOfPushReadyNextCmd();
-		
-		//发送广播
-		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+	public void readyNext(GameSessionInfo gameSessionInfo, ReqReadyNextCmd reqCmd) {
+		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
+		ddzDeskSeat.readyNext(gameSessionInfo, reqCmd);
 	}
 	
 	
@@ -57,16 +44,9 @@ public class DdzService extends TableService{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public RtnRobLandlordCmd robLandlord(ReqRobLandlordCmd reqCmd) {
-		DdzGame tableGame = (DdzGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		RtnRobLandlordCmd rtnCmd = tableGame.robLandlord(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getScore(), outParam);
-		PushRobLandlordCmd pushCmd = reqCmd.valueOfPushRobLandlordCmd();
-		pushCmd.setCards(rtnCmd.getCards());
-		
-		//发送广播
-		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
-		return rtnCmd;
+	public void robLandlord(GameSessionInfo gameSessionInfo, ReqRobLandlordCmd reqCmd) {
+		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
+		ddzDeskSeat.robLandlord(gameSessionInfo, reqCmd);
 	}
 	
 	/***
@@ -75,32 +55,40 @@ public class DdzService extends TableService{
 	 * @param position
 	 * @param cards
 	 */
-	public void playCard(ReqPlayCardCmd reqCmd) {
-		DdzGame tableGame = (DdzGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		tableGame.playCard(reqCmd.getPlayerId(), reqCmd.getPosition(), reqCmd.getCards(), outParam);
-		PushPlayCardCmd pushCmd = reqCmd.valueOfPushPlayCardCmd();
+	public void playCard(GameSessionInfo gameSessionInfo, ReqPlayCardCmd reqCmd) {
+		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
+		ddzDeskSeat.playCard(gameSessionInfo, reqCmd);
 		
-		//发送广播
-		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+//		DdzDesk tableGame = (DdzDesk)getTableDesk(gameSessionInfo.getAddress());
+//		
+//		OutParam<SeatPlayer> outParam = OutParam.build();
+//		tableGame.playCard(gameSessionInfo.getPlayerId(), reqCmd.getPosition(), reqCmd.getCards(), outParam);
+//		PushPlayCardCmd pushCmd = reqCmd.valueOfPushPlayCardCmd();
+//		
+//		//发送广播
+//		tableGame.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
 
 	/***
 	 * 投降认输
 	 * 提前结束游戏
-	 * 处理方式按com.simple.game.ddz.domain.dto.config.DdzGameItem.punishSurrenderDoubleCount
+	 * 处理方式按com.simple.game.ddz.domain.dto.config.DdzDeskItem.punishSurrenderDoubleCount
 	 * @param playerId
 	 * @param position
 	 */
-	public void surrender(ReqSurrenderCmd reqCmd) {
-		DdzGame tableGame = (DdzGame)checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		OutParam<SeatPlayer> outParam = OutParam.build();
-		tableGame.surrender(reqCmd.getPlayerId(), reqCmd.getPosition(), outParam);
-		PushSurrenderCmd pushCmd = reqCmd.valueOfPushSurrenderCmd();
+	public void surrender(GameSessionInfo gameSessionInfo, ReqSurrenderCmd reqCmd) {
+		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
+		ddzDeskSeat.surrender(gameSessionInfo, reqCmd);
 		
-		//发送广播
-		tableGame.broadcast(pushCmd, reqCmd.getPlayerId());
+//		DdzDesk tableGame = (DdzDesk)getTableDesk(gameSessionInfo.getAddress());
+//		OutParam<SeatPlayer> outParam = OutParam.build();
+//		tableGame.surrender(gameSessionInfo.getPlayerId(), reqCmd.getPosition(), outParam);
+//		PushSurrenderCmd pushCmd = reqCmd.valueOfPushSurrenderCmd();
+//		pushCmd.setPosition(outParam.getParam().getGameSeat().getPosition());
+//		
+//		//发送广播
+//		tableGame.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
 	

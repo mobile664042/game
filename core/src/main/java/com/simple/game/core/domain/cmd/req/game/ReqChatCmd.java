@@ -23,9 +23,9 @@ public class ReqChatCmd extends ReqGameCmd{
 
 	public PushChatCmd valueOfPushChatCmd() {
 		PushChatCmd pushCmd = new PushChatCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
 		pushCmd.setChat(chat);
 		return pushCmd;
 	}

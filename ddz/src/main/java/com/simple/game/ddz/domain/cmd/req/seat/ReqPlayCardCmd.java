@@ -24,9 +24,9 @@ public class ReqPlayCardCmd extends ReqSeatCmd{
 
 	public PushPlayCardCmd valueOfPushPlayCardCmd() {
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		pushCmd.setCards(cards);
 		return pushCmd;
 	}

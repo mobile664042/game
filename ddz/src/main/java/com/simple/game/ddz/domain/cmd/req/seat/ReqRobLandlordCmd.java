@@ -22,9 +22,9 @@ public class ReqRobLandlordCmd extends ReqSeatCmd{
 
 	public PushRobLandlordCmd valueOfPushRobLandlordCmd() {
 		PushRobLandlordCmd pushCmd = new PushRobLandlordCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		pushCmd.setScore(score);
 		return pushCmd;
 	}

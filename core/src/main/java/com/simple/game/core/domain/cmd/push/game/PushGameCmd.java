@@ -6,6 +6,6 @@ import lombok.Data;
 
 @Data
 public abstract class PushGameCmd extends PushCmd{
-	protected int playKind;
-	protected int deskNo;
+//	protected int playKind;
+//	protected int deskNo;
 }

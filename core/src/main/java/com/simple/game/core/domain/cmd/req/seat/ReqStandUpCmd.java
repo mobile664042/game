@@ -20,10 +20,10 @@ public class ReqStandUpCmd extends ReqSeatCmd{
 
 	public PushStandUpCmd valueOfPushStandUpCmd() {
 		PushStandUpCmd pushCmd = new PushStandUpCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
-		pushCmd.setPlayerId(playerId);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
+//		pushCmd.setPlayerId(playerId);
 		return pushCmd;
 	}
 }

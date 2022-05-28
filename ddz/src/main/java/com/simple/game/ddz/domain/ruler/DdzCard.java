@@ -58,7 +58,7 @@ public class DdzCard {
 	
 	
 	
-	public RtnRobLandlordCmd setLandlord(int position) {
+	public List<Integer> setLandlord(int position) {
 		landlordPosition = position;
 		currentPosition = position;
 		if(landlordPosition == 1) {
@@ -76,9 +76,7 @@ public class DdzCard {
 			//自动排序，方便后面自动过最小牌
 			Collections.sort(thirdCards);
 		}
-		RtnRobLandlordCmd rtnCmd = new RtnRobLandlordCmd();
-		rtnCmd.setCards(commonCards);
-		return rtnCmd;
+		return commonCards;
 	}
 	
 	public void shuffleCards() {

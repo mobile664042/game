@@ -20,9 +20,9 @@ public class ReqStopOnlookerCmd extends ReqSeatCmd{
 
 	public PushStopOnlookerCmd valueOfPushStopOnlookerCmd() {
 		PushStopOnlookerCmd pushCmd = new PushStopOnlookerCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }

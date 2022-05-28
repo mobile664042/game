@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.cmd.rtn.game.InvalidateSesssionRtnCmd;
 import com.simple.game.core.domain.cmd.rtn.game.SysRtnCmd;
+import com.simple.game.core.domain.dto.GameSeat;
+import com.simple.game.core.domain.dto.GameSessionInfo;
+import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.util.GameSession;
 import com.simple.game.server.constant.MyConstant;
 import com.simple.game.server.filter.OnlineAccount;
@@ -68,6 +71,10 @@ public class WebSocketHandler {
     	gameSession.getAttachment().put(MyConstant.SEX, onlineAccount.getUser().getSex());
     	gameSession.getAttachment().put(MyConstant.TELPHONE, onlineAccount.getUser().getTelphone());
     	gameSession.getAttachment().put(MyConstant.HEADPIC, onlineAccount.getUser().getHeadPic());
+    	
+    	GameSessionInfo gameSessionInfo = new GameSessionInfo();
+    	gameSessionInfo.setPlayerId(onlineAccount.getUser().getId());
+    	gameSession.getAttachment().put(MyConstant.GAME_SESSION_INFO, gameSessionInfo);
     	
     	try {
     		GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);
@@ -146,12 +153,7 @@ public class WebSocketHandler {
 			OnlineAccount onlineAccount = userService.getOnlineAccount(loginToken);
 	    	if(onlineAccount != null) {
 	    		GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);
-	    		if(old != null) {
-	    			Integer playKind = (Integer)gameSession.getAttachment().get(MyConstant.PLAY_KIND);
-	    			Integer deskNo = (Integer)gameSession.getAttachment().get(MyConstant.DESK_NO);
-	    			old.setPlayKind(playKind);
-	    			old.setDeskNo(deskNo);
-	    		}
+	    		refreshWebOnlineInfo(old, gameSession);
 	    	}
     	}
     	catch(Exception e) {
@@ -167,5 +169,27 @@ public class WebSocketHandler {
 
 	private String buildOnlineKey(String gameCode, Session session) {
 		return gameCode + "--" + session.getId();
+	}
+	
+	private void refreshWebOnlineInfo(GameOnlineInfo gameOnlineInfo, GameSession gameSession) {
+		if(gameOnlineInfo == null) {
+			return ;
+		}
+		
+		GameSessionInfo gameSessionInfo = (GameSessionInfo)gameSession.getAttachment().get(MyConstant.GAME_SESSION_INFO);
+		if(gameSessionInfo == null) {
+			return ;
+		}
+		
+		TableDesk tableDesk = null;
+		if(gameSessionInfo.getAddress() instanceof TableDesk) {
+			tableDesk = (TableDesk)gameSessionInfo.getAddress();
+		}
+		else if(gameSessionInfo.getAddress() instanceof GameSeat) {
+			tableDesk = ((GameSeat)gameSessionInfo.getAddress()).getDesk();
+		}
+		
+		gameOnlineInfo.setPlayKind(tableDesk.getDeskItem().getPlayKind());
+		gameOnlineInfo.setDeskNo(tableDesk.getDeskNo());
 	}
 }

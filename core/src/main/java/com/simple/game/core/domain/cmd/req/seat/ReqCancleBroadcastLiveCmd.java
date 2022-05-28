@@ -21,10 +21,10 @@ public class ReqCancleBroadcastLiveCmd extends ReqSeatCmd{
 
 	public PushCancleBroadcastLiveCmd valueOfPushCancleBroadcastLiveCmd() {
 		PushCancleBroadcastLiveCmd pushCmd = new PushCancleBroadcastLiveCmd();
-		pushCmd.setDeskNo(deskNo);
-		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(playerId);
-		pushCmd.setPosition(position);
+//		pushCmd.setDeskNo(deskNo);
+//		pushCmd.setPlayKind(playKind);
+//		pushCmd.setPlayerId(playerId);
+//		pushCmd.setPosition(position);
 		return pushCmd;
 	}
 }
