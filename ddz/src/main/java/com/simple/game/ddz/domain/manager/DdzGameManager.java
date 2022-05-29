@@ -7,6 +7,8 @@ import com.alibaba.fastjson.JSON;
 import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
+import com.simple.game.core.domain.dto.desk.ChatPlugin;
+import com.simple.game.core.domain.dto.desk.RewardPlugin;
 import com.simple.game.core.domain.manager.GameManager;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.dto.DdzDesk;
@@ -31,7 +33,11 @@ public class DdzGameManager extends GameManager {
 
 	@Override
 	public TableDesk newInstanceload(GameItem gameItem, DeskItem deskItem) {
-		return new DdzDesk((DdzGameItem)gameItem, (DdzDeskItem)deskItem);
+		TableDesk tableDesk = new DdzDesk((DdzGameItem)gameItem, (DdzDeskItem)deskItem);
+		new ChatPlugin(tableDesk);
+		new RewardPlugin(tableDesk);
+		
+		return tableDesk;
 	}
 	
 	public static DdzGameManager buildDefault() {
