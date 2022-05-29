@@ -187,7 +187,7 @@ public abstract class BaseDesk{
 		broadcast(cmd, true, excludeIds);
 	}
 	public void broadcast(final PushCmd cmd, boolean async, final long ...excludeIds){
-		logger.info("cmd={}, 接收到推送信息！", cmd.toLogStr());
+		logger.info("cmd={}, 接收到推送信息！", cmd);
 		Runnable task = new Runnable() {
 			@Override
 			public void run() {

@@ -25,6 +25,7 @@ import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.GameProgress;
+import com.simple.game.ddz.robot.DdzRobotListener;
 
 import lombok.Getter;
 
@@ -85,6 +86,10 @@ public class DdzGameSeat extends GameSeat{
 	protected void doSitdownMaster() {
 		this.ready = true;
 		logger.info("{}已自动准备好了,所在席位:{}--{}--{}", master.get().getPlayer().getNickname(), this.desk.getGameItem().getName(), this.desk.getAddrNo(), this.getPosition());
+	}
+	@Override
+	protected void afterSitdownMaster(SeatPlayer seatPlayer) {
+		DdzRobotListener.submitEvent(seatPlayer);
 	}
 	
 	@Override
@@ -155,6 +160,7 @@ public class DdzGameSeat extends GameSeat{
 
 		List<Integer> commonCards = getDdzDesk().robLandlord(position, reqCmd.getScore());
 		PushRobLandlordCmd pushCmd = reqCmd.valueOfPushRobLandlordCmd();
+		pushCmd.setPosition(position);
 		pushCmd.setCards(commonCards);
 		
 		//发送广播
@@ -163,7 +169,7 @@ public class DdzGameSeat extends GameSeat{
 		RtnRobLandlordCmd rtnCmd = new RtnRobLandlordCmd();
 		rtnCmd.setCards(commonCards);
 		Player player = seatPlayer.getPlayer();
-		player.getOnline().push(pushCmd);
+		player.getOnline().getSession().write(rtnCmd);
 	}
 	
 	/***
@@ -194,19 +200,10 @@ public class DdzGameSeat extends GameSeat{
 		getDdzDesk().surrender(position);
 		
 		PushSurrenderCmd pushCmd = reqCmd.valueOfPushSurrenderCmd();
+		pushCmd.setPosition(position);
 		
 		//发送广播
 		this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
-		
-		
-//		DdzDesk tableGame = (DdzDesk)getTableDesk(gameSessionInfo.getAddress());
-//		OutParam<SeatPlayer> outParam = OutParam.build();
-//		tableGame.surrender(gameSessionInfo.getPlayerId(), reqCmd.getPosition(), outParam);
-//		PushSurrenderCmd pushCmd = reqCmd.valueOfPushSurrenderCmd();
-//		pushCmd.setPosition(outParam.getParam().getGameSeat().getPosition());
-//		
-//		//发送广播
-//		tableGame.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
 	

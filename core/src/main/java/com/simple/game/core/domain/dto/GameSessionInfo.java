@@ -9,7 +9,6 @@ import lombok.Data;
  *
  */
 @Data
-//@ToString
 public class GameSessionInfo {
 	private long playerId;
 	

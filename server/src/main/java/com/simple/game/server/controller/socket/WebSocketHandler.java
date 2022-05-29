@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
+import com.simple.game.core.constant.GameConstant;
 import com.simple.game.core.domain.cmd.rtn.game.InvalidateSesssionRtnCmd;
 import com.simple.game.core.domain.cmd.rtn.game.SysRtnCmd;
 import com.simple.game.core.domain.dto.GameSeat;
@@ -66,15 +67,15 @@ public class WebSocketHandler {
     	}
     	
     	GameSession gameSession = new MyGameSession(session);
-    	gameSession.getAttachment().put(MyConstant.PLAYER_ID, onlineAccount.getUser().getId());
-    	gameSession.getAttachment().put(MyConstant.NICKNAME, onlineAccount.getUser().getNickname());
-    	gameSession.getAttachment().put(MyConstant.SEX, onlineAccount.getUser().getSex());
-    	gameSession.getAttachment().put(MyConstant.TELPHONE, onlineAccount.getUser().getTelphone());
-    	gameSession.getAttachment().put(MyConstant.HEADPIC, onlineAccount.getUser().getHeadPic());
+    	gameSession.getAttachment().put(GameConstant.PLAYER_ID, onlineAccount.getUser().getId());
+    	gameSession.getAttachment().put(GameConstant.NICKNAME, onlineAccount.getUser().getNickname());
+    	gameSession.getAttachment().put(GameConstant.SEX, onlineAccount.getUser().getSex());
+    	gameSession.getAttachment().put(GameConstant.TELPHONE, onlineAccount.getUser().getTelphone());
+    	gameSession.getAttachment().put(GameConstant.HEADPIC, onlineAccount.getUser().getHeadPic());
     	
     	GameSessionInfo gameSessionInfo = new GameSessionInfo();
     	gameSessionInfo.setPlayerId(onlineAccount.getUser().getId());
-    	gameSession.getAttachment().put(MyConstant.GAME_SESSION_INFO, gameSessionInfo);
+    	gameSession.getAttachment().put(GameConstant.GAME_SESSION_INFO, gameSessionInfo);
     	
     	try {
     		GameOnlineInfo old = onlineAccount.getOnlineWebSocket().get(gameCode);

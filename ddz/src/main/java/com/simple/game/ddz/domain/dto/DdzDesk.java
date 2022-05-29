@@ -12,6 +12,8 @@ import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.TableDesk;
+import com.simple.game.core.domain.dto.constant.PokerKind;
+import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.core.domain.manager.CoinManager;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameOverCmd;
@@ -105,7 +107,7 @@ public class DdzDesk extends TableDesk{
 			}
 			
 			//更换主席位
-			for(int position = deskItem.getMinPosition(); position <= deskItem.getMinPosition(); position++) {
+			for(int position = deskItem.getMinPosition(); position <= deskItem.getMaxPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 				gameSeat.handleChangeMaster();
 			}
@@ -141,7 +143,7 @@ public class DdzDesk extends TableDesk{
 			return rtnCmd;
 		}
 		
-		rtnCmd.setCommonCards(ddzCard.getCommonCards());
+		rtnCmd.setCommonCards(ddzCard.getCommonCardList());
 		if(currentProgress == GameProgress.sended) {
 			return rtnCmd;
 		}
@@ -163,7 +165,7 @@ public class DdzDesk extends TableDesk{
 			for(DdzRuler.SpanCard spanCard : spanArray) {
 				OutCard outCard = new OutCard();
 				outCard.setPosition(spanCard.getPosition());
-				outCard.setCards(spanCard.getCards());
+				outCard.setCards(PokerKind.convertFaceList(spanCard.getCards()));
 				battlefield.add(outCard);
 			}
 		}
@@ -181,13 +183,13 @@ public class DdzDesk extends TableDesk{
 		rtnCmd.copy(seatInfo);
 		
 		if(seatInfo.getPosition() == 1) {
-			rtnCmd.setCards(ddzCard.getFirstCards());
+			rtnCmd.setCards(ddzCard.getFirstCardList());
 		}
 		if(seatInfo.getPosition() == 2) {
-			rtnCmd.setCards(ddzCard.getSecondCards());
+			rtnCmd.setCards(ddzCard.getSecondCardList());
 		}
 		if(seatInfo.getPosition() == 3) {
-			rtnCmd.setCards(ddzCard.getThirdCards());
+			rtnCmd.setCards(ddzCard.getThirdCardList());
 		}
 		
 		DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(seatInfo.getPosition());
@@ -271,14 +273,14 @@ public class DdzDesk extends TableDesk{
 		}
 		
 		//自动过牌
-		List<Integer> outCards = new ArrayList<Integer>(1); 
+		List<SCard> outCards = new ArrayList<SCard>(1); 
 		boolean isGameOver = this.ddzCard.autoPlayCard(outCards);
 		afterPlayCard(isGameOver);
 		
 		//广播
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
 		pushCmd.setPosition(position);
-		pushCmd.getCards().addAll(outCards);
+		pushCmd.getCards().addAll(PokerKind.convertFaceList(outCards));
 		this.broadcast(pushCmd, true);
 		return true;
 	}
@@ -335,21 +337,21 @@ public class DdzDesk extends TableDesk{
 			GameSeat gameSeat = this.seatPlayingMap.get(1);
 			NotifySendCardCmd pushCmd = new NotifySendCardCmd();
 			pushCmd.setPosition(1);
-			pushCmd.getCards().addAll(this.ddzCard.getFirstCards());
+			pushCmd.getCards().addAll(this.ddzCard.getFirstCardList());
 			gameSeat.broadcast(pushCmd);
 		}
 		{
 			GameSeat gameSeat = this.seatPlayingMap.get(2);
 			NotifySendCardCmd pushCmd = new NotifySendCardCmd();
 			pushCmd.setPosition(1);
-			pushCmd.getCards().addAll(this.ddzCard.getSecondCards());
+			pushCmd.getCards().addAll(this.ddzCard.getSecondCardList());
 			gameSeat.broadcast(pushCmd);
 		}
 		{
 			GameSeat gameSeat = this.seatPlayingMap.get(3);
 			NotifySendCardCmd pushCmd = new NotifySendCardCmd();
 			pushCmd.setPosition(1);
-			pushCmd.getCards().addAll(this.ddzCard.getThirdCards());
+			pushCmd.getCards().addAll(this.ddzCard.getThirdCardList());
 			gameSeat.broadcast(pushCmd);
 		}
 		lastSendCardTime = System.currentTimeMillis();
@@ -383,14 +385,8 @@ public class DdzDesk extends TableDesk{
 			throw new BizException("不是抢完状态，无法进行出牌");
 		}
 		
-//		SeatPlayer seatPlayer = checkSeatPlayer(playerId, position);
 		boolean isGameOver = this.ddzCard.playCard(position, cards);
 		afterPlayCard(isGameOver);
-//		outParam.setParam(seatPlayer);
-//		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
-//		pushCmd.setPosition(position);
-//		pushCmd.getCards().addAll(cards);
-//		return pushCmd;
 	}
 	
 	private void afterPlayCard(boolean isGameOver) {
@@ -400,22 +396,6 @@ public class DdzDesk extends TableDesk{
 		}
 		this.lastPlayCardTime = System.currentTimeMillis();
 	}
-	
-
-//	public void readyNext(GameSessionInfo gameSessionInfo, ReqReadyNextCmd reqCmd) {
-////	public synchronized void readyNext(long playerId, int position, OutParam<SeatPlayer> outParam) {
-//		if(currentProgress != GameProgress.ready) {
-//			throw new BizException("不是准备状态，无法进行出牌");
-//		}
-//		
-//		//判断游戏币是否允足，能否满足下一轮开始
-//		SeatPlayer seatPlayer = checkSeatPlayer(gameSessionInfo);
-//		DdzGameSeat extGameSeat = (DdzGameSeat)seatPlayer.getGameSeat();
-//		extGameSeat.readyNext();
-//		PushReadyNextCmd pushCmd = new PushReadyNextCmd();
-//		pushCmd.setPosition(position);
-//		return pushCmd;
-//	}
 	
 	/***
 	 * 投降认输
@@ -428,15 +408,9 @@ public class DdzDesk extends TableDesk{
 			throw new BizException("不是抢完状态，无法进行投降");
 		}
 		
-//		SeatPlayer seatPlayer = this.checkSeatPlayer(playerId, position);
-		
 		//进入surrender状态了
 		currentProgress = GameProgress.surrender;			
 		surrenderPosition = position;
-//		outParam.setParam(seatPlayer);
-//		PushSurrenderCmd pushCmd = new PushSurrenderCmd();
-//		pushCmd.setPosition(position);
-//		return pushCmd;
 	}
 	
 
@@ -535,7 +509,7 @@ public class DdzDesk extends TableDesk{
 		gameResultRecord.setSingleResult(singleResult);
 		gameResultRecord.setDoubleKind(getDoubleKind());
 		gameResultRecord.setLandlordPosition(landlordPosition);
-		gameResultRecord.getCards().addAll(this.ddzCard.getAllCards());
+		gameResultRecord.getCards().addAll(this.ddzCard.getAllCardList());
 		
 		if(landlordPosition == 1) {
 			{
@@ -629,7 +603,7 @@ public class DdzDesk extends TableDesk{
 		gameResultRecord.setDoubleCount(doubleCount);
 		gameResultRecord.setDoubleKind(getDoubleKind());
 		gameResultRecord.setLandlordPosition(landlordPosition);
-		gameResultRecord.getCards().addAll(this.ddzCard.getAllCards());
+		gameResultRecord.getCards().addAll(this.ddzCard.getAllCardList());
 		
 		if(landlordWin) {
 			if(landlordPosition == 1) {

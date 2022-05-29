@@ -20,7 +20,6 @@ import lombok.Getter;
  */
 @Getter
 public class DdzService extends TableService{
-//	private final static Logger logger = LoggerFactory.getLogger(DdzService.class);
 	
 	public DdzService(DdzGameManager gameManager) {
 		super(gameManager);
@@ -58,15 +57,6 @@ public class DdzService extends TableService{
 	public void playCard(GameSessionInfo gameSessionInfo, ReqPlayCardCmd reqCmd) {
 		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
 		ddzDeskSeat.playCard(gameSessionInfo, reqCmd);
-		
-//		DdzDesk tableGame = (DdzDesk)getTableDesk(gameSessionInfo.getAddress());
-//		
-//		OutParam<SeatPlayer> outParam = OutParam.build();
-//		tableGame.playCard(gameSessionInfo.getPlayerId(), reqCmd.getPosition(), reqCmd.getCards(), outParam);
-//		PushPlayCardCmd pushCmd = reqCmd.valueOfPushPlayCardCmd();
-//		
-//		//发送广播
-//		tableGame.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
 
@@ -80,15 +70,6 @@ public class DdzService extends TableService{
 	public void surrender(GameSessionInfo gameSessionInfo, ReqSurrenderCmd reqCmd) {
 		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
 		ddzDeskSeat.surrender(gameSessionInfo, reqCmd);
-		
-//		DdzDesk tableGame = (DdzDesk)getTableDesk(gameSessionInfo.getAddress());
-//		OutParam<SeatPlayer> outParam = OutParam.build();
-//		tableGame.surrender(gameSessionInfo.getPlayerId(), reqCmd.getPosition(), outParam);
-//		PushSurrenderCmd pushCmd = reqCmd.valueOfPushSurrenderCmd();
-//		pushCmd.setPosition(outParam.getParam().getGameSeat().getPosition());
-//		
-//		//发送广播
-//		tableGame.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 	}
 	
 	

@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simple.game.core.domain.dto.constant.PokerKind;
+import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.core.exception.BizException;
-import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.util.SimpleQueue;
 
 import lombok.Getter;
@@ -29,13 +29,13 @@ public class DdzCard {
 	private static Logger logger = LoggerFactory.getLogger(DdzCard.class);
 	
 	/****全部牌***/
-	private final List<Integer> allCards = new LinkedList<Integer>();
+	private final List<SCard> allCards = new LinkedList<SCard>();
 	/****公共牌(每一轮完成之前，保持不变)***/
-	private final List<Integer> commonCards = new ArrayList<Integer>();
+	private final List<SCard> commonCards = new ArrayList<SCard>();
 	
-	private final List<Integer> firstCards = new ArrayList<Integer>();
-	private final List<Integer> secondCards = new ArrayList<Integer>();
-	private final List<Integer> thirdCards = new ArrayList<Integer>();
+	private final List<SCard> firstCards = new ArrayList<SCard>();
+	private final List<SCard> secondCards = new ArrayList<SCard>();
+	private final List<SCard> thirdCards = new ArrayList<SCard>();
 	
 	/***地主位***/
 	private int landlordPosition;
@@ -64,19 +64,19 @@ public class DdzCard {
 		if(landlordPosition == 1) {
 			firstCards.addAll(commonCards);
 			//自动排序，方便后面自动过最小牌
-			Collections.sort(firstCards);
+			Collections.sort(firstCards, new PokerComparator());
 		}
 		if(landlordPosition == 2) {
 			secondCards.addAll(commonCards);
 			//自动排序，方便后面自动过最小牌
-			Collections.sort(secondCards);
+			Collections.sort(secondCards, new PokerComparator());
 		}
 		if(landlordPosition == 3) {
 			thirdCards.addAll(commonCards);
 			//自动排序，方便后面自动过最小牌
-			Collections.sort(thirdCards);
+			Collections.sort(thirdCards, new PokerComparator());
 		}
-		return commonCards;
+		return PokerKind.convertFaceList(commonCards);
 	}
 	
 	public void shuffleCards() {
@@ -95,9 +95,9 @@ public class DdzCard {
 		commonCards.add(this.allCards.remove(0));
 		
 		//自动排序，方便后面自动过最小牌
-		Collections.sort(firstCards);
-		Collections.sort(secondCards);
-		Collections.sort(thirdCards);
+		Collections.sort(firstCards, new PokerComparator());
+		Collections.sort(secondCards, new PokerComparator());
+		Collections.sort(thirdCards, new PokerComparator());
 		
 		logger.info("发牌: common:{}  \n 1:{} \n 2:{} \n 3:{}", commonCards, firstCards, secondCards, thirdCards);
 	}
@@ -112,7 +112,7 @@ public class DdzCard {
 	 * @param outCards 出过的牌
 	 * @return 游戏是否可以结束
 	 */
-	public boolean autoPlayCard(List<Integer> outCards) {
+	public boolean autoPlayCard(List<SCard> outCards) {
 		if(!this.battlefield.isNull()) {
 			//直接跳过
 			playCard(currentPosition, null);
@@ -120,7 +120,7 @@ public class DdzCard {
 		}
 		
 		//出一张最小的牌(发完牌后已排序)
-		Integer minCard = firstCards.get(0);
+		SCard minCard = firstCards.get(0);
 		if(currentPosition == 1) {
 			minCard = firstCards.get(0);
 		}
@@ -131,20 +131,21 @@ public class DdzCard {
 			minCard = thirdCards.get(0);
 		}
 		outCards.add(minCard);
-		return playCard(currentPosition, outCards);
+		List<Integer> list = PokerKind.convertFaceList(outCards);
+		return playCard(currentPosition, list);
 	}
 	/***
 	 * 正常出牌
 	 * @param position
-	 * @param cards
+	 * @param tempCards
 	 * @param outParam 统计刚才出的牌
 	 * @return 返回游戏是否可以结束
 	 */
-	public boolean playCard(int position, List<Integer> cards) {
+	public boolean playCard(int position, List<Integer> tempCards) {
 		if(position != currentPosition) {
 			throw new BizException(String.format("当前只能是%s席位出牌, 不可以由%s出牌", currentPosition, position));
 		}
-		if(cards == null || cards.size() == 0) {
+		if(tempCards == null || tempCards.size() == 0) {
 			//出空牌
 			if(this.battlefield.isNull()) {
 				throw new BizException(String.format("轮到你出牌，必须出牌"));	
@@ -159,6 +160,12 @@ public class DdzCard {
 			}
 		}
 		else{
+			List<SCard> cards = new ArrayList<SCard>(tempCards.size());
+			for(int face : tempCards) {
+				SCard scard = SCard.valueOf(face);
+				cards.add(scard);
+			}
+			
 			//先判断牌面是否正确
 			verifyCard(position, cards);
 		
@@ -201,32 +208,35 @@ public class DdzCard {
 		return result;
 	}
 	
-	private void verifyCard(int targetPosition, List<Integer> cards) {
+	private void verifyCard(int targetPosition, List<SCard> cards) {
 		if(cards == null || cards.isEmpty()) {
 			return ;
 		}
-		for(int card : cards) {
+		for(SCard card : cards) {
 			if(!PokerKind.C_54.isValid(card)) {
 				throw new BizException(String.format("无效的牌%s", card));
 			}
 		}
 		if(targetPosition == 1) {
-			for(int card : cards) {
+			for(SCard card : cards) {
 				if(!firstCards.contains(card)) {
+					logger.warn("firstCards={}, reqCards={}", firstCards, cards);
 					throw new BizException(String.format("无中生有的牌%s", card));
 				}
 			}
 		}
 		if(targetPosition == 2) {
-			for(int card : cards) {
+			for(SCard card : cards) {
 				if(!secondCards.contains(card)) {
+					logger.warn("secondCards={}, reqCards={}", secondCards, cards);
 					throw new BizException(String.format("无中生有的牌%s", card));
 				}
 			}
 		}
 		if(targetPosition == 3) {
-			for(int card : cards) {
+			for(SCard card : cards) {
 				if(!thirdCards.contains(card)) {
+					logger.warn("thirdCards={}, reqCards={}", thirdCards, cards);
 					throw new BizException(String.format("无中生有的牌%s", card));
 				}
 			}
@@ -236,7 +246,7 @@ public class DdzCard {
 	/**
 	 * 出牌
 	 */
-	private void passCard(List<Integer> cards) {
+	private void passCard(List<SCard> cards) {
 		if(currentPosition == 1) {
 			firstCards.removeAll(cards);
 		}
@@ -311,4 +321,19 @@ public class DdzCard {
 		farmerPlayCardCount = 0;
 	}
 	
+	public List<Integer> getAllCardList(){
+		return PokerKind.convertFaceList(allCards);
+	}
+	public List<Integer> getCommonCardList(){
+		return PokerKind.convertFaceList(commonCards);
+	}
+	public List<Integer> getFirstCardList(){
+		return PokerKind.convertFaceList(firstCards);
+	}
+	public List<Integer> getSecondCardList(){
+		return PokerKind.convertFaceList(secondCards);
+	}
+	public List<Integer> getThirdCardList(){
+		return PokerKind.convertFaceList(thirdCards);
+	}
 }

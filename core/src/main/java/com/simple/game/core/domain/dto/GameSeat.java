@@ -200,6 +200,7 @@ public class GameSeat implements AddressNo{
 		}
 		seatPlayerMap.put(player.getId(), seatPlayer);
 		gameSessionInfo.setAddress(this);
+		afterSitdownMaster(seatPlayer);
 		
 		PushSitdownCmd pushCmd = reqCmd.valueOfPushSitdownCmd();
 		SeatPlayerVo vo = new SeatPlayerVo();
@@ -221,6 +222,8 @@ public class GameSeat implements AddressNo{
 	}
 	
 	protected void doSitdownMaster() {
+	}
+	protected void afterSitdownMaster(SeatPlayer seatPlayer) {
 	}
 	
 	public void getSeatPlayerList(GameSessionInfo gameSessionInfo, ReqGetSeatPlayerListCmd reqCmd) {
@@ -470,7 +473,7 @@ public class GameSeat implements AddressNo{
 		gameSessionInfo.setAddress(desk);
 		
 		PushStandUpCmd pushCmd = new PushStandUpCmd();
-		pushCmd.setSeatPost(null);
+		pushCmd.setSeatPost(seatPlayer.getSeatPost());
 		pushCmd.setPosition(position);
 		pushCmd.setPlayerId(playerId);
 		pushCmd.setNickname(player.getNickname());

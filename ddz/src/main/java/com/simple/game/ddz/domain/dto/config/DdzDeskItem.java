@@ -21,4 +21,5 @@ public class DdzDeskItem extends DeskItem{
 
 	/***单价****/
 	private int unitPrice = 5;
+
 }

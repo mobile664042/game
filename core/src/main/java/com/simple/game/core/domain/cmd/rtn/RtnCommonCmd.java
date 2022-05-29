@@ -1,6 +1,7 @@
 package com.simple.game.core.domain.cmd.rtn;
 
 import lombok.Data;
+import lombok.ToString;
 
 /***
  * 公共的返回信息
@@ -11,6 +12,7 @@ import lombok.Data;
  *
  */
 @Data
+@ToString
 public class RtnCommonCmd extends RtnCmd{
 	protected int cmd;
 	

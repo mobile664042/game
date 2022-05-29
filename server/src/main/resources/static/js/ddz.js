@@ -449,7 +449,7 @@ function getSeatPlayerList(){
 	
 	let reqGetSeatPlayerListCmd = {
 		"cmd": 102002,
-		"fromPage": 1
+		"fromPage": 0
 	}
 	
 	let sendMessage = JSON.stringify(reqGetSeatPlayerListCmd);
@@ -473,7 +473,7 @@ function getAssistantList(){
 	}
 	
 	let reqGetAssistantListCmd = {
-		"cmd": 102002
+		"cmd": 102003
 	}
 	
 	let sendMessage = JSON.stringify(reqGetAssistantListCmd);
@@ -869,13 +869,6 @@ function onRtnGameInfoCmd(rtnCmd){
 	if(extGameInfo.currentProgress == "gameover"){
 		$('#p_currentProgress').css("background","red");
 		
-//		<span class="farmer_item">
-//			<img alt="1" class="headPic_item" src="/img/head/1.jpeg">张三 
-//		</span>
-//		<img alt="3" class="pkPic_item" src="/img/pk/30.png">
-//		<img alt="4" class="pkPic_item" src="/img/pk/31.png">
-//		<img alt="5" class="pkPic_item" src="/img/pk/33.png">
-//		<hr/>
 		extGameInfo.battlefield.forEach(function(element) {
 			//console.log(element);
 			//let imgHtml = '<img alt="'+ element +'" class="headPic_item" src="/img/head/' + element + '.jpeg">';
@@ -1020,6 +1013,7 @@ function onPushStandUpCmd(pushCmd){
 			$('#s_sitdown').removeAttr('disabled');
 			$('#s_quickSitdown').removeAttr('disabled');
 			showMsg(divHtml);
+			deskMsg(divHtml + '<hr/>');
 		}
 	}
 	

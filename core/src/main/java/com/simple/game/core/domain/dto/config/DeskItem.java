@@ -25,4 +25,7 @@ public class DeskItem {
 	/***介绍****/
 	private String desc = "最基本的玩法";
 	
+
+	/***机器人数量****/
+	private int robotCount = 1;
 }

@@ -29,10 +29,10 @@ public class DdzGameItem extends GameItem{
 	private int maxPlayCardSecond = 17;
 	
 	/***一局游戏允许最大超时次数****/
-	private int maxPlayCardOuttimeCount = 2;
+	private int maxPlayCardOuttimeCount = 3;
 	
 	/***一局游戏允许最大跳过次数(断线后或超时跳过牌)****/
-	private int maxSkipCount = 3;
+	private int maxSkipCount = 4;
 	
 	/***最长等待(主席位)掉线重连时长****/
 	private int maxMasterDisconnectSecond = 40;
