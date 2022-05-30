@@ -91,6 +91,7 @@ hr {
 							<option value="101">101</option>
 							<option value="102">102</option>
 							<option value="104">104</option>
+							<option value="105">105</option>
 						</select>
 						<button id="j_join"  disabled="true" onclick="joinGameDesk()">进入游戏</button>
 						<button id="j_left"  disabled="true" onclick="leftGameDesk()">离开</button>
@@ -102,7 +103,7 @@ hr {
 							<option value="2">2</option>
 							<option value="3">3</option>
 						</select>
-						<button id="s_sitdown" disabled="true" style="display: none" onclick="sitdown()">坐下</button>
+						<button id="s_sitdown" style="display:none" disabled="true" onclick="sitdown()">坐下</button>
 						<button id="s_quickSitdown" onclick="quickSitdown()" disabled="true" >快速坐下</button>
 						<button id="s_standup" disabled="true" onclick="standup()">站起</button>
 					</fieldset><br/>
@@ -178,7 +179,7 @@ hr {
 						<legend>打牌</legend>
 						<div>
 							<div>
-							 	剩余的手牌--&gt;  <label id="p_leftSecond" title="倒计时"></label>
+							 	剩余的手牌<label id="p_seatPost" title="当前身份"></label>--&gt;  <label id="p_leftSecond" title="倒计时"></label>
 							 	<div style="padding-bottom: 15px" id="p_residue_cards">
 									<img alt="3" class="pkPic_item" src="/img/pk/30.png">
 									<img alt="4" class="pkPic_item" src="/img/pk/41.png">

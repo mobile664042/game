@@ -790,6 +790,7 @@ var extGameInfo = {};
 //extSeatInfo.skipCount
 //extSeatInfo.timeoutCount
 //extSeatInfo.cards;
+//extSeatInfo.seatPost;
 var extSeatInfo = {};
 
 function onRtnGameInfoCmd(rtnCmd){
@@ -967,6 +968,13 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 	extSeatInfo.timeoutCount = rtnCmd.timeoutCount;
 	extSeatInfo.cards = rtnCmd.cards;
 	
+	if(rtnCmd.seatPost == 'onlooker'){
+		$('#p_seatPost').html("(旁观身份)");
+	}
+	if(rtnCmd.seatPost == 'assistant'){
+		$('#p_seatPost').html("(助手身份)");
+	}
+	
 	//显示剩余手牌
 	if(extSeatInfo.cards){
 		extSeatInfo.cards.forEach(function(subElement) {
@@ -1137,6 +1145,12 @@ function onPushRobLandlordCmd(pushCmd){
 			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
 		});
+	}
+	
+	leftSecond=globalConfig.maxPlayCardSecond;
+	leftSecondMsg='等待'+ pushCmd.position +'席位出牌';
+	if(extSeatInfo && extSeatInfo.currentPosition == pushCmd.position){
+		leftSecondMsg="等待我出牌";
 	}
 }
 

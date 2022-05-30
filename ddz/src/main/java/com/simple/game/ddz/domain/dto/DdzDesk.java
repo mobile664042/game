@@ -136,7 +136,8 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	
-	public RtnDdzGameInfoCmd getGameInfo(RtnGameInfoCmd gameInfo) {
+	public RtnGameInfoCmd getGameInfo() {
+		RtnGameInfoCmd gameInfo = super.getGameInfo();
 		RtnDdzGameInfoCmd rtnCmd = RtnDdzGameInfoCmd.copy(gameInfo);
 		rtnCmd.setCurrentProgress(currentProgress);
 		if(currentProgress == GameProgress.ready) {

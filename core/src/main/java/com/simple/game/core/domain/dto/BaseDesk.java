@@ -272,6 +272,14 @@ public abstract class BaseDesk{
 		pushCmd.setHeadPic(player.getHeadPic());
 		this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 		logger.info("{}离开{}游戏", player.getNickname(), gameItem.getName());
+		
+		//
+		player.getOnline().getSession().getAttachment().remove(GameConstant.GAME_SESSION_INFO);
+		try {
+			player.getOnline().getSession().close();
+		} catch (IOException e) {
+			logger.info("{}离开{}关闭连接异常", player.getNickname(), gameItem.getName(), e);
+		}
 	}
 	protected void preLeft(long playerId) {}
 	

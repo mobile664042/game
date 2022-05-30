@@ -27,5 +27,5 @@ public class DeskItem {
 	
 
 	/***机器人数量****/
-	private int robotCount = 1;
+	private int robotCount = 2;
 }

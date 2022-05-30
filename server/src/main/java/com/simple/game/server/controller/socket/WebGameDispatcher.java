@@ -82,7 +82,7 @@ public class WebGameDispatcher {
 					throw new BizException("还未进入游戏不可执行这操作，" + message);
 				}
 				if(reqCmd instanceof ReqSeatCmd) {
-					if(!(gameSessionInfo.getAddress() instanceof GameSeat)) {
+					if(!(gameSessionInfo.getAddress() instanceof GameSeat) && !(reqCmd instanceof ReqSitdownCmd)) {
 						throw new BizException("还未坐下不可执行这操作，" + message);
 					}
 				}
@@ -429,7 +429,9 @@ public class WebGameDispatcher {
 //			reqCmd.setDeskNo(deskNo);
 //			reqCmd.setPlayerId(playerId);
 			GameSessionInfo gameSessionInfo = (GameSessionInfo)gameSession.getAttachment().get(GameConstant.GAME_SESSION_INFO);
-			ddzService.disconnect(gameSessionInfo, reqCmd);
+			if(gameSessionInfo != null) {
+				ddzService.disconnect(gameSessionInfo, reqCmd);
+			}
     	}			
 	}
 
