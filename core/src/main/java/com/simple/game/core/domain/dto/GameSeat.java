@@ -38,7 +38,7 @@ import com.simple.game.core.domain.cmd.req.seat.ReqStopOnlookerCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGetAssistantListCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGetSeatPlayerListCmd;
-import com.simple.game.core.domain.cmd.vo.SeatPlayerVo;
+import com.simple.game.core.domain.cmd.vo.DdzSeatPlayerVo;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.SimpleUtil;
@@ -203,7 +203,7 @@ public class GameSeat implements AddressNo{
 		afterSitdownMaster(seatPlayer);
 		
 		PushSitdownCmd pushCmd = reqCmd.valueOfPushSitdownCmd();
-		SeatPlayerVo vo = new SeatPlayerVo();
+		DdzSeatPlayerVo vo = new DdzSeatPlayerVo();
 		vo.setId(player.getId());
 		vo.setNickname(player.getNickname());
 		vo.setGameLevel(player.getGameLevel());
@@ -232,12 +232,12 @@ public class GameSeat implements AddressNo{
 		int fromIndex = reqCmd.getFromPage() * TableDesk.PAGE_SIZE;
 		int toIndex = fromIndex + TableDesk.PAGE_SIZE;
 		
-		List<SeatPlayerVo> voList = new ArrayList<SeatPlayerVo>(list.size());
+		List<DdzSeatPlayerVo> voList = new ArrayList<DdzSeatPlayerVo>(list.size());
 		RtnGetSeatPlayerListCmd rtnCmd = new RtnGetSeatPlayerListCmd();
 		rtnCmd.setList(voList);
 		for(int i=fromIndex; i<list.size() && i<toIndex; i++) {
 			SeatPlayer seatPlayer = list.get(i);
-			SeatPlayerVo vo = seatPlayer.valueOfSeatPlayerVo();
+			DdzSeatPlayerVo vo = seatPlayer.valueOfSeatPlayerVo();
 			voList.add(vo);
 		}
 		player.getOnline().getSession().write(rtnCmd);
@@ -246,12 +246,12 @@ public class GameSeat implements AddressNo{
 		Player player = desk.getPlayer(gameSessionInfo.getPlayerId());
 		List<SeatPlayer> list = new ArrayList<SeatPlayer>(assistantMap.values());
 		
-		List<SeatPlayerVo> voList = new ArrayList<SeatPlayerVo>(list.size());
+		List<DdzSeatPlayerVo> voList = new ArrayList<DdzSeatPlayerVo>(list.size());
 		RtnGetAssistantListCmd rtnCmd = new RtnGetAssistantListCmd();
 		rtnCmd.setList(voList);
 		for(int i=0; i<list.size(); i++) {
 			SeatPlayer seatPlayer = list.get(i);
-			SeatPlayerVo vo = seatPlayer.valueOfSeatPlayerVo();
+			DdzSeatPlayerVo vo = seatPlayer.valueOfSeatPlayerVo();
 			voList.add(vo);
 		}
 		player.getOnline().getSession().write(rtnCmd);

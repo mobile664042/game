@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.core.exception.BizException;
@@ -58,24 +59,28 @@ public class DdzCard {
 	
 	
 	
-	public List<Integer> setLandlord(int position) {
+	public List<Integer> setLandlord(int position, OutParam<List<Integer>> outParam) {
 		landlordPosition = position;
 		currentPosition = position;
 		if(landlordPosition == 1) {
 			firstCards.addAll(commonCards);
 			//自动排序，方便后面自动过最小牌
 			Collections.sort(firstCards, new PokerComparator());
+			outParam.setParam(PokerKind.convertFaceList(firstCards));
 		}
 		if(landlordPosition == 2) {
 			secondCards.addAll(commonCards);
 			//自动排序，方便后面自动过最小牌
 			Collections.sort(secondCards, new PokerComparator());
+			outParam.setParam(PokerKind.convertFaceList(firstCards));
 		}
 		if(landlordPosition == 3) {
 			thirdCards.addAll(commonCards);
 			//自动排序，方便后面自动过最小牌
 			Collections.sort(thirdCards, new PokerComparator());
+			outParam.setParam(PokerKind.convertFaceList(thirdCards));
 		}
+		
 		return PokerKind.convertFaceList(commonCards);
 	}
 	

@@ -2,15 +2,20 @@ package com.simple.game.ddz.domain.dto;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
+import com.simple.game.core.domain.cmd.vo.DdzSeatPlayerVo;
+import com.simple.game.core.domain.cmd.vo.PlayerVo;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.Player;
+import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.domain.dto.constant.SCard;
@@ -133,6 +138,56 @@ public class DdzDesk extends TableDesk{
 			this.settle();
 		}
 		return false;
+	}
+	
+	/***
+	 * key position
+	 * @return
+	 */
+	public HashMap<String, ? extends PlayerVo> getSeatMasterPlayer(){
+		HashMap<String, DdzSeatPlayerVo> map = new HashMap<String, DdzSeatPlayerVo>(seatPlayingMap.size());
+		for(Integer position : seatPlayingMap.keySet()) {
+			DdzGameSeat gameSeat = (DdzGameSeat)seatPlayingMap.get(position);
+			SeatPlayer master = gameSeat.getMaster().get();
+			if(master != null && master.getPlayer() != null) {
+				DdzSeatPlayerVo vo = new DdzSeatPlayerVo();
+				vo.setId(master.getPlayer().getId());
+				vo.setNickname(master.getPlayer().getNickname());
+				vo.setGameLevel(master.getPlayer().getGameLevel());
+				vo.setExpValue(master.getPlayer().getExpValue());
+				vo.setVipLevel(master.getPlayer().getVipLevel());
+				vo.setHeadPic(master.getPlayer().getHeadPic());
+				vo.setSeatPost(master.getSeatPost());
+				vo.setPosition(position);
+				
+				List<Integer> residueCards = getResidueCard(position);
+				if(residueCards == null) {
+					vo.setResidueCount(0);
+				}
+				else {
+					vo.setResidueCount(residueCards.size());
+				}
+				//vo.setResidueCards(null);
+				map.put(position + "", vo);
+			}
+		}
+		return map;
+	}
+	/****获取剩余的牌***/
+	private List<Integer> getResidueCard(int position) {
+		if(currentProgress != GameProgress.robbedLandlord) {
+			return null;
+		}
+		if(position == 1) {
+			return ddzCard.getFirstCardList();
+		}
+		if(position == 2) {
+			return ddzCard.getSecondCardList();
+		}
+		if(position == 3) {
+			return ddzCard.getThirdCardList();
+		}
+		return null;
 	}
 	
 	
@@ -369,12 +424,16 @@ public class DdzDesk extends TableDesk{
 	 * @param position
 	 * @param score		简化操作，暂时不用
 	 */
-	public synchronized List<Integer> robLandlord(int position, int score) {
+	public synchronized List<Integer> robLandlord(int position, int score, OutParam<List<Integer>> outParam) {
 		if(currentProgress != GameProgress.sended) {
-			throw new BizException("不是发完牌状态，无法进行抢地主");
+			if(currentProgress != GameProgress.robbedLandlord) {
+				throw new BizException("不是发完牌状态，无法进行抢地主");
+			}
+			String msg = String.format("地主已被%s席位抢走了", currentProgress);
+			throw new BizException(msg);
 		}
 		
-		List<Integer> commonCards = this.ddzCard.setLandlord(position);
+		List<Integer> commonCards = this.ddzCard.setLandlord(position, outParam);
 		currentProgress = GameProgress.robbedLandlord;
 		lastPlayCardTime = System.currentTimeMillis();
 		return commonCards;

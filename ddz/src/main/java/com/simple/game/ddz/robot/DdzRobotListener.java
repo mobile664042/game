@@ -88,7 +88,7 @@ public class DdzRobotListener/* extends RobotListener */{
 			String nickName = BobotName.names[random.nextInt(BobotName.names.length)];
 			int sex = (1 + random.nextInt(2));
 			String telphone = "15"+ (100000000 + random.nextInt(800000000));
-			int headpic = random.nextInt(10);
+			int headpic = random.nextInt(10)+1;
 			
 			//建立连接
 			robotGameSession.getAttachment().put(GameConstant.PLAYER_ID, playerId);

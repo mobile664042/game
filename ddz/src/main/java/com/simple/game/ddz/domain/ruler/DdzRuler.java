@@ -109,7 +109,6 @@ public class DdzRuler {
 	 * @return
 	 */
 	static public SpanCard buildSpanCard(int position, List<SCard> originalCards) {
-//		isValidCard(originalCards);
 		List<SCard> list = new ArrayList<SCard>(originalCards);
 		Collections.sort(list, new PokerComparator());
 		
@@ -196,7 +195,7 @@ public class DdzRuler {
 			//判断是否是顺子
 			if(isOrderCard(list)) {
 				spanCard.type = CardType.order_card;
-				spanCard.masterValue = list.get(4).getValue();
+				spanCard.masterValue = list.get(list.size()-1).getValue();
 				return spanCard;
 			}
 			throw new BizException("无效的牌型");
@@ -275,9 +274,19 @@ public class DdzRuler {
 			return false;
 		}
 		
+		//判断是否包含2
+		if(order.contains(SCard.c20) || order.contains(SCard.c21) || order.contains(SCard.c22) || order.contains(SCard.c22)) {
+			Collections.sort(order, new Poker2Comparator());
+			for(int i=0; i<order.size() -1; i++) {
+				if(order.get(i).getSv() != (order.get(i+1).getSv()) -1) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
 		for(int i=0; i<order.size() -1; i++) {
 			if(order.get(i).getValue() != (order.get(i+1).getValue()) -1) {
-				//TODO 忽略复杂的顺子
 				return false;
 			}
 		}

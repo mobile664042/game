@@ -4,13 +4,13 @@ import java.util.List;
 
 import com.simple.game.core.domain.cmd.req.seat.ReqGetSeatPlayerListCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
-import com.simple.game.core.domain.cmd.vo.SeatPlayerVo;
+import com.simple.game.core.domain.cmd.vo.DdzSeatPlayerVo;
 
 import lombok.Data;
 
 @Data
 public class RtnGetSeatPlayerListCmd extends RtnCmd{
-	private List<SeatPlayerVo> list;
+	private List<DdzSeatPlayerVo> list;
 	
 	@Override
 	public int getCmd() {

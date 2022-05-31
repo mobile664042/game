@@ -184,7 +184,7 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 	 * key position
 	 * @return
 	 */
-	public HashMap<String, PlayerVo> getSeatMasterPlayer(){
+	public HashMap<String, ? extends PlayerVo> getSeatMasterPlayer(){
 		HashMap<String, PlayerVo> map = new HashMap<String, PlayerVo>(seatPlayingMap.size());
 		for(Integer position : seatPlayingMap.keySet()) {
 			GameSeat gameSeat = seatPlayingMap.get(position);

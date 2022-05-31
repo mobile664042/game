@@ -203,8 +203,8 @@ hr {
 							</div>
 							 
 							<div>
-								<button id="p_playCard" onclick="playcard()">出牌</button>
-								<button id="p_skip" onclick="skipPlaycard()">要不起</button>
+								<button style="height:30px; width: 60px" id="p_playCard" onclick="playcard()">出牌</button>
+								<button style="height:30px; width: 60px" id="p_skip" onclick="skipPlaycard()">要不起</button>
 								<button id="p_robLandlord" onclick="robLandlord()">抢地主</button>
 								<button id="p_rejectLandlord" disabled="true">不抢地主</button>
 								<button id="p_ready" disabled="true" onclick="ready()">准备</button>
@@ -267,6 +267,10 @@ hr {
 										是否可以旁观: <label id="s_stopAssistant">true</label><br/>
 										是否可以辅助: <label id="s_broadcasting">true</label><br/>
 										是否通过直播审核: <label id="s_applyBroadcasted">false</label><br/>
+
+										席位1剩余牌数: <label id="s_seat1cardCount">10</label><br/>
+										席位2剩余牌数: <label id="s_seat2cardCount">17</label><br/>
+										席位3剩余牌数: <label id="s_seat3cardCount">3</label><br/>
 									</td>
 								</tr>
 							</table>
@@ -298,5 +302,14 @@ hr {
 		</table>
 	</div>
 	
+<script type="text/javascript">
+var randomNum = Math.round(Math.random()*10)+1;
+$('#r_username').val('test_' + randomNum);
+$('#r_password').val('passwd_' + randomNum);
+$('#r_nickname').val('hello_' + randomNum);
+$('#r_telphone').val('1380013800' + randomNum);
+$('#r_headPic').val(randomNum);
+changeHeadPicShow();
+</script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 package com.simple.game.core.domain.dto;
 
-import com.simple.game.core.domain.cmd.vo.SeatPlayerVo;
+import com.simple.game.core.domain.cmd.vo.DdzSeatPlayerVo;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 
 import lombok.Getter;
@@ -34,8 +34,8 @@ public class SeatPlayer {
 	
 	
 	
-	public SeatPlayerVo valueOfSeatPlayerVo() {
-		SeatPlayerVo vo = new SeatPlayerVo();
+	public DdzSeatPlayerVo valueOfSeatPlayerVo() {
+		DdzSeatPlayerVo vo = new DdzSeatPlayerVo();
 		vo.setId(player.getId());
 		vo.setNickname(player.getNickname());
 		vo.setGameLevel(player.getGameLevel());

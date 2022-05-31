@@ -57,7 +57,7 @@ public class DdzActionListener extends ActionListener{
 			//先完牌就准备抢地主
 			NotifySendCardCmd notifyCmd = (NotifySendCardCmd)cmdTask.getCmd();
 			robotPlayer.setCards(new ArrayList<Integer>(notifyCmd.getCards()));
-			int delaySecond = 2 + random.nextInt(gameItem.getMaxRobbedLandlordSecond()/2);
+			int delaySecond = 3 + random.nextInt(gameItem.getMaxRobbedLandlordSecond()/2);
 			queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
 		}
 		else if(cmdTask.getCmd() instanceof NotifyGameSkipCmd) {
@@ -191,7 +191,6 @@ public class DdzActionListener extends ActionListener{
 			List<Integer> cards = robotPlayer.sendCard(true);
 			ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
 			reqCmd.setCards(cards);
-			logger.info("=====出牌：" + cards);
 			deskSeat.playCard(gameSessionInfo, reqCmd);
 			
 			//通用返回值捕捉不到，直接当成功处理
@@ -203,7 +202,6 @@ public class DdzActionListener extends ActionListener{
 			List<Integer> cards = robotPlayer.sendCard(false);
 			ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
 			reqCmd.setCards(cards);
-			logger.info("-----出牌：" + reqCmd);
 			deskSeat.playCard(gameSessionInfo, reqCmd);
 			
 			//通用返回值捕捉不到，直接当成功处理

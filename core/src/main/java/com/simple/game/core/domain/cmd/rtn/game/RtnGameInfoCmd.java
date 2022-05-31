@@ -38,7 +38,7 @@ public class RtnGameInfoCmd extends RtnCmd{
 	 * 席位上的主席位玩家
 	 * key position(必须使用字符串，不然json解析会出bug)
 	 */
-	protected HashMap<String, PlayerVo> seatPlayingMap;
+	protected HashMap<String, ? extends PlayerVo> seatPlayingMap;
 	
 	@Override
 	public int getCmd() {

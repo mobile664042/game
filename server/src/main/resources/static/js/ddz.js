@@ -386,6 +386,11 @@ function robLandlord(){
 		return;
 	}
 	
+	if(extGameInfo.currentProgress == 'robbedLandlord'){
+		alert("地主位已被" + extGameInfo.landlordPosition + "抢走了！");
+		return;
+	}
+	
 	if(extGameInfo.currentProgress != 'sended'){
 		alert("还未到抢地主阶段");
 		return;
@@ -746,7 +751,7 @@ globalConfig.maxRobbedLandlordSecond = 19;
 /***最长等待下一轮时长****/
 globalConfig.maxReadyNextSecond = 299;
 /***最长等待过牌时长(如果此时是自己出牌，自动选择最少的一张牌)****/
-globalConfig.maxPlayCardSecond = 16;
+globalConfig.maxPlayCardSecond = 19;
 /***一局游戏允许最大超时次数****/
 globalConfig.maxPlayCardOuttimeCount = 2;
 /***一局游戏允许最大跳过次数(断线后或超时跳过牌)****/
@@ -809,6 +814,7 @@ function onRtnGameInfoCmd(rtnCmd){
 	$('#r_logout').attr('disabled', true);
 	$('#s_standup').attr('disabled', true);
 	
+	
 	//@45@78@1
 	var strList = rtnCmd.address.split("@");
 	if(strList.length=4){
@@ -830,6 +836,25 @@ function onRtnGameInfoCmd(rtnCmd){
 	
 	//把其他席位上的玩家也保留上。
 	extGameInfo.seatPlayingMap = rtnCmd.seatPlayingMap;
+	//计算剩余牌
+	if(!(extGameInfo.seatPlayingMap["1"])){
+		extGameInfo.seatPlayingMap["1"]={};
+		extGameInfo.seatPlayingMap["1"].residueCount = 0;
+	}
+	if(!(extGameInfo.seatPlayingMap["2"])){
+		extGameInfo.seatPlayingMap["2"]={};
+		extGameInfo.seatPlayingMap["2"].residueCount = 0;
+	}
+	if(!(extGameInfo.seatPlayingMap["3"])){
+		extGameInfo.seatPlayingMap["3"]={};
+		extGameInfo.seatPlayingMap["3"].residueCount = 0;
+	}
+	
+	
+	$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["1"].residueCount);
+	$('#s_seat2cardCount').html(extGameInfo.seatPlayingMap["2"].residueCount);
+	$('#s_seat3cardCount').html(extGameInfo.seatPlayingMap["3"].residueCount);
+	
 	
 	//清理初使值
 	$("#p_deskPanel").html('');
@@ -1036,6 +1061,14 @@ function onRtnReadyNextCmd(pushCmd){
 	clearExtSeatData();
 	$('#p_ready').attr('disabled', true);
 	showMsg("已准备好了！");
+	
+	//计算剩余牌
+	extGameInfo.seatPlayingMap["1"].residueCount = 0;
+	extGameInfo.seatPlayingMap["2"].residueCount = 0;
+	extGameInfo.seatPlayingMap["3"].residueCount = 0;
+	$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["1"].residueCount);
+	$('#s_seat2cardCount').html(extGameInfo.seatPlayingMap["2"].residueCount);
+	$('#s_seat3cardCount').html(extGameInfo.seatPlayingMap["3"].residueCount);
 }
 
 function clearExtGameData(){
@@ -1061,7 +1094,7 @@ function clearExtSeatData(){
 	extSeatInfo.timeoutCount = 0;
 	extSeatInfo.cards = [];
 	
-	if(extGameInfo.currentProgress='ready'){
+	if(extGameInfo.currentProgress == 'ready'){
 		leftSecond = 0;
 	}
 	
@@ -1080,6 +1113,7 @@ function onPushReadyNextCmd(pushCmd){
 
 function onReqRobLandlordCmd(rtnCmd){
 	extGameInfo.currentProgress = 'robbedLandlord';
+	extGameInfo.landlordPosition = extSeatInfo.currentPosition;
 	
 	//你是地主了;
 	$('#p_landlord_position').html(extSeatInfo.currentPosition);
@@ -1098,18 +1132,37 @@ function onReqRobLandlordCmd(rtnCmd){
 			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
 			
-			//自己的手牌也要加上
-			extSeatInfo.cards[extSeatInfo.cards.length] = element;
+			//直接偷懒让服务端排好序发过来
 		});
 		
-		//重新加载排序
-		extSeatInfo.cards.sort(mysort);
+		//直接偷懒让服务端排好序发过来
+		extSeatInfo.cards = rtnCmd.finalCards;
 		$('#p_residue_cards').html('');
 		extSeatInfo.cards.forEach(function(element) {
 			imgHtml = '<img id="p_mycard'+ element +'" alt="'+ element +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + element + '.png">';
 			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
 		});
 	}
+	
+	//计算剩余牌
+	if(extSeatInfo.currentPosition == 1){
+		extGameInfo.seatPlayingMap["1"].residueCount = 20;
+		extGameInfo.seatPlayingMap["2"].residueCount = 17;
+		extGameInfo.seatPlayingMap["3"].residueCount = 17;
+	}
+	else if(extSeatInfo.currentPosition == 2){
+		extGameInfo.seatPlayingMap["2"].residueCount = 20;
+		extGameInfo.seatPlayingMap["1"].residueCount = 17;
+		extGameInfo.seatPlayingMap["3"].residueCount = 17;
+	}
+	else if(extSeatInfo.currentPosition == 3){
+		extGameInfo.seatPlayingMap["3"].residueCount = 20;
+		extGameInfo.seatPlayingMap["1"].residueCount = 17;
+		extGameInfo.seatPlayingMap["2"].residueCount = 17;
+	}
+	$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["1"].residueCount);
+	$('#s_seat2cardCount').html(extGameInfo.seatPlayingMap["2"].residueCount);
+	$('#s_seat3cardCount').html(extGameInfo.seatPlayingMap["3"].residueCount);
 }
 
 function mysort(a,b){
@@ -1129,6 +1182,7 @@ function getQueryVariable(variable){
 
 function onPushRobLandlordCmd(pushCmd){
 	extGameInfo.currentProgress = 'robbedLandlord';
+	extGameInfo.landlordPosition = pushCmd.position;
 	
 	$('#p_landlord_position').html(pushCmd.position);
 	let divHtml = '<div>'+ pushCmd.position +'席位成为地主</div>';
@@ -1152,6 +1206,26 @@ function onPushRobLandlordCmd(pushCmd){
 	if(extSeatInfo && extSeatInfo.currentPosition == pushCmd.position){
 		leftSecondMsg="等待我出牌";
 	}
+	
+	//计算剩余牌
+	if(extSeatInfo.currentPosition == 1){
+		extGameInfo.seatPlayingMap["1"].residueCount = 20;
+		extGameInfo.seatPlayingMap["2"].residueCount = 17;
+		extGameInfo.seatPlayingMap["3"].residueCount = 17;
+	}
+	else if(extSeatInfo.currentPosition == 2){
+		extGameInfo.seatPlayingMap["2"].residueCount = 20;
+		extGameInfo.seatPlayingMap["1"].residueCount = 17;
+		extGameInfo.seatPlayingMap["3"].residueCount = 17;
+	}
+	else if(extSeatInfo.currentPosition == 3){
+		extGameInfo.seatPlayingMap["3"].residueCount = 20;
+		extGameInfo.seatPlayingMap["1"].residueCount = 17;
+		extGameInfo.seatPlayingMap["2"].residueCount = 17;
+	}
+	$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["1"].residueCount);
+	$('#s_seat2cardCount').html(extGameInfo.seatPlayingMap["2"].residueCount);
+	$('#s_seat3cardCount').html(extGameInfo.seatPlayingMap["3"].residueCount);
 }
 
 function onReqPlayCardCmd(rtnCmd){
@@ -1166,6 +1240,20 @@ function onReqPlayCardCmd(rtnCmd){
 	}
 	
 	if(extSeatInfo.willLeftCards && extSeatInfo.willLeftCards.length > 0){
+		if(extGameInfo.currentPosition == 1){
+			extGameInfo.seatPlayingMap["1"].residueCount -= extSeatInfo.willLeftCards.length;
+			$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["1"].residueCount);
+		}
+		else if(extGameInfo.currentPosition == 2){
+			extGameInfo.seatPlayingMap["2"].residueCount -= extSeatInfo.willLeftCards.length;
+			$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["2"].residueCount);
+		}
+		else if(extGameInfo.currentPosition == 3){
+			extGameInfo.seatPlayingMap["3"].residueCount -= extSeatInfo.willLeftCards.length;
+			$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["3"].residueCount);
+		}
+		
+		
 		//删除剩余的牌
 		for (let i = extSeatInfo.cards.length - 1; i >= 0; i--) {
 			for (let j = 0; j < extSeatInfo.willLeftCards.length; j++) {
@@ -1192,8 +1280,26 @@ function onReqPlayCardCmd(rtnCmd){
 	extSeatInfo.willLeftCards = [];
 	leftSecond=globalConfig.maxPlayCardSecond;
 	leftSecondMsg="等待下家出牌";
+	
+	
 }
 function onPushPlayCardCmd(pushCmd){
+	//计算剩余牌
+	if(pushCmd.cards && pushCmd.cards.length > 0){
+		if(extGameInfo.currentPosition == 1){
+			extGameInfo.seatPlayingMap["1"].residueCount -= extSeatInfo.willLeftCards.length;
+			$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["1"].residueCount);
+		}
+		else if(extGameInfo.currentPosition == 2){
+			extGameInfo.seatPlayingMap["2"].residueCount -= extSeatInfo.willLeftCards.length;
+			$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["2"].residueCount);
+		}
+		else if(extGameInfo.currentPosition == 3){
+			extGameInfo.seatPlayingMap["3"].residueCount -= extSeatInfo.willLeftCards.length;
+			$('#s_seat1cardCount').html(extGameInfo.seatPlayingMap["3"].residueCount);
+		}
+	}	
+	
 	//判断是不是超时被强制出牌
 	if(pushCmd.position == extSeatInfo.currentPosition){
 		//删除剩余的牌

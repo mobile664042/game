@@ -13,6 +13,9 @@ public class RtnRobLandlordCmd extends RtnCmd{
 	/***底牌的手牌****/
 	private List<Integer> cards;
 	
+	/***最终手牌，为了客户偷懒排序****/
+	private List<Integer> finalCards;
+	
 	@Override
 	public String toLogStr() {
 		// TODO Auto-generated method stub

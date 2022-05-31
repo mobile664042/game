@@ -6,6 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simple.game.core.domain.cmd.OutParam;
 import com.simple.game.core.domain.cmd.rtn.seat.RtnGameSeatInfoCmd;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.GameSessionInfo;
@@ -158,7 +159,8 @@ public class DdzGameSeat extends GameSeat{
 	public void robLandlord(GameSessionInfo gameSessionInfo, ReqRobLandlordCmd reqCmd) {
 		SeatPlayer seatPlayer = checkSeatPlayer(gameSessionInfo);
 
-		List<Integer> commonCards = getDdzDesk().robLandlord(position, reqCmd.getScore());
+		OutParam<List<Integer>> outParam = new OutParam<List<Integer>>();
+		List<Integer> commonCards = getDdzDesk().robLandlord(position, reqCmd.getScore(), outParam);
 		PushRobLandlordCmd pushCmd = reqCmd.valueOfPushRobLandlordCmd();
 		pushCmd.setPosition(position);
 		pushCmd.setCards(commonCards);
@@ -168,6 +170,7 @@ public class DdzGameSeat extends GameSeat{
 		
 		RtnRobLandlordCmd rtnCmd = new RtnRobLandlordCmd();
 		rtnCmd.setCards(commonCards);
+		rtnCmd.setFinalCards(outParam.getParam());
 		Player player = seatPlayer.getPlayer();
 		player.getOnline().getSession().write(rtnCmd);
 	}

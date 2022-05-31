@@ -44,7 +44,7 @@ public class OnlineInfo {
 
 	/** 推送消息 ***/
 	public void push(PushCmd pushCmd) {
-		if(session != null) {
+		if(session != null && session.isOpen()) {
 			session.write(pushCmd);
 		}
 	}
