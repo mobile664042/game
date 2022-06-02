@@ -12,7 +12,8 @@ import lombok.Data;
 @Data
 public class PushPlayCardCmd extends PushSeatCmd{
 	private List<Integer> cards = new ArrayList<Integer>();
-	
+	private int doubleFinal;
+	private int residueCount;
 
 	@Override
 	public int getCmd() {

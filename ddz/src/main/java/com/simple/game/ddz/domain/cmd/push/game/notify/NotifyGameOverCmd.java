@@ -14,9 +14,9 @@ public class NotifyGameOverCmd extends PushCmd{
 	private final List<ResultItem> list = new ArrayList<ResultItem>();
 	
 	/***总共翻倍几次***/
-	private int doubleCount;
+	private int doubleFinal;
 	
-	/***单份结果(unitPrice的对doubleCount计算结果)****/
+	/***单份结果(unitPrice的对doubleFinal计算结果)****/
 	private long singleResult;
 	
 	/***单价****/
@@ -34,7 +34,7 @@ public class NotifyGameOverCmd extends PushCmd{
 	
 	public static NotifyGameOverCmd valueOf(GameResultRecord gameResultRecord) {
 		NotifyGameOverCmd notifyCmd = new NotifyGameOverCmd();
-		notifyCmd.setDoubleCount(gameResultRecord.getDoubleCount());
+		notifyCmd.setDoubleFinal(gameResultRecord.getDoubleFinal());
 		notifyCmd.setSingleResult(gameResultRecord.getSingleResult());
 		notifyCmd.setUnitPrice(gameResultRecord.getUnitPrice());
 		

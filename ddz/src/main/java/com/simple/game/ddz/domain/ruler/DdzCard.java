@@ -111,17 +111,29 @@ public class DdzCard {
 	public int getDoubleCount() {
 		return doubleCount;
 	}
-
+	
 	/***
 	 * 自动出牌
 	 * @param outCards 出过的牌
 	 * @return 游戏是否可以结束
 	 */
-	public boolean autoPlayCard(List<SCard> outCards) {
+	public PlayCardResult autoPlayCard(List<SCard> outCards) {
 		if(!this.battlefield.isNull()) {
 			//直接跳过
 			playCard(currentPosition, null);
-			return false;
+			PlayCardResult playCardResult = new PlayCardResult();
+			playCardResult.isGameOver = false;
+			playCardResult.doubleCount = doubleCount;
+			if(currentPosition == 1) {
+				playCardResult.residueCount = this.firstCards.size();
+			}
+			else if(currentPosition == 2) {
+				playCardResult.residueCount = this.secondCards.size();
+			}
+			else if(currentPosition == 3) {
+				playCardResult.residueCount = this.thirdCards.size();
+			}
+			return playCardResult;
 		}
 		
 		//出一张最小的牌(发完牌后已排序)
@@ -146,7 +158,7 @@ public class DdzCard {
 	 * @param outParam 统计刚才出的牌
 	 * @return 返回游戏是否可以结束
 	 */
-	public boolean playCard(int position, List<Integer> tempCards) {
+	public PlayCardResult playCard(int position, List<Integer> tempCards) {
 		if(position != currentPosition) {
 			throw new BizException(String.format("当前只能是%s席位出牌, 不可以由%s出牌", currentPosition, position));
 		}
@@ -179,6 +191,8 @@ public class DdzCard {
 			if(this.battlefield.getLast() != null) {
 				//需要比较大小
 				if(spanCard.compareTo(this.battlefield.getLast()) <= 0) {
+					logger.info("当前牌：{}, 上家的牌：{}", spanCard.getCards(), this.battlefield.getLast().getCards());
+					
 					throw new BizException(String.format("下家的牌必须大于上家的牌，才能出牌"));
 				}
 			}
@@ -210,7 +224,26 @@ public class DdzCard {
 			//如果还没有结束，需要计算出下一位
 			this.nextPosition();
 		}
-		return result;
+		PlayCardResult playCardResult = new PlayCardResult();
+		playCardResult.isGameOver = result;
+		playCardResult.doubleCount = doubleCount;
+		if(position == 1) {
+			playCardResult.residueCount = this.firstCards.size();
+		}
+		else if(position == 2) {
+			playCardResult.residueCount = this.secondCards.size();
+		}
+		else if(position == 3) {
+			playCardResult.residueCount = this.thirdCards.size();
+		}
+		return playCardResult;
+	}
+	
+	@Getter
+	public class PlayCardResult{
+		private int doubleCount;
+		private int residueCount;
+		private boolean isGameOver;
 	}
 	
 	private void verifyCard(int targetPosition, List<SCard> cards) {

@@ -32,7 +32,7 @@ public class RtnDdzGameInfoCmd extends RtnGameInfoCmd{
 	protected List<OutCard> battlefield;
 	
 	/***总共翻倍几次***/
-	protected Integer doubleCount;
+	protected Integer doubleFinal;
 	
 	/***地主出几次牌***/
 	protected Integer landlordPlayCardCount;

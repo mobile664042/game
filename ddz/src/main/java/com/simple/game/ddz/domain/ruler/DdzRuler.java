@@ -81,6 +81,13 @@ public class DdzRuler {
 			}
 			
 			if(o.type == CardType.single) {
+				if(cards.get(0) == SCard.STRONG_KING) {
+					return 1;
+				}
+				if(o.cards.get(0) == SCard.STRONG_KING) {
+					return -1;
+				}
+				
 				return cards.get(0).getValue() - o.getCards().get(0).getValue();
 			}
 			

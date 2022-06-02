@@ -17,17 +17,15 @@ public enum DoubleKind {
 	
 	/***
 	 * 计算结果
-	 * 
-	 * @param unitPrice
 	 * @param doubleCount
 	 * @return
 	 */
-	public long calcResult(long unitPrice, int doubleCount) {
+	public int getFinalDouble(int doubleCount) {
 		if(this == cumulation) {
-			return unitPrice * (doubleCount);
+			return doubleCount;
 		}
 		
-		long result = unitPrice;
+		int result = 1;
 		for(int i=0; i<doubleCount-1; i++) {
 			result *= 2;
 		}

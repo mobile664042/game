@@ -23,9 +23,11 @@ import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.GameProgress;
+import com.simple.game.ddz.domain.ruler.DdzCard.PlayCardResult;
 import com.simple.game.ddz.robot.DdzRobotListener;
 
 import lombok.Getter;
@@ -182,13 +184,21 @@ public class DdzGameSeat extends GameSeat{
 	 * @param cards
 	 */
 	public void playCard(GameSessionInfo gameSessionInfo, ReqPlayCardCmd reqCmd) {
-		checkSeatPlayer(gameSessionInfo);
-		getDdzDesk().playCard(position, reqCmd.getCards());
-		PushPlayCardCmd pushCmd = reqCmd.valueOfPushPlayCardCmd();
-		pushCmd.setPosition(position);
+		SeatPlayer seatPlayer = checkSeatPlayer(gameSessionInfo);
+		PlayCardResult playCardResult = getDdzDesk().playCard(position, reqCmd.getCards());
 		
 		//发送广播
+		PushPlayCardCmd pushCmd = reqCmd.valueOfPushPlayCardCmd();
+		pushCmd.setPosition(position);
+		int finalDouble = getDdzDesk().getDoubleKind().getFinalDouble(playCardResult.getDoubleCount());
+		pushCmd.setDoubleFinal(finalDouble);
+		pushCmd.setResidueCount(playCardResult.getResidueCount());
 		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		
+		RtnPlayCardCmd rtnCmd = new RtnPlayCardCmd();
+		Player player = seatPlayer.getPlayer();
+		rtnCmd.setDoubleFinal(finalDouble);
+		player.getOnline().getSession().write(rtnCmd);
 	}
 	
 	/***

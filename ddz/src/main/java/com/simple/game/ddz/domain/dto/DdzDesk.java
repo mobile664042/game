@@ -37,6 +37,7 @@ import com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem;
 import com.simple.game.ddz.domain.manager.ResultManager;
 import com.simple.game.ddz.domain.ruler.DdzCard;
 import com.simple.game.ddz.domain.ruler.DdzRuler;
+import com.simple.game.ddz.domain.ruler.DdzCard.PlayCardResult;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -205,7 +206,9 @@ public class DdzDesk extends TableDesk{
 		}
 		
 		rtnCmd.setLandlordPosition(ddzCard.getLandlordPosition());
-		rtnCmd.setDoubleCount(ddzCard.getDoubleCount());
+		
+		int doubleFinal = getDoubleKind().getFinalDouble(ddzCard.getDoubleCount());
+		rtnCmd.setDoubleFinal(doubleFinal);
 		if(currentProgress == GameProgress.robbedLandlord) {
 			return rtnCmd;
 		}
@@ -330,12 +333,15 @@ public class DdzDesk extends TableDesk{
 		
 		//自动过牌
 		List<SCard> outCards = new ArrayList<SCard>(1); 
-		boolean isGameOver = this.ddzCard.autoPlayCard(outCards);
-		afterPlayCard(isGameOver);
+		PlayCardResult playCardResult = this.ddzCard.autoPlayCard(outCards);
+		afterPlayCard(playCardResult.isGameOver());
 		
 		//广播
+		int doubleFinal = getDoubleKind().getFinalDouble(playCardResult.getDoubleCount());
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
 		pushCmd.setPosition(position);
+		pushCmd.setDoubleFinal(doubleFinal);
+		pushCmd.setResidueCount(playCardResult.getResidueCount());
 		pushCmd.getCards().addAll(PokerKind.convertFaceList(outCards));
 		this.broadcast(pushCmd, true);
 		return true;
@@ -440,14 +446,16 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	
-	public synchronized void playCard(int position, List<Integer> cards) {
+	public synchronized PlayCardResult playCard(int position, List<Integer> cards) {
 		if(currentProgress != GameProgress.robbedLandlord) {
 			throw new BizException("不是抢完状态，无法进行出牌");
 		}
 		
-		boolean isGameOver = this.ddzCard.playCard(position, cards);
-		afterPlayCard(isGameOver);
+		PlayCardResult playCardResult = this.ddzCard.playCard(position, cards);
+		afterPlayCard(playCardResult.isGameOver());
+		return playCardResult;
 	}
+	
 	
 	private void afterPlayCard(boolean isGameOver) {
 		if(isGameOver) {
@@ -559,13 +567,14 @@ public class DdzDesk extends TableDesk{
 		if(this.ddzCard.isSpring()) {
 			doubleCount += 1;
 		}
-		long singleResult = this.getDoubleKind().calcResult(this.getDdzDeskItem().getUnitPrice(), doubleCount);
+		int doubleFinal = this.getDoubleKind().getFinalDouble(doubleCount);
+		long singleResult = doubleFinal * this.getDdzDeskItem().getUnitPrice();
 		int landlordPosition = this.ddzCard.getLandlordPosition();
 		boolean landlordWin = this.ddzCard.isLandlordWin();
 		
 		GameResultRecord gameResultRecord = new GameResultRecord();
 		gameResultRecord.setUnitPrice(this.getDdzDeskItem().getUnitPrice());
-		gameResultRecord.setDoubleCount(doubleCount);
+		gameResultRecord.setDoubleFinal(doubleFinal);
 		gameResultRecord.setSingleResult(singleResult);
 		gameResultRecord.setDoubleKind(getDoubleKind());
 		gameResultRecord.setLandlordPosition(landlordPosition);
@@ -654,13 +663,14 @@ public class DdzDesk extends TableDesk{
 		if(this.ddzCard.isSpring()) {
 			doubleCount += 1;
 		}
-		long singleResult = this.getDoubleKind().calcResult(this.getDdzDeskItem().getUnitPrice(), doubleCount);
+		int doubleFinal = this.getDoubleKind().getFinalDouble(doubleCount);
+		long singleResult = doubleFinal * this.getDdzDeskItem().getUnitPrice();
 		int landlordPosition = this.ddzCard.getLandlordPosition();
 		boolean landlordWin = (landlordPosition != this.surrenderPosition);
 		
 		GameResultRecord gameResultRecord = new GameResultRecord();
 		gameResultRecord.setUnitPrice(this.getDdzDeskItem().getUnitPrice());
-		gameResultRecord.setDoubleCount(doubleCount);
+		gameResultRecord.setDoubleFinal(doubleFinal);
 		gameResultRecord.setDoubleKind(getDoubleKind());
 		gameResultRecord.setLandlordPosition(landlordPosition);
 		gameResultRecord.getCards().addAll(this.ddzCard.getAllCardList());
@@ -809,7 +819,7 @@ public class DdzDesk extends TableDesk{
 	}
 	
 	
-	protected DoubleKind getDoubleKind() {
+	public DoubleKind getDoubleKind() {
 		DdzGameItem config = getDdzGameItem();
 		if(config.getDoubleKind() != null ) {
 			return config.getDoubleKind();

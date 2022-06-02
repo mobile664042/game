@@ -8,8 +8,8 @@ import java.util.List;
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.ddz.domain.ruler.DdzRuler;
-import com.simple.game.ddz.domain.ruler.PokerComparator;
 import com.simple.game.ddz.domain.ruler.DdzRuler.CardType;
+import com.simple.game.ddz.domain.ruler.PokerComparator;
 import com.simple.game.ddz.util.SimpleQueue;
 
 /***
@@ -64,7 +64,12 @@ public class RobotPlayer {
 				SCard scard = SCard.valueOf(face);
 				cards.remove(scard);
 			}
+			addOutCards(position, new ArrayList<Integer>(willRemoveCards));
 		}
+		else {
+			addOutCards(position, null);
+		}
+		
 		playCard(position, willRemoveCards);
 	}
 	public void addOutCards(int position, List<Integer> tempCards) {
@@ -193,8 +198,15 @@ public class RobotPlayer {
 		//判断牌型
 		if(spanCard.getType() == CardType.single) {
 			//先判断大王
-			if(v0 == SCard.STRONG_KING.getValue()) {
+			if(spanCard.getCards().get(0) == SCard.STRONG_KING) {
 				return getBombsCards();
+			}
+			
+			if(spanCard.getCards().get(0) == SCard.WEAK_KING) {
+				if(cards.contains(SCard.STRONG_KING)) {
+					tempCards.add(SCard.STRONG_KING);
+					return tempCards;
+				}
 			}
 			
 			//再找一张比它大的牌

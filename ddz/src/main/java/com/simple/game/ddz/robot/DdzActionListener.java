@@ -24,6 +24,7 @@ import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
 import com.simple.game.ddz.domain.dto.DdzGameSeat;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
@@ -73,6 +74,13 @@ public class DdzActionListener extends ActionListener{
 				int delaySecond = 2 + random.nextInt(gameItem.getMaxPlayCardSecond()/3);
 				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
 				logger.info("准备出牌：" + delaySecond);
+			}
+		} 
+		else if(cmdTask.getCmd() instanceof RtnPlayCardCmd) {
+			//如果出牌成功
+			RtnPlayCardCmd rtnCmd = (RtnPlayCardCmd)cmdTask.getCmd();
+			if(rtnCmd.getCode() == 0) {
+				robotPlayer.removeCards();
 			}
 		} 
 //		else if(cmdTask.getCmd() instanceof RtnCommonCmd) {
@@ -192,10 +200,6 @@ public class DdzActionListener extends ActionListener{
 			ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
 			reqCmd.setCards(cards);
 			deskSeat.playCard(gameSessionInfo, reqCmd);
-			
-			//通用返回值捕捉不到，直接当成功处理
-			robotPlayer.addOutCards(deskSeat.getPosition(), cards);
-			robotPlayer.removeCards();
 		}
 		else if(cmdTask.getCmd() instanceof PushPlayCardCmd) {
 			//到自己出牌
@@ -203,10 +207,6 @@ public class DdzActionListener extends ActionListener{
 			ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
 			reqCmd.setCards(cards);
 			deskSeat.playCard(gameSessionInfo, reqCmd);
-			
-			//通用返回值捕捉不到，直接当成功处理
-			robotPlayer.addOutCards(deskSeat.getPosition(), cards);
-			robotPlayer.removeCards();
 		} 
 		else if(cmdTask.getCmd() instanceof NotifyGameOverCmd) {
 			//游戏结束就准备下一局

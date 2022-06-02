@@ -32,7 +32,7 @@ public class GameResultRecord {
 	private int landlordPosition;
 	
 	/***总共翻倍几次***/
-	private int doubleCount;
+	private int doubleFinal;
 	
 	/***游戏加倍玩法****/
 	private DoubleKind doubleKind;

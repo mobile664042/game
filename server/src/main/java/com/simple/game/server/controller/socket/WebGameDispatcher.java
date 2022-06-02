@@ -241,7 +241,6 @@ public class WebGameDispatcher {
 			//具体的游戏部分
 			else if(reqCmd instanceof ReqPlayCardCmd) {
 				ddzService.playCard(gameSessionInfo, (ReqPlayCardCmd)reqCmd);
-				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqReadyNextCmd) {
