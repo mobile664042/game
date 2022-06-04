@@ -15,12 +15,14 @@ import org.slf4j.LoggerFactory;
 import com.simple.game.core.constant.GameConstant;
 import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.GameSessionInfo;
+import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.core.robot.ActionListener;
 import com.simple.game.core.util.MyThreadFactory;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameOverCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameSkipCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifySendCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushRobLandlordCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
@@ -71,35 +73,24 @@ public class DdzActionListener extends ActionListener{
 			RtnRobLandlordCmd rtnCmd = (RtnRobLandlordCmd)cmdTask.getCmd();
 			if(rtnCmd.getCode() == 0) {
 				robotPlayer.addCommonCards(rtnCmd.getCards());
+				robotPlayer.beLandlord();
 				int delaySecond = 2 + random.nextInt(gameItem.getMaxPlayCardSecond()/3);
 				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
 				logger.info("准备出牌：" + delaySecond);
 			}
 		} 
+		else if(cmdTask.getCmd() instanceof PushRobLandlordCmd) {
+			//设置地主位
+			PushRobLandlordCmd pushCmd = (PushRobLandlordCmd)cmdTask.getCmd();
+			robotPlayer.setLandlordPosition(pushCmd.getPosition());
+		} 
 		else if(cmdTask.getCmd() instanceof RtnPlayCardCmd) {
 			//如果出牌成功
 			RtnPlayCardCmd rtnCmd = (RtnPlayCardCmd)cmdTask.getCmd();
 			if(rtnCmd.getCode() == 0) {
-				robotPlayer.removeCards();
+				robotPlayer.removeCards(rtnCmd.getResidueCount());
 			}
 		} 
-//		else if(cmdTask.getCmd() instanceof RtnCommonCmd) {
-//			RtnCommonCmd rtnCmd = (RtnCommonCmd)cmdTask.getCmd();
-//			if(rtnCmd.getCode() == 0 && rtnCmd.getCmd() == ReqReadyNextCmd.CMD) {
-//				//如果准备开始了，就得清理上一局的上数据
-//				robotPlayer.clear();
-//			}
-//			
-//			if(rtnCmd.getCode() == 0 && rtnCmd.getCmd() == ReqPlayCardCmd.CMD) {
-//				//如果是打牌成功了
-//				robotPlayer.removeCards();
-//			}
-//		} 
-//		else if(cmdTask.getCmd() instanceof PushRobLandlordCmd) {
-//			//如果别人抢到了， 就得记牌
-//			PushRobLandlordCmd pushCmd = (PushRobLandlordCmd)cmdTask.getCmd();
-//			robotPlayer.addOutCards(pushCmd.getPosition(), pushCmd.getCards());
-//		} 
 		else if(cmdTask.getCmd() instanceof PushPlayCardCmd) {
 			//判断是不是到自己出牌
 			PushPlayCardCmd pushCmd = (PushPlayCardCmd)cmdTask.getCmd();
@@ -108,11 +99,22 @@ public class DdzActionListener extends ActionListener{
 				nextPosition = deskItem.getMinPosition();
 			}
 			if(nextPosition == deskSeat.getPosition()) {
-				int delaySecond = 2 + random.nextInt(gameItem.getMaxPlayCardSecond()/3);
+				//判断是否是王牌
+				boolean isKingBombs = false;
+				if(pushCmd.getCards() != null && pushCmd.getCards().size() == 2) {
+					if(pushCmd.getCards().contains(SCard.STRONG_KING.getFace()) && pushCmd.getCards().contains(SCard.WEAK_KING.getFace())) {
+						isKingBombs = true;
+					}
+				}
+				
+				int delaySecond = 2;
+				if(!isKingBombs) {
+					delaySecond += random.nextInt(gameItem.getMaxPlayCardSecond()/3);
+				}
 				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
 			}
 			//记牌
-			robotPlayer.addOutCards(pushCmd.getPosition(), pushCmd.getCards());
+			robotPlayer.addOutCards(pushCmd.getPosition(), pushCmd.getCards(), pushCmd.getResidueCount());
 		} 
 		else if(cmdTask.getCmd() instanceof NotifyGameOverCmd) {
 			//游戏结束就准备下一局

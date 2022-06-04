@@ -16,14 +16,7 @@ import lombok.Getter;
  *
  */
 public class DdzRuler {
-//	public static void isValidCard(List<Integer> cards) {
-//		for(int card : cards) {
-//			if(!PokerKind.C_54.isValid(card)) {
-//				throw new BizException(String.format("无效的牌%s", card));
-//			}
-//		}
-//	}
-	
+
 	
 	/***一次出牌***/
 	@Getter

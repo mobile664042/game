@@ -719,10 +719,12 @@ function selectCard(cardImg){
 	if(cardItem.attr('name')){
 		cardItem.attr('name', '');
 		cardItem.css("margin-bottom","0px");
+		cardItem.css("border-bottom","0px solid red");
 	}
 	else{
 		cardItem.attr('name', 'selectedCard');
 		cardItem.css("margin-bottom","12px");
+		cardItem.css("border-bottom","1px solid red");
 	}
 }
 
