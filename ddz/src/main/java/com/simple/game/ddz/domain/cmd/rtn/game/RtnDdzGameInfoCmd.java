@@ -29,7 +29,7 @@ public class RtnDdzGameInfoCmd extends RtnGameInfoCmd{
 	protected Integer currentPosition;
 	
 	/***上一轮出的牌(需要对抗的牌)***/
-	protected List<OutCard> battlefield;
+	protected List<List<Integer>> battlefield;
 	
 	/***总共翻倍几次***/
 	protected Integer doubleFinal;
@@ -39,13 +39,6 @@ public class RtnDdzGameInfoCmd extends RtnGameInfoCmd{
 	
 	/***农夫出了几次牌***/
 	protected Integer farmerPlayCardCount;
-	
-	/***一次出牌***/
-	@Data
-	public static class OutCard {
-		int position;
-		List<Integer> cards;
-	}
 	
 	@Override
 	public String toLogStr() {

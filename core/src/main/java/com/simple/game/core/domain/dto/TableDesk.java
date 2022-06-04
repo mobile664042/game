@@ -85,7 +85,7 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 		checkAndGetManager(gameSessionInfo.getPlayerId());
 		left(reqCmd.getOtherId());
 	}
-
+	
 	protected void preJoin(Player player) {
 		//不需要加锁判断，减少时死锁，提高性能，允许极少量的误差
 		if(playerMap.size()+1 > deskItem.getMaxPersion()) {
@@ -122,7 +122,6 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 		playerMap.put(player.getId(), player);
 		gameSessionInfo.setAddress(this);
 		changeSession(player, gameSession);
-//		player.getOnline().getSession().getAttachment().put(GameConstant.GAME_SESSION_INFO, gameSessionInfo);
 		
 		RtnGameInfoCmd rtnCmd = getGameInfo();
 		rtnCmd.setPlayerId(player.getId());

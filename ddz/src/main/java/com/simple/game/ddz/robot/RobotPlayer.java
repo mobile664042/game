@@ -763,4 +763,7 @@ public class RobotPlayer {
 		battlefield.clear();
 	}
 	
+	public boolean isGameOver() {
+		return cards == null || cards.size() == 0;
+	}
 }

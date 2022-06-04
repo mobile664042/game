@@ -19,6 +19,7 @@ import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.TableDesk;
 import com.simple.game.core.domain.dto.constant.PokerKind;
 import com.simple.game.core.domain.dto.constant.SCard;
+import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.manager.CoinManager;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameOverCmd;
@@ -26,7 +27,6 @@ import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameSkipCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifySendCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd;
-import com.simple.game.ddz.domain.cmd.rtn.game.RtnDdzGameInfoCmd.OutCard;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.config.DdzGameItem;
@@ -36,8 +36,8 @@ import com.simple.game.ddz.domain.manager.GameResultRecord;
 import com.simple.game.ddz.domain.manager.GameResultRecord.ResultItem;
 import com.simple.game.ddz.domain.manager.ResultManager;
 import com.simple.game.ddz.domain.ruler.DdzCard;
-import com.simple.game.ddz.domain.ruler.DdzRuler;
 import com.simple.game.ddz.domain.ruler.DdzCard.PlayCardResult;
+import com.simple.game.ddz.domain.ruler.DdzRuler;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -175,10 +175,7 @@ public class DdzDesk extends TableDesk{
 		return map;
 	}
 	/****获取剩余的牌***/
-	private List<Integer> getResidueCard(int position) {
-		if(currentProgress != GameProgress.robbedLandlord) {
-			return null;
-		}
+	public List<Integer> getResidueCard(int position) {
 		if(position == 1) {
 			return ddzCard.getFirstCardList();
 		}
@@ -190,7 +187,24 @@ public class DdzDesk extends TableDesk{
 		}
 		return null;
 	}
-	
+	/****执行下了操作时剩余的时间***/
+	public int getLeftSecond() {
+		if(currentProgress == GameProgress.sended) {
+			long time = System.currentTimeMillis() - lastSendCardTime;
+			if(time <= 0) {
+				return 0;
+			}
+			return (int)(time / 1000);
+		}
+		else if(currentProgress == GameProgress.robbedLandlord) {
+			long time = System.currentTimeMillis() - lastPlayCardTime; 
+			if(time <= 0) {
+				return 0;
+			}
+			return (int)(time / 1000);
+		}
+		return 0;
+	}
 	
 	public RtnGameInfoCmd getGameInfo() {
 		RtnGameInfoCmd gameInfo = super.getGameInfo();
@@ -209,27 +223,30 @@ public class DdzDesk extends TableDesk{
 		
 		int doubleFinal = getDoubleKind().getFinalDouble(ddzCard.getDoubleCount());
 		rtnCmd.setDoubleFinal(doubleFinal);
-		if(currentProgress == GameProgress.robbedLandlord) {
-			return rtnCmd;
-		}
-		
 		rtnCmd.setCurrentPosition(ddzCard.getCurrentPosition());
-		rtnCmd.setSurrenderPosition(surrenderPosition);
-		
-		DdzRuler.SpanCard[] spanArray = ddzCard.getBattlefield().getData();
+		Object[] spanArray = ddzCard.getBattlefield().getData();
 		if(spanArray != null && spanArray.length > 0) {
-			List<OutCard> battlefield = new ArrayList<OutCard>(spanArray.length);
+			List<List<Integer>> battlefield = new ArrayList<List<Integer>>(spanArray.length);
 			rtnCmd.setBattlefield(battlefield);
 			
-			for(DdzRuler.SpanCard spanCard : spanArray) {
-				OutCard outCard = new OutCard();
-				outCard.setPosition(spanCard.getPosition());
-				outCard.setCards(PokerKind.convertFaceList(spanCard.getCards()));
-				battlefield.add(outCard);
+			for(Object temp : spanArray) {
+				DdzRuler.SpanCard spanCard = (DdzRuler.SpanCard)temp;
+				if(temp == null) {
+					battlefield.add(null);
+					continue;
+				}
+				
+				battlefield.add(PokerKind.convertFaceList(spanCard.getCards()));
 			}
 		}
 		rtnCmd.setLandlordPlayCardCount(ddzCard.getLandlordPlayCardCount());
 		rtnCmd.setFarmerPlayCardCount(ddzCard.getFarmerPlayCardCount());
+		if(currentProgress == GameProgress.robbedLandlord) {
+			return rtnCmd;
+		}
+		
+		rtnCmd.setSurrenderPosition(surrenderPosition);
+		
 		
 //		if(currentProgress == GameProgress.gameover) {
 //		}
@@ -262,22 +279,24 @@ public class DdzDesk extends TableDesk{
 	 * 处理掉线的用户
 	 */
 	private void handleDisconnectPlayer() {
-		for(Player player : offlineMap.values()) {
+		List<Player> list = new ArrayList<Player>(offlineMap.values());
+		for(Player player : list) {
 			long time = System.currentTimeMillis() - player.getOnline().getDisconnectTime();
 			if(time == 0 || time / 1000 < this.getDdzGameItem().getMaxDisconnectSecond()) {
 				continue;
 			}
 			
-			//判断是否是主席位
-			boolean isMaster = false;
+			//判断席位上是否有有其他人
 			for(GameSeat gameSeat : seatPlayingMap.values()) {
-				if(gameSeat.getMaster().get() != null && gameSeat.getMaster().get().getPlayer().getId() != player.getId()) {
-					isMaster = true;
-					break;
+				SeatPlayer seatPlayer = gameSeat.getSeatPlayer(player.getId());
+				if(seatPlayer != null) {
+					if(seatPlayer.getSeatPost() != SeatPost.master) {
+						gameSeat.standUp(player.getId());
+					}
+					else {
+						gameSeat.standupAll();
+					}
 				}
-			}
-			if(isMaster) {
-				continue;
 			}
 			
 			//强制下线
@@ -339,6 +358,7 @@ public class DdzDesk extends TableDesk{
 		//广播
 		int doubleFinal = getDoubleKind().getFinalDouble(playCardResult.getDoubleCount());
 		PushPlayCardCmd pushCmd = new PushPlayCardCmd();
+		pushCmd.setForceSend(true);
 		pushCmd.setPosition(position);
 		pushCmd.setDoubleFinal(doubleFinal);
 		pushCmd.setResidueCount(playCardResult.getResidueCount());
@@ -366,8 +386,8 @@ public class DdzDesk extends TableDesk{
 			if(time != 0 && time / 1000 > this.getDdzGameItem().getMaxMasterDisconnectSecond()) {
 				gameSeat.standupAll();
 				logger.info("游戏结束后等待{}毫秒，{}主席位长时间掉线，强制站起", time, gameSeat.getPosition());
+				return true;
 			}
-			return true;
 		}
 		
 		//强制踢出那些经常出牌超时的人

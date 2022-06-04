@@ -14,6 +14,8 @@ public class PushPlayCardCmd extends PushSeatCmd{
 	private List<Integer> cards = new ArrayList<Integer>();
 	private int doubleFinal;
 	private int residueCount;
+	/***是否是强制出牌***/
+	private boolean forceSend;
 
 	@Override
 	public int getCmd() {

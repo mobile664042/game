@@ -464,13 +464,12 @@ public class GameSeat implements AddressNo{
 		else if(seatPlayer.getSeatPost() == SeatPost.assistant) {
 			//主席位站起
 			assistantMap.remove(player.getId());
-			seatPlayerMap.remove(player.getId());
 		}
-		else {
-			seatPlayerMap.remove(player.getId());
+		seatPlayerMap.remove(player.getId());
+		if(player.getOnline().getSession() != null) {
+			GameSessionInfo gameSessionInfo = (GameSessionInfo)player.getOnline().getSession().getAttachment().get(GameConstant.GAME_SESSION_INFO);
+			gameSessionInfo.setAddress(desk);
 		}
-		GameSessionInfo gameSessionInfo = (GameSessionInfo)player.getOnline().getSession().getAttachment().get(GameConstant.GAME_SESSION_INFO);
-		gameSessionInfo.setAddress(desk);
 		
 		PushStandUpCmd pushCmd = new PushStandUpCmd();
 		pushCmd.setSeatPost(seatPlayer.getSeatPost());
@@ -481,7 +480,7 @@ public class GameSeat implements AddressNo{
 		
 		//发送广播
 		if(excludeSelf) {
-			desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+			desk.broadcast(pushCmd, playerId);
 		}
 		else {
 			desk.broadcast(pushCmd);
@@ -489,8 +488,6 @@ public class GameSeat implements AddressNo{
 	}
 	
 	protected void clear() {
-		seatPlayerMap.clear();
-		assistantMap.clear();
 		this.master.set(null);
 		this.nextMaster = null;
 		

@@ -203,10 +203,13 @@ public class DdzActionListener extends ActionListener{
 		}
 		else if(cmdTask.getCmd() instanceof PushPlayCardCmd) {
 			//到自己出牌
-			List<Integer> cards = robotPlayer.sendCard(false);
-			ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
-			reqCmd.setCards(cards);
-			deskSeat.playCard(gameSessionInfo, reqCmd);
+			//需要判断是否结束了
+			if(!robotPlayer.isGameOver()) {
+				List<Integer> cards = robotPlayer.sendCard(false);
+				ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
+				reqCmd.setCards(cards);
+				deskSeat.playCard(gameSessionInfo, reqCmd);
+			}
 		} 
 		else if(cmdTask.getCmd() instanceof NotifyGameOverCmd) {
 			//游戏结束就准备下一局

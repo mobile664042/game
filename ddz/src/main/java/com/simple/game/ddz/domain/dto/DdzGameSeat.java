@@ -100,6 +100,9 @@ public class DdzGameSeat extends GameSeat{
 		RtnDdzGameSeatCmd rtnCmd = new RtnDdzGameSeatCmd();
 		rtnCmd.copy(super.getGameSeatInfo());
 		rtnCmd.setReady(ready);
+		List<Integer> cards = this.getDdzDesk().getResidueCard(position);
+		rtnCmd.setCards(cards);
+		rtnCmd.setLeftSecond(this.getDdzDesk().getLeftSecond());
 		rtnCmd.setSkipCount(skipCount);
 		rtnCmd.setTimeoutCount(timeoutCount);
 		return rtnCmd;

@@ -19,6 +19,9 @@ public class RtnDdzGameSeatCmd extends RtnGameSeatInfoCmd{
 	/***剩余的手牌****/
 	private List<Integer> cards;
 	
+	/***(下一操作)剩余时间(毫秒)****/
+	private int leftSecond;
+	
 	@Override
 	public String toLogStr() {
 		// TODO Auto-generated method stub

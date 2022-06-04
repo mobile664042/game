@@ -881,50 +881,34 @@ function onRtnGameInfoCmd(rtnCmd){
 		return;
 	}
 	
+	$('#s_position').val(extSeatInfo.currentPosition);
 	$('#p_landlord_position').html(extGameInfo.landlordPosition);
+	//设置已出过的牌
+	if(extGameInfo.battlefield){
+		extGameInfo.battlefield.forEach(function(element) {
+			if(element){
+				deskMsg('牌堆牌: ');
+				element.forEach(function(subElement) {
+					let imgHtml = '<img alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
+					//$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
+					deskMsg(imgHtml);
+				});
+				deskMsg('<hr/>');
+			}
+		});
+	}
 	if(extGameInfo.currentProgress == "robbedLandlord"){
 		$('#p_currentProgress').css("background","orange");
 		return;
 	}
 	
-	$('#s_position').val(extSeatInfo.currentPosition);
 	
 	
-	//设置已出过的牌
+	
 	if(extGameInfo.currentProgress == "gameover"){
 		$('#p_currentProgress').css("background","red");
 		
-		extGameInfo.battlefield.forEach(function(element) {
-			//console.log(element);
-			//let imgHtml = '<img alt="'+ element +'" class="headPic_item" src="/img/head/' + element + '.jpeg">';
-			
-			let seatPlayer = extGameInfo.seatPlayingMap[element.positiont.toString()];
-			let playerHtml = '<img class="headPic_item" src="/img/head/'+ seatPlayer.headPic +'.jpeg">' + seatPlayer.nickname;
-			//地主;
-			if(element.position == extGameInfo.landlordPosition){
-//				let spanHtml = '<span class="landlord_item">' + element.position +': </span>';
-				let spanHtml = '<span class="landlord_item">' + element.position;
-				spanHtml += playerHtml + ': </span>';
-				deskMsg(spanHtml);
-			}
-			else{
-//				let spanHtml = '<span class="farmer_item">' + element.position +': </span>';
-				let spanHtml = '<span class="farmer_item">' + element.position;
-				spanHtml += playerHtml + ': </span>';
-				
-				deskMsg(spanHtml);
-			}
-			if(element.cards){
-				element.cards.forEach(function(subElement) {
-					let imgHtml = '<img alt="'+ subElement +'" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
-					//$('#p_deskPanel').html($('#p_deskPanel').html() + imgHtml);
-					deskMsg(imgHtml);
-				});
-			}
-			deskMsg('<hr/>');
-		});
 	}
-	deskMsg('<hr/>');
 	
 	if(extGameInfo.currentProgress == "surrender"){
 		$('#p_currentProgress').css("background","darkred")
@@ -995,16 +979,32 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 	if(rtnCmd.seatPost == 'onlooker'){
 		$('#p_seatPost').html("(旁观身份)");
 	}
+	if(rtnCmd.seatPost == 'master'){
+		$('#p_seatPost').html("");
+	}
 	if(rtnCmd.seatPost == 'assistant'){
 		$('#p_seatPost').html("(助手身份)");
 	}
 	
 	//显示剩余手牌
+	$('#p_residue_cards').html('');
 	if(extSeatInfo.cards){
 		extSeatInfo.cards.forEach(function(subElement) {
 			let imgHtml = '<img id="p_mycard'+ subElement +'" alt="'+ subElement +'" onclick="selectCard(this)" class="pkPic_item" src="/img/pk/' + subElement + '.png">';
 			$('#p_residue_cards').html($('#p_residue_cards').html() + imgHtml);
 		});
+	}
+	
+	if(extGameInfo.currentProgress = 'sended'){
+		leftSecond=rtnCmd.leftSecond;
+		leftSecondMsg="等待抢地主";
+	}
+	if(extGameInfo.currentProgress = 'robbedLandlord'){
+		leftSecond=rtnCmd.leftSecond;
+		leftSecondMsg='等待'+ extGameInfo.currentPosition +'席位出牌';
+		if(extGameInfo.currentPosition == extSeatInfo.currentPosition){
+			leftSecondMsg="等待我出牌";
+		}
 	}
 }
 
@@ -1021,13 +1021,14 @@ function onPushSitdownCmd(pushCmd){
 
 function onReqStandUpCmd(rtnCmd){
 	clearExtSeatData();
+	extSeatInfo.currentPosition = 0;
 	
 	let divHtml = '<div>你在席位中站起来了</div>';
 	$('#p_ready').attr('disabled', true);
 	$('#s_standup').attr('disabled', true);
 	$('#s_sitdown').removeAttr('disabled');
 	$('#s_quickSitdown').removeAttr('disabled');
-	
+	$('#p_seatPost').html("");
 	showMsg(divHtml);
 }
 
@@ -1039,11 +1040,14 @@ function onPushStandUpCmd(pushCmd){
 		//判断是不是自己被强制站起来了
 		if(extSeatInfo.currentPosition && extSeatInfo.currentPosition == pushCmd.position){
 			clearExtSeatData();
+			extSeatInfo.currentPosition = 0;
+			
 			let divHtml = '<div>你在席位中被强制站起来了</div>';
 			$('#p_ready').attr('disabled', true);
 			$('#s_standup').attr('disabled', true);
 			$('#s_sitdown').removeAttr('disabled');
 			$('#s_quickSitdown').removeAttr('disabled');
+			$('#p_seatPost').html("");
 			showMsg(divHtml);
 			deskMsg(divHtml + '<hr/>');
 		}
@@ -1295,13 +1299,15 @@ function onPushPlayCardCmd(pushCmd){
 	if(pushCmd.position == extSeatInfo.currentPosition){
 		//删除剩余的牌
 		if(pushCmd.cards && pushCmd.cards.length > 0){
+			let spanHtml = '<span class="landlord_item">你超时强制出牌: </span>';
+			if(!(pushCmd.forceSend)){
+				spanHtml = '<span class="farmer_item">我: </span>';
+			}
+			deskMsg(spanHtml);
 			for (let i = extSeatInfo.cards.length - 1; i >= 0; i--) {
 				for (let j = 0; j < pushCmd.cards.length; j++) {
-				    if (extSeatInfo.cards[i] == pushCmd.cards[j] ) {
 					
-						let spanHtml = '<span class="landlord_item">超时强制出牌: </span>';
-						deskMsg(spanHtml);
-			
+				    if (extSeatInfo.cards[i] == pushCmd.cards[j] ) {
 				        let imgHtml = '<img alt="'+ extSeatInfo.cards[i] +'" class="pkPic_item" src="/img/pk/' + extSeatInfo.cards[i] + '.png">';
 						deskMsg(imgHtml);
 						//删除图片
@@ -1310,12 +1316,17 @@ function onPushPlayCardCmd(pushCmd){
 				    }
 				}
 			}
-			
-			let divHtml = '<div>你超时被强制出牌！</div>';
-			showMsg(divHtml);
+			if(!(pushCmd.forceSend)){
+				let divHtml = '<div>你超时被强制出牌！</div>';
+				showMsg(divHtml);
+			}
 		}
 		else{
 			let divHtml = '<div>你超时被强制不出牌！</div>';
+			if(!(pushCmd.forceSend)){
+				divHtml = '<span class="farmer_item">我: 不出</span>';
+			}
+			
 			showMsg(divHtml);
 			deskMsg(divHtml);
 		}
@@ -1406,9 +1417,7 @@ function onNotifySendCardCmd(rtnCmd){
 function onNotifyGameOverCmd(rtnCmd){
 	extGameInfo.currentProgress = 'ready';
 	
-	let resultMessage = JSON.stringify(rtnCmd);
-	
-	let divHtml = '<div>游戏结束: '+resultMessage+'</div>';
+	let divHtml = '<div>游戏结束了 '+'</div>';
 	showMsg(divHtml);
 	
 	leftSecond=globalConfig.maxReadyNextSecond;

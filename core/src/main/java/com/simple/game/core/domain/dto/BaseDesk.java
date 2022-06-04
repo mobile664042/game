@@ -106,6 +106,24 @@ public abstract class BaseDesk{
 		return gameStatus;
 	}
 	
+
+	/****
+	 * 清理离线人员
+	 */
+	protected void clearDisconnect() {
+		List<Player> list = new ArrayList<Player>(offlineMap.values()); 
+		for(Player player : list) {
+			try {
+				left(player.getId());
+			}
+			catch(Exception e) {
+				logger.error("清理离线人员失败{}", player.getId(), e);
+				break;
+			}
+		}
+	}
+
+	
 	/***游戏运行(每隔250毫秒中扫描一次，推动游戏一直运行)****/
 	public final synchronized void scan() {
 		if(gameStatus == null || gameStatus == GameStatus.finished) {
@@ -256,29 +274,33 @@ public abstract class BaseDesk{
 		if(player == null) {
 			throw new BizException(String.format("%s不在游戏中", playerId));
 		}
-		
-		GameSessionInfo gameSessionInfo = (GameSessionInfo)player.getOnline().getSession().getAttachment().get(GameConstant.GAME_SESSION_INFO);
-		if(gameSessionInfo.getAddress() instanceof GameSeat) {
-			GameSeat gameSeat = (GameSeat)gameSessionInfo.getAddress();
-			gameSeat.standUp(playerId);
+		if(player.getOnline().getSession() != null) {
+			GameSessionInfo gameSessionInfo = (GameSessionInfo)player.getOnline().getSession().getAttachment().get(GameConstant.GAME_SESSION_INFO);
+			if(gameSessionInfo.getAddress() instanceof GameSeat) {
+				GameSeat gameSeat = (GameSeat)gameSessionInfo.getAddress();
+				gameSeat.standUp(playerId);
+			}
+			gameSessionInfo.setAddress(null);
 		}
+		
 		offlineMap.remove(playerId);
-		gameSessionInfo.setAddress(null);
+		playerMap.remove(playerId);
 		
 		//广播离开信息
 		PushLeftCmd pushCmd = new PushLeftCmd();
 		pushCmd.setPlayerId(playerId);
 		pushCmd.setNickname(player.getNickname());
 		pushCmd.setHeadPic(player.getHeadPic());
-		this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		this.broadcast(pushCmd, playerId);
 		logger.info("{}离开{}游戏", player.getNickname(), gameItem.getName());
 		
-		//
-		player.getOnline().getSession().getAttachment().remove(GameConstant.GAME_SESSION_INFO);
-		try {
-			player.getOnline().getSession().close();
-		} catch (IOException e) {
-			logger.info("{}离开{}关闭连接异常", player.getNickname(), gameItem.getName(), e);
+		if(player.getOnline().getSession() != null) {
+			player.getOnline().getSession().getAttachment().remove(GameConstant.GAME_SESSION_INFO);
+			try {
+				player.getOnline().getSession().close();
+			} catch (IOException e) {
+				logger.info("{}离开{}关闭连接异常", player.getNickname(), gameItem.getName(), e);
+			}
 		}
 	}
 	protected void preLeft(long playerId) {}

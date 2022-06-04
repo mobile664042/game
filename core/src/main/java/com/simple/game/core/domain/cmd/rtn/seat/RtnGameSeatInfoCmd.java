@@ -1,5 +1,7 @@
 package com.simple.game.core.domain.cmd.rtn.seat;
 
+import java.util.List;
+
 import com.simple.game.core.domain.cmd.req.seat.ReqSitdownCmd;
 import com.simple.game.core.domain.cmd.rtn.RtnCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
@@ -26,6 +28,7 @@ public class RtnGameSeatInfoCmd extends RtnCmd{
 	/***是否申请直播***/
 	protected boolean applyBroadcasted;
 	protected int position;
+	private List<Integer> cards;
 	
 	@Override
 	public int getCmd() {
