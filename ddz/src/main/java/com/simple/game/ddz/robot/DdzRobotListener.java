@@ -120,7 +120,11 @@ public class DdzRobotListener/* extends RobotListener */{
 	    				reqCmd.setPosition(idleSeat.getPosition());
 	    				idleSeat.sitdown(gameSessionInfo, reqCmd);
 	    				robotPlayer.setPosition(idleSeat.getPosition());
+	    				
+	    				//设置禁止旁观
+	    				idleSeat.setStopOnlooker(true);
 	    			}
+	    			
 	    		}
 	    	}
 	    	catch(Exception e) {
