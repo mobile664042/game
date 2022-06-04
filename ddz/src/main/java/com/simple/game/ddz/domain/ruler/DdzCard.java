@@ -86,7 +86,9 @@ public class DdzCard {
 	
 	public void shuffleCards() {
 		this.allCards.clear();
-		this.allCards.addAll(PokerKind.C_54.shuffleCards());
+//		this.allCards.addAll(PokerKind.C_54.shuffleCards());
+		List<SCard> allCard = DdzHelper.shuffleGoodDdzCards(DdzHelper.MAX_COUNT); 
+		this.allCards.addAll(allCard);
 	}
 	
 	public void sendCards() {
