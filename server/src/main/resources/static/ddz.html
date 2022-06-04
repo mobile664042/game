@@ -206,10 +206,10 @@ hr {
 								<button style="height:30px; width: 60px" id="p_playCard" onclick="playcard()">出牌</button>
 								<button style="height:30px; width: 60px" id="p_skip" onclick="skipPlaycard()">要不起</button>
 								<button id="p_robLandlord" onclick="robLandlord()">抢地主</button>
-								<button id="p_rejectLandlord" disabled="true">不抢地主</button>
 								<button id="p_ready" disabled="true" onclick="ready()">准备</button>
 								<button id="p_surrender" onclick="surrender()">投降</button>
-								<button id="p_dubble" disabled="true">加倍</button>
+								<button id="p_double" disabled="true">加倍</button>
+								<button id="p_doubleSuper" disabled="true">超级加倍</button>
 								<button id="p_showCard" disabled="true">明牌</button>
 							</div>
 						</div>
@@ -222,29 +222,29 @@ hr {
 							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写position" /> 
 							<br/>
 			
-							<button id="g_pause" disabled="true">暂停</button>
-							<button id="g_resume" disabled="true">恢复</button>
-							<button id="g_kickout" disabled="true">踢走</button>
-							<button id="g_applyManager" disabled="true">申请管理员</button>
-							<button id="g_changeManager" disabled="true">更换管理员</button>
+							<button id="g_pause" onclick="pause()" disabled="true">暂停</button>
+							<button id="g_resume" onclick="resume()" disabled="true">恢复</button>
+							<button id="g_kickout" onclick="kickout()" disabled="true">踢走</button>
+							<button id="g_applyManager" onclick="applyManager()" disabled="true">申请管理员</button>
+							<button id="g_changeManager" onclick="changeManager()" disabled="true">更换管理员</button>
 							
 							<button id="g_getOnlineList" onclick="getOnlineList()">获取在线玩家</button>
 							<button id="g_getSeatPlayerList" onclick="getSeatPlayerList()">获取席位粉丝</button>
 							<button id="g_getAssistantList" onclick="getAssistantList()">获取席位辅助</button>
-							<button id="g_applySeatSuccessor" disabled="true">申请席位继承人</button>
-							<button id="g_setSeatSuccessor" disabled="true">设置席位继承人</button>
-							<button id="g_applyAssistant" disabled="true">申请辅助</button>
-							<button id="g_aproveApplyAssistant" disabled="true">同意成为辅助</button>
+							<button id="g_applySeatSuccessor" onclick="applySeatSuccessor()">申请席位继承人</button>
+							<!-- <button id="g_setSeatSuccessor" onclick="setSeatSuccessor()" disabled="true">设置席位继承人</button> -->
+							<button id="g_applyAssistant" onclick="applyAssistant()">申请辅助</button>
+							<!-- <button id="g_aproveApplyAssistant" onclick="aproveApplyAssistant()" disabled="true">同意成为辅助</button> -->
 							<button id="g_applyBroadcastLive" disabled="true">申请直播</button>
 							<button id="g_cancleBroadcastLive" disabled="true">取消直播</button>
 							<button id="g_approveBroadcastLive" disabled="true">同意直播</button>
 							<button id="g_broadcastLive" disabled="true">直播</button>
 							<button id="g_reward" disabled="true" disabled="true">打賞</button>
 			
-							<button id="g_stopOnlooker" disabled="true">取消旁观</button>
-							<button id="g_bootOnlooker" disabled="true">开启旁观</button>
-							<button id="g_stopAssistant" disabled="true">取消辅助</button>
-							<button id="g_bootAssistant" disabled="true">开启辅助</button>
+							<button id="g_stopOnlooker" onclick="stopOnlooker()">取消旁观</button>
+							<button id="g_bootOnlooker" onclick="bootOnlooker()">开启旁观</button>
+							<button id="g_stopAssistant" onclick="stopAssistant()">取消辅助</button>
+							<button id="g_bootAssistant" onclick="bootAssistant()">开启辅助</button>
 							<button id="g_sendflower" disabled="true">送花</button>
 							<button id="g_sendHeart" disabled="true">送爱心</button>
 						</div>
@@ -264,8 +264,8 @@ hr {
 											<img id="s_nextMaster_img" class="headPic_item">
 											<label id="s_nextMaster_label"></label>
 										</span><br/>
-										是否可以旁观: <label id="s_stopAssistant">true</label><br/>
-										是否可以辅助: <label id="s_broadcasting">true</label><br/>
+										是否可以旁观: <label id="s_canLook">true</label><br/>
+										是否可以辅助: <label id="s_canAssistant">true</label><br/>
 										是否通过直播审核: <label id="s_applyBroadcasted">false</label><br/>
 
 										席位1剩余牌数: <label id="s_seat1cardCount">10</label><br/>

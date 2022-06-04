@@ -120,6 +120,10 @@ public class GameSeat implements AddressNo{
 		try {
 			//判断游戏币是否足够
 			this.preSitdown(nextMaster.player);
+			
+			assistantMap.remove(nextMaster.player.getId());
+			nextMaster.seatPost = SeatPost.master;
+			master.get().seatPost = SeatPost.onlooker;
 			master.set(nextMaster);
 			nextMaster = null;
 			
@@ -284,7 +288,7 @@ public class GameSeat implements AddressNo{
 		}
 		//判断是否不允许助手
 		if(target.getGameSeat().isStopAssistant()) {
-			throw new BizException(String.format("主席位设置不允许申请助手"));
+			throw new BizException(String.format("主席位设置不允许申请辅助"));
 		}
 		
 		target.applyAssistanted = true;
@@ -350,7 +354,7 @@ public class GameSeat implements AddressNo{
 
 	public void stopOnlooker(GameSessionInfo gameSessionInfo, ReqStopOnlookerCmd reqCmd) {
 		checkSeatMaster(gameSessionInfo.getPlayerId());
-		stopOnlooker = false;
+		stopOnlooker = true;
 		PushStopOnlookerCmd pushCmd = reqCmd.valueOfPushStopOnlookerCmd();
 		pushCmd.setPosition(position);
 		//发送广播
@@ -393,6 +397,7 @@ public class GameSeat implements AddressNo{
 		if(other == null) {
 			throw new BizException(String.format("%s不在席位上，不可以申请席位继任者", gameSessionInfo.getPlayerId()));
 		}
+		other.setApplyAssistanted(true);
 		Player player = other.getPlayer();
 		
 		//向主席位发送告知
@@ -401,7 +406,7 @@ public class GameSeat implements AddressNo{
 		pushCmd.setHeadPic(player.getHeadPic());
 		pushCmd.setNickname(player.getNickname());
 		master.get().getPlayer().getOnline().push(pushCmd);
-		logger.info("{}向主席位{}发送更换管理员申请", player.getNickname(), master.get().getPlayer().getNickname());
+		logger.info("{}向主席位{}发送更换下一轮主席位申请", player.getNickname(), master.get().getPlayer().getNickname());
 	}
 	
 	public void setSeatSuccessor(GameSessionInfo gameSessionInfo, ReqSetSeatSuccessorCmd reqCmd) {
@@ -416,7 +421,7 @@ public class GameSeat implements AddressNo{
 			throw new BizException(String.format("%s与%s不在同一个席位，不可以设置席位继认者", master.get().getPlayer().getId(), reqCmd.getOtherId()));
 		}
 		if(!other.isApplyAssistanted()) {
-			throw new BizException(String.format("%s不是辅助，不可以成为席位继认者", reqCmd.getOtherId()));
+			throw new BizException(String.format("%s未申请席位继认者", reqCmd.getOtherId()));
 		}
 		
 		this.nextMaster = other;

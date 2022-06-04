@@ -80,10 +80,17 @@ public class DdzDesk extends TableDesk{
 			if(this.playerMap.size() == 0) {
 				return false;
 			}
+			//先踢人
+			handleDisconnectPlayer();
+			
+			//更换主席位
+			for(int position = deskItem.getMinPosition(); position <= deskItem.getMaxPosition(); position++) {
+				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
+				gameSeat.handleChangeMaster();
+			}
 			
 			boolean standuped = false;
 			int readyCount = 0;
-			handleDisconnectPlayer();
 			for(int position = deskItem.getMinPosition(); position <= deskItem.getMaxPosition(); position++) {
 				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
 				if(gameSeat == null) {
@@ -110,12 +117,6 @@ public class DdzDesk extends TableDesk{
 			
 			if(readyCount < 3) {
 				return false;
-			}
-			
-			//更换主席位
-			for(int position = deskItem.getMinPosition(); position <= deskItem.getMaxPosition(); position++) {
-				DdzGameSeat gameSeat = (DdzGameSeat)this.seatPlayingMap.get(position);
-				gameSeat.handleChangeMaster();
 			}
 			
 			//可以开始了

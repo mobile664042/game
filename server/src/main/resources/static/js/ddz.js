@@ -485,6 +485,234 @@ function getAssistantList(){
 	console.log("发送：" + sendMessage);
 	webSocket.send(sendMessage);
 }
+function stopOnlooker(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost != 'master'){
+		alert("你不是在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqStopOnlookerCmd = {
+		"cmd": 102009
+	}
+	let sendMessage = JSON.stringify(reqStopOnlookerCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+function bootOnlooker(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost != 'master'){
+		alert("你不是在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqBootOnlookerCmd = {
+		"cmd": 102011
+	}
+	let sendMessage = JSON.stringify(reqBootOnlookerCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+function stopAssistant(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost != 'master'){
+		alert("你不是在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqStopAssistantCmd = {
+		"cmd": 102008
+	}
+	let sendMessage = JSON.stringify(reqStopAssistantCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+function bootAssistant(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost != 'master'){
+		alert("你不是在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqBootAssistantCmd = {
+		"cmd": 102010
+	}
+	let sendMessage = JSON.stringify(reqBootAssistantCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+
+function applyAssistant(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost == 'master'){
+		alert("你已在主席位，不可进行此操作");
+		return;
+	}
+	if(extSeatInfo.seatPost == 'assistant'){
+		alert("你已是辅助，不可进行此操作");
+		return;
+	}
+	
+	let reqApplyAssistantCmd = {
+		"cmd": 102005
+	}
+	let sendMessage = JSON.stringify(reqApplyAssistantCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+function aproveApplyAssistant(btn, playerId){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost != 'master'){
+		alert("你不在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqApproveApplyAssistantCmd = {
+		"cmd": 102006,
+		"otherId":playerId
+	}
+	let sendMessage = JSON.stringify(reqApproveApplyAssistantCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+	let btnItem = $(btn);
+	btnItem.attr('disabled', true);
+}
+
+
+
+function applySeatSuccessor(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost == 'master'){
+		alert("你已在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqApplySeatSuccessorCmd = {
+		"cmd": 102018
+	}
+	let sendMessage = JSON.stringify(reqApplySeatSuccessorCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+
+
+function setSeatSuccessor(btn, playerId){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	if(extSeatInfo.seatPost != 'master'){
+		alert("你不在主席位，不可进行此操作");
+		return;
+	}
+	
+	let reqSetSeatSuccessorCmd = {
+		"cmd": 102012,
+		"otherId":playerId
+	}
+	let sendMessage = JSON.stringify(reqSetSeatSuccessorCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+	
+	let btnItem = $(btn);
+	btnItem.attr('disabled', true);
+}
+
+
+
 
 function selectCard(cardImg){
 	let cardItem = $(cardImg);
@@ -690,6 +918,63 @@ function onDispather(rtnData){
 	    case 102003:
 	    onRtnGetAssistantListCmd(rtnData);
 	    break;
+	    case 102009:
+	    onReqStopOnlookerCmd(rtnData);
+	    break;
+	    case 1102009:
+	    onPushStopOnlookerCmd(rtnData);
+	    break;
+	    case 102011:
+	    onReqBootOnlookerCmd(rtnData);
+	    break;
+	    case 1102011:
+	    onPushBootOnlookerCmd(rtnData);
+	    break;
+		case 102008:
+	    onReqStopAssistantCmd(rtnData);
+	    break;
+	    case 1102008:
+	    onPushStopAssistantCmd(rtnData);
+	    break;
+	    case 102010:
+	    onReqBootAssistantCmd(rtnData);
+	    break;
+	    case 1102010:
+	    onPushBootAssistantCmd(rtnData);
+	    break;
+	    	    
+	    
+	    case 102005:
+	    onReqApplyAssistantCmd(rtnData);
+	    break;
+	    case 1102005:
+	    onPushApplyAssistantCmd(rtnData);
+	    break;
+	    case 102006:
+	    onReqApproveApplyAssistantCmd(rtnData);
+	    break;  
+	    case 1102006:
+	    onPushApproveApplyAssistantCmd(rtnData);
+	    break;  
+	    
+	    ////////////////aaaaaaaaaaaaaa
+	    case 102018:
+	    onReqApplySeatSuccessorCmd(rtnData);
+	    break;
+	    case 2102018:
+	    onPushNotifyApplySeatSuccessorCmd(rtnData);
+	    break;
+	    case 102012:
+	    onReqSetSeatSuccessorCmd(rtnData);
+	    break;  
+	    case 1102012:
+	    onPushSetSeatSuccessorCmd(rtnData);
+	    break;
+	    case 2101005:
+	    onPushNotifyChangeSeatMasterCmd(rtnData);
+	    break;
+	    
+	    
 	    
 	    case 2151003:
 	    onNotifySendCardCmd(rtnData);
@@ -792,6 +1077,7 @@ var extGameInfo = {};
 //extSeatInfo.willLeftCards
 //extSeatInfo.currentPosition
 //extSeatInfo.seatReady
+//extSeatInfo.seatPost
 //extSeatInfo.skipCount
 //extSeatInfo.timeoutCount
 //extSeatInfo.cards;
@@ -971,6 +1257,7 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 	extSeatInfo.currentPosition = rtnCmd.position;
 	$('#s_position').val(extSeatInfo.currentPosition);
 	
+	extSeatInfo.seatPost = rtnCmd.seatPost;
 	extSeatInfo.seatReady = rtnCmd.ready;
 	extSeatInfo.skipCount = rtnCmd.skipCount;
 	extSeatInfo.timeoutCount = rtnCmd.timeoutCount;
@@ -983,7 +1270,7 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 		$('#p_seatPost').html("");
 	}
 	if(rtnCmd.seatPost == 'assistant'){
-		$('#p_seatPost').html("(助手身份)");
+		$('#p_seatPost').html("(辅助身份)");
 	}
 	
 	//显示剩余手牌
@@ -1397,6 +1684,102 @@ function onRtnGetAssistantListCmd(rtnCmd){
 		showMsg(divHtml);
 	});
 }
+
+function onReqStopOnlookerCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		$('#s_canLook').html('false');
+	}
+}
+function onPushStopOnlookerCmd(pushCmd){
+	$('#s_canLook').html('false');
+}
+function onReqBootOnlookerCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		$('#s_canLook').html('true');
+	}
+}
+function onPushBootOnlookerCmd(pushCmd){
+	$('#s_canLook').html('true');
+}
+function onReqStopAssistantCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		$('#s_canAssistant').html('false');
+	}
+}
+function onPushStopAssistantCmd(pushCmd){
+	$('#s_canAssistant').html('false');
+}
+function onReqBootAssistantCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		$('#s_canAssistant').html('true');
+	}
+}
+function onPushBootAssistantCmd(pushCmd){
+	$('#s_canAssistant').html('true');
+}
+
+function onReqApplyAssistantCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>已发送辅助位申请</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushApplyAssistantCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname;
+	divHtml += '申请成为辅助位,<button onclick="aproveApplyAssistant(this, ' + pushCmd.playerId + ')">同意</button></div>';
+	showMsg(divHtml);
+}
+function onReqApproveApplyAssistantCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>你已同意成为辅助</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushApproveApplyAssistantCmd(pushCmd){
+	if(pushCmd.playerId==playerId){
+		$('#p_seatPost').html("(辅助身份)");
+	}
+	
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname;
+	divHtml += '已成为辅助位了</div>';
+	showMsg(divHtml);
+}
+
+function onReqApplySeatSuccessorCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>已发送下一轮主席位申请</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushNotifyApplySeatSuccessorCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname;
+	divHtml += '申请成为下一轮主席位,<button onclick="setSeatSuccessor(this, ' + pushCmd.playerId + ')">同意</button></div>';
+	showMsg(divHtml);
+}
+function onReqSetSeatSuccessorCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>你已更改下一轮主席位</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushSetSeatSuccessorCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname;
+	divHtml += '将成为下一轮'+ pushCmd.position +'主席位</div>';
+	showMsg(divHtml);
+}
+function onPushNotifyChangeSeatMasterCmd(pushCmd){
+	if(pushCmd.playerId == playerId){
+		extSeatInfo.seatPost = 'master';
+		$('#p_seatPost').html("");
+	}
+	else{
+		if(extSeatInfo.seatPost == 'master'){
+			extSeatInfo.seatPost = 'onlooker';
+			$('#p_seatPost').html("(旁观身份)");
+		}		
+	}
+}
+
 
 function onNotifySendCardCmd(rtnCmd){
 	extSeatInfo.cards = rtnCmd.cards;
