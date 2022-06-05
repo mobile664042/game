@@ -79,14 +79,14 @@ public class DeskDdzAdminController {
     	{
     		BuildReq req = new BuildReq();
     		req.setGameCode("ddz");
-    		req.setCount(3);
+    		req.setCount(8);
     		req.setPlayKind(1);
     		myDdzGameService.buildDdzDesk(req);
     	}
     	{
     		DestroyReq req = new DestroyReq();
     		req.setGameCode("ddz");
-    		req.setDeskNo(103);
+    		req.setDeskNo(104);
     		req.setPlayKind(1);
     		myDdzGameService.destroyDesk(req);
     	}

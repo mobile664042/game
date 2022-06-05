@@ -71,7 +71,7 @@ public abstract class TableService{
 	public TableDesk checkAndGet(int playKind, int deskNo) {
 		TableDesk tableDesk = gameManager.getTableDesk(playKind, deskNo);
 		if(tableDesk == null) {
-			throw new BizException("游戏桌没找到!");
+			throw new BizException("游戏桌没找到! " + deskNo);
 		}
 		return tableDesk;
 	}

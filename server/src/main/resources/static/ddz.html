@@ -60,23 +60,24 @@ hr {
 						
 						<label style="height:30px;" for="r_headPic">选择你的头像:</label>
 						<select style="height:30px; width:100px" id="r_headPic" title="你的头像" onchange="changeHeadPicShow()">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
-							<option value="6">6</option>
-							<option value="7">7</option>
-							<option value="8">8</option>
-							<option value="9">9</option>
-							<option value="10">10</option>
-							<option value="11">11</option>
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+							<option>5</option>
+							<option>6</option>
+							<option>7</option>
+							<option>8</option>
+							<option>9</option>
+							<option>10</option>
+							<option>11</option>
 						</select>
 						<img alt="1" width="37px" height="37px" id="r_headPicShow" src="/img/head/1.jpeg"/>
 						
 						<button id="r_save" onclick="registerUser()">注册</button>
 						<button id="r_login" onclick="login()">登录</button>
 						<button id="r_logout" disabled="true" onclick="logout()">退出</button>
+						<button id="r_fastPlay" onclick="fastPlay()">极速加入游戏</button>
 					</fieldset>
 					
 					<fieldset style="width: 900px">
@@ -88,10 +89,15 @@ hr {
 						
 						<label style="height:30px;" for="j_deskNo">桌号:</label>
 						<select style="height:30px; width:100px" id="j_deskNo" title="桌号" >
-							<option value="101">101</option>
-							<option value="102">102</option>
-							<option value="104">104</option>
-							<option value="105">105</option>
+							<option>101</option>
+							<option>102</option>
+							<option>103</option>
+							<option>105</option>
+							<option>106</option>
+							<option>107</option>
+							<option>108</option>
+							<option>109</option>
+							<option>110</option>
 						</select>
 						<button id="j_join"  disabled="true" onclick="joinGameDesk()">进入游戏</button>
 						<button id="j_left"  disabled="true" onclick="leftGameDesk()">离开</button>
@@ -99,9 +105,9 @@ hr {
 						
 						<label style="height:30px;" for="s_position">席位:</label>
 						<select style="height:30px; width:100px" id="s_position" title="席位" >
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
 						</select>
 						<button id="s_sitdown" disabled="true" onclick="sitdown()">坐下或旁观</button>
 						<button id="s_quickSitdown" onclick="quickSitdown()" disabled="true" >快速坐下</button>
@@ -312,8 +318,10 @@ $('#r_username').val('test_' + randomNum);
 $('#r_password').val('passwd_' + randomNum);
 $('#r_nickname').val('hello_' + randomNum);
 $('#r_telphone').val('1380013800' + randomNum);
-$('#r_headPic').val(randomNum);
+$('#r_headPic').val(randomNum+"");
 changeHeadPicShow();
+
+readCookie();
 </script>
 </body>
 </html>

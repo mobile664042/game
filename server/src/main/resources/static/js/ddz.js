@@ -89,6 +89,7 @@ function login(){
 			$('#r_logout').removeAttr('disabled');
 			$('#j_join').removeAttr('disabled');
 	        alert("登录成功，你可以进入游戏啦!");
+	        writeCookie();
       	},
       	error: function (jqXHR, textStatus, errorThrown) {
             alert(textStatus);
@@ -707,7 +708,6 @@ function setSeatSuccessor(btn, playerId){
 }
 
 
-//////////////bbbbb
 function applyManager(){
 	if(!logoinToken){
 		alert("请先登录");
@@ -1110,7 +1110,6 @@ function onDispather(rtnData){
 	    break;
 	    
 	    
-	    //////ccccccccc
 	    case 101011:
 	    onReqApplyManagerCmd(rtnData);
 	    break;  
@@ -2097,3 +2096,110 @@ function onNotifyGameSkipCmd(rtnCmd){
 	
 }
 
+
+
+
+
+function writeCookie(){
+	document.cookie=encodeURI("username="+$('#r_username').val());
+	document.cookie=encodeURI("password="+$('#r_password').val());
+	document.cookie=encodeURI("nickname="+$('#r_nickname').val());
+	document.cookie=encodeURI("telphone="+$('#r_telphone').val());
+}
+function readCookie(){
+	var cookieString=decodeURI(document.cookie);
+	if(cookieString.length!=0){
+		var cookieArray=cookieString.split(";");
+		for(var i=0;i<cookieArray.length;i++){
+			var cookieNum=cookieArray[i].split("=");
+			var cookieName=cookieNum[0];
+			var cookieValue=cookieNum[1];
+			if(cookieName.indexOf("username") != -1){
+				$('#r_username').val(cookieValue);
+			}
+			if(cookieName.indexOf("password") != -1){
+				$('#r_password').val(cookieValue);
+			}
+			if(cookieName.indexOf("nickname") != -1){
+				$('#r_nickname').val(cookieValue);
+			}
+			if(cookieName.indexOf("telphone") != -1){
+				$('#r_telphone').val(cookieValue);
+			}
+		}
+	}
+}
+
+
+
+function fastPlay(){
+	let randomNum = Math.round(Math.random()*1000000)+1000000;
+	$('#r_username').val('fast_' + randomNum);
+	$('#r_password').val('passwd_' + randomNum);
+	$('#r_nickname').val('temp_' + randomNum);
+	$('#r_telphone').val('13800' + randomNum);
+	changeHeadPicShow();
+	
+	let randomDesk = Math.round(Math.random()*5)+105;
+	$('#j_deskNo').val(randomDesk + "");
+	let randomPosition = Math.round(Math.random()*3)+1;
+	$('#j_position').val(randomPosition + "");
+	
+	//1.注册
+	let data = {
+		"username": $('#r_username').val(),
+		"password": $('#r_password').val(),
+		"nickname": $('#r_nickname').val(),
+		"telphone": $('#r_telphone').val(),
+		"sex": $('#r_sex').val(),
+		"headPic": $('#r_headPic').val()
+	}
+	
+	
+	$.ajax({
+      	type: "post",
+      	url: "/client/user/register",
+		dataType : "json",
+        contentType : "application/json",
+        data: JSON.stringify(data),
+		success: function (result) {
+        	if(result.code != 0){
+		        alert(result.msg);
+				return ;
+			}
+	        
+	        //2.登录
+			$.ajax({
+		      	type: "post",
+		      	url: "/client/user/login",
+				dataType : "json",
+		        contentType : "application/json",
+		        data: JSON.stringify(data),
+				success: function (result) {
+		        	if(result.code != 0){
+				        alert(result.msg);
+						return ;
+					}
+					logoinToken = result.data;
+					$('#r_logout').removeAttr('disabled');
+					$('#j_join').removeAttr('disabled');
+			        writeCookie();
+			        
+			        //3.加入游戏
+			        joinGameDesk();
+			        
+			        //4.提醒(不可以直接访问)
+			        $('#s_quickSitdown').css('color', 'red');
+			        $('#s_sitdown').css('color', 'red');
+		      	},
+		      	error: function (jqXHR, textStatus, errorThrown) {
+		            alert(textStatus);
+		        }
+		    });
+	        
+      	},
+      	error: function (jqXHR, textStatus, errorThrown) {
+            alert(textStatus);
+        }
+    });
+}
