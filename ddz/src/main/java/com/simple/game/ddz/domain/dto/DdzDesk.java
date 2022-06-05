@@ -344,6 +344,12 @@ public class DdzDesk extends TableDesk{
 				return false;
 			}
 			else {
+				//判断是否是第一次
+				if(!this.ddzCard.isStarted()) {
+					if(second < this.getDdzGameItem().getMaxFirstPlayCardSecond()) {		
+						return false;
+					}
+				}
 				gameSeat.timeoutCountIncrease();
 			}
 		}

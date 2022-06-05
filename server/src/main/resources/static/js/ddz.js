@@ -1034,11 +1034,13 @@ function deskMsg(message){
 //全局配置信息(后期改成从后台动态获取)(倒计时，需要比服务器小一秒)
 var globalConfig = {};
 /***最长等待抢地主时长****/
-globalConfig.maxRobbedLandlordSecond = 19;
+globalConfig.maxRobbedLandlordSecond = 18;
 /***最长等待下一轮时长****/
 globalConfig.maxReadyNextSecond = 299;
-/***最长等待过牌时长(如果此时是自己出牌，自动选择最少的一张牌)****/
-globalConfig.maxPlayCardSecond = 19;
+/***最长等待过牌时长(如果此时是自己出牌，自动选择最小的一张牌)****/
+globalConfig.maxPlayCardSecond = 18;
+/***最长等待第一次过牌时长(如果此时是自己出牌，自动选择最小的一张牌)****/
+globalConfig.maxFirstPlayCardSecond = 27;
 /***一局游戏允许最大超时次数****/
 globalConfig.maxPlayCardOuttimeCount = 2;
 /***一局游戏允许最大跳过次数(断线后或超时跳过牌)****/
@@ -1412,7 +1414,7 @@ function onReqRobLandlordCmd(rtnCmd){
 	$('#p_landlord_position').html(extSeatInfo.currentPosition);
 	let divHtml = '<div>你是地主了!</div>';
 	showMsg(divHtml);
-	leftSecond=globalConfig.maxPlayCardSecond;
+	leftSecond=globalConfig.maxFirstPlayCardSecond;
 	leftSecondMsg="等待出牌";
 	
 	//显示底牌
@@ -1478,7 +1480,7 @@ function onPushRobLandlordCmd(pushCmd){
 		});
 	}
 	
-	leftSecond=globalConfig.maxPlayCardSecond;
+	leftSecond=globalConfig.maxFirstPlayCardSecond;
 	leftSecondMsg='等待'+ pushCmd.position +'席位出牌';
 	if(extSeatInfo && extSeatInfo.currentPosition == pushCmd.position){
 		leftSecondMsg="等待我出牌";

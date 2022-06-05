@@ -343,6 +343,10 @@ public class DdzCard {
 		}
 		return landlordPlayCardCount == 1;
 	}
+	
+	public boolean isStarted() {
+		return landlordPlayCardCount != 0;
+	}
 
 	/****
 	 * 清理所有状态

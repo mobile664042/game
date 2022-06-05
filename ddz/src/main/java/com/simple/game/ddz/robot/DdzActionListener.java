@@ -74,7 +74,7 @@ public class DdzActionListener extends ActionListener{
 			if(rtnCmd.getCode() == 0) {
 				robotPlayer.addCommonCards(rtnCmd.getCards());
 				robotPlayer.beLandlord();
-				int delaySecond = 2 + random.nextInt(gameItem.getMaxPlayCardSecond()/3);
+				int delaySecond = 1 + random.nextInt(gameItem.getMaxFirstPlayCardSecond()/3);
 				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
 				logger.info("准备出牌：" + delaySecond);
 			}
