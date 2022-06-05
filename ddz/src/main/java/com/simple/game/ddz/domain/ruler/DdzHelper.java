@@ -92,7 +92,7 @@ public class DdzHelper {
 		List<SCard> orderList = new ArrayList<SCard>(positionCards);
 		Collections.sort(orderList, new PokerComparator());
 		
-		//计算得分，炸蛋加30分，飞机18分，小顺子10分，3个6分，对子1分
+		//计算得分，炸蛋加30分，飞机18分，小顺子9分，3个6分，对子1分
 		int score = 0;
 		for(int i=0; i<orderList.size()-4; ) {
 			SCard s0 = orderList.get(i);
@@ -147,7 +147,7 @@ public class DdzHelper {
 				SCard s4 = orderList.get(i+4);
 				if(s0.getValue()+1 == s1.getValue() && s1.getValue()+1 == s2.getValue() && s2.getValue()+1 == s3.getValue() && s3.getValue()+1 == s4.getValue()) {
 					//小顺子
-					score += 10;
+					score += 9;
 					i+=1;
 					continue;
 				}

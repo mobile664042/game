@@ -649,9 +649,6 @@ function aproveApplyAssistant(btn, playerId){
 	let btnItem = $(btn);
 	btnItem.attr('disabled', true);
 }
-
-
-
 function applySeatSuccessor(){
 	if(!logoinToken){
 		alert("请先登录");
@@ -678,8 +675,6 @@ function applySeatSuccessor(){
 	console.log("发送：" + sendMessage);
 	webSocket.send(sendMessage);
 }
-
-
 function setSeatSuccessor(btn, playerId){
 	if(!logoinToken){
 		alert("请先登录");
@@ -712,7 +707,147 @@ function setSeatSuccessor(btn, playerId){
 }
 
 
+//////////////bbbbb
+function applyManager(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	if(managerId && playerId && managerId == playerId){
+		alert("你已是管理员");
+		return;
+	}
+	let reqApplyManagerCmd = {
+		"cmd": 101011
+	}
+	let sendMessage = JSON.stringify(reqApplyManagerCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
 
+function changeManager(btn, otherId){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	if(!managerId || !playerId || managerId != playerId){
+		alert("你不是管理员");
+		return;
+	}
+	
+	futureManagerId = otherId;
+	let reqChangeManagerCmd = {
+		"cmd": 101012,
+		"otherId":otherId
+	}
+	let sendMessage = JSON.stringify(reqChangeManagerCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+	let btnItem = $(btn);
+	btnItem.attr('disabled', true);
+}
+function giveupManager(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	if(!managerId || !playerId || managerId != playerId){
+		alert("你不是管理员");
+		return;
+	}
+	futureManagerId = 0;
+	let reqChangeManagerCmd = {
+		"cmd": 101012
+	}
+	let sendMessage = JSON.stringify(reqChangeManagerCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+
+function kickout(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	if(!managerId || !playerId || managerId != playerId){
+		alert("你不是管理员");
+		return;
+	}
+	
+	let otherId = Number($('#t_otherId').val());
+	if(!otherId){
+		alert("请认真填写你的要踢的人");
+		$('#t_otherId').focus();
+		return;
+	}
+	
+	let reqKickoutCmd = {
+		"cmd": 101013,
+		"otherId":otherId
+	}
+	let sendMessage = JSON.stringify(reqKickoutCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+function pause(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	if(!managerId || !playerId || managerId != playerId){
+		alert("你不是管理员");
+		return;
+	}
+	
+	let reqPauseCmd = {
+		"cmd": 101001,
+		"seconds":300
+	}
+	let sendMessage = JSON.stringify(reqPauseCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
+function resume(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!webSocket){
+		alert("请先进入游戏");
+		return;
+	}
+	if(!managerId || !playerId || managerId != playerId){
+		alert("你不是管理员");
+		return;
+	}
+	
+	let reqResumeCmd = {
+		"cmd": 101002
+	}
+	let sendMessage = JSON.stringify(reqResumeCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+}
 
 function selectCard(cardImg){
 	let cardItem = $(cardImg);
@@ -958,8 +1093,6 @@ function onDispather(rtnData){
 	    case 1102006:
 	    onPushApproveApplyAssistantCmd(rtnData);
 	    break;  
-	    
-	    ////////////////aaaaaaaaaaaaaa
 	    case 102018:
 	    onReqApplySeatSuccessorCmd(rtnData);
 	    break;
@@ -977,6 +1110,38 @@ function onDispather(rtnData){
 	    break;
 	    
 	    
+	    //////ccccccccc
+	    case 101011:
+	    onReqApplyManagerCmd(rtnData);
+	    break;  
+	    case 2101011:
+	    onPushNotifyApplyManagerCmd(rtnData);
+	    break;
+	    case 1101011:
+	    onPushApplyManagerCmd(rtnData);
+	    break;
+	    case 101012:
+	    onReqChangeManagerCmd(rtnData);
+	    break;  
+	    case 1101012:
+	    onPushChangeManagerCmd(rtnData);
+	    break;
+	    
+	    case 101013:
+	    onReqKickoutCmd(rtnData);
+	    break;
+	    case 101001:
+	    onReqPauseCmd(rtnData);
+	    break;
+	    case 1101001:
+	    onPushPauseCmd(rtnData);
+	    break;
+	    case 101002:
+	    onReqResumeCmd(rtnData);
+	    break;
+	    case 1101002:
+	    onPushResumeCmd(rtnData);
+	    break;
 	    
 	    case 2151003:
 	    onNotifySendCardCmd(rtnData);
@@ -1061,6 +1226,7 @@ globalConfig.punishSurrenderDoubleCount = 2;
 var playerId;
 //管理员的id
 var managerId;
+var futureManagerId;
 //当前的席位
 
 //当前的游戏信息
@@ -1782,6 +1948,85 @@ function onPushNotifyChangeSeatMasterCmd(pushCmd){
 			$('#p_seatPost').html("(旁观身份)");
 		}		
 	}
+}
+
+function onReqApplyManagerCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		if(rtnCmd.result){
+			managerId = playerId;
+			let divHtml = '<div>你已成为管理员</div>';
+			showMsg(divHtml);
+		}
+		else{
+			let divHtml = '<div>等待管理员同意</div>';
+			showMsg(divHtml);
+		}
+	}
+}
+function onPushNotifyApplyManagerCmd(pushCmd){
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ pushCmd.nickname;
+	divHtml += '想抢你的管理员岗位,<button onclick="changeManager(this, ' + pushCmd.playerId + ')">同意</button></div>';
+	showMsg(divHtml);
+}
+function onPushApplyManagerCmd(pushCmd){
+	let name = pushCmd.nickname;
+	if(pushCmd.playerId==playerId){
+		name = "我";
+	}
+	managerId = pushCmd.playerId;
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ name;
+	divHtml += '已成为管理员了</div>';
+	showMsg(divHtml);
+}
+function onReqChangeManagerCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		managerId = futureManagerId;
+		let divHtml = '<div>你已更换管理员</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushChangeManagerCmd(pushCmd){
+	managerId = pushCmd.playerId;
+	if(!pushCmd.playerId){
+		let divHtml = '<div>管理员下岗啦！有没有想申请的</div>';
+		showMsg(divHtml);
+		return;
+	}
+	
+	let name = pushCmd.nickname;
+	if(pushCmd.playerId==playerId){
+		name = "我";
+	}
+	let divHtml = '<div><img alt="'+ pushCmd.playerId +'" class="headPic_item" src="/img/head/' + pushCmd.headPic + '.jpeg">'+ name;
+	divHtml += '已成为管理员了</div>';
+	showMsg(divHtml);
+}
+function onReqKickoutCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>你已踢人</div>';
+		showMsg(divHtml);
+	}
+}
+function onReqPauseCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>你已暂停300秒</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushPauseCmd(pushCmd){
+	let divHtml = '<div>管理员暂停'+ pushCmd.seconds+'秒</div>';
+	showMsg(divHtml);
+}
+
+function onReqResumeCmd(rtnCmd){
+	if(rtnCmd.code == 0){
+		let divHtml = '<div>你已恢复游戏</div>';
+		showMsg(divHtml);
+	}
+}
+function onPushResumeCmd(pushCmd){
+	let divHtml = '<div>管理员已恢复游戏</div>';
+	showMsg(divHtml);
 }
 
 

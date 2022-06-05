@@ -219,15 +219,9 @@ hr {
 					<fieldset style="width: 900px">
 						<legend>其他操作</legend>
 						<div>
-							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写playId" /> 
+							<input type="text" style="height:30px; width: 80px" id="t_otherId" placeholder="填写playId" /> 
 							<input type="text" style="height:30px; width: 80px" id="bcoin" placeholder="填写position" /> 
 							<br/>
-			
-							<button id="g_pause" onclick="pause()" disabled="true">暂停</button>
-							<button id="g_resume" onclick="resume()" disabled="true">恢复</button>
-							<button id="g_kickout" onclick="kickout()" disabled="true">踢走</button>
-							<button id="g_applyManager" onclick="applyManager()" disabled="true">申请管理员</button>
-							<button id="g_changeManager" onclick="changeManager()" disabled="true">更换管理员</button>
 							
 							<button id="g_getOnlineList" onclick="getOnlineList()">获取在线玩家</button>
 							<button id="g_getSeatPlayerList" onclick="getSeatPlayerList()">获取席位粉丝</button>
@@ -236,6 +230,20 @@ hr {
 							<!-- <button id="g_setSeatSuccessor" onclick="setSeatSuccessor()" disabled="true">设置席位继承人</button> -->
 							<button id="g_applyAssistant" onclick="applyAssistant()">申请辅助</button>
 							<!-- <button id="g_aproveApplyAssistant" onclick="aproveApplyAssistant()" disabled="true">同意成为辅助</button> -->
+							<br/>
+			
+							<button id="g_applyManager" onclick="applyManager()">申请管理员</button>
+							<button id="g_giveupManager" onclick="giveupManager()">放弃管理员</button>
+							<button id="g_pause" onclick="pause()">暂停</button>
+							<button id="g_resume" onclick="resume()">恢复</button>
+							<button id="g_kickout" onclick="kickout()">踢走</button>
+			
+							<button id="g_stopOnlooker" onclick="stopOnlooker()">取消席位旁观</button>
+							<button id="g_bootOnlooker" onclick="bootOnlooker()">开启席位旁观</button>
+							<button id="g_stopAssistant" onclick="stopAssistant()">取消席位辅助</button>
+							<button id="g_bootAssistant" onclick="bootAssistant()">开启席位辅助</button>
+							<br/>
+							
 							<button id="g_applyBroadcastLive" disabled="true">申请直播</button>
 							<button id="g_cancleBroadcastLive" disabled="true">取消直播</button>
 							<button id="g_approveBroadcastLive" disabled="true">同意直播</button>
@@ -243,11 +251,6 @@ hr {
 							<button id="g_reward" disabled="true" disabled="true">打賞</button>
 							<button id="g_sendflower" disabled="true">送花</button>
 							<button id="g_sendHeart" disabled="true">送爱心</button>
-			
-							<button id="g_stopOnlooker" onclick="stopOnlooker()">取消旁观</button>
-							<button id="g_bootOnlooker" onclick="bootOnlooker()">开启旁观</button>
-							<button id="g_stopAssistant" onclick="stopAssistant()">取消辅助</button>
-							<button id="g_bootAssistant" onclick="bootAssistant()">开启辅助</button>
 						</div>
 					</fieldset>	
 				</td>

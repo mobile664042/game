@@ -20,11 +20,14 @@ public class ReqChangeManagerCmd extends ReqGameCmd{
 		return null;
 	}
 
-	public PushChangeManagerCmd valueOfPushChatMultiCmd() {
+	public PushChangeManagerCmd valueOfPushChangeManagerCmd() {
 		PushChangeManagerCmd pushCmd = new PushChangeManagerCmd();
 //		pushCmd.setDeskNo(deskNo);
 //		pushCmd.setPlayKind(playKind);
-		pushCmd.setPlayerId(otherId);
+		if(otherId != null) {
+			pushCmd.setPlayerId(otherId);
+		}
+		
 		return pushCmd;
 	}
 }

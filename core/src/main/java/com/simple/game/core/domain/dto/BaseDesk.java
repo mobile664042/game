@@ -318,7 +318,7 @@ public abstract class BaseDesk{
 			PushSysChatCmd pushCmd = new PushSysChatCmd();
 			Chat chat = new Chat();
 			chat.setKind(ChatKind.text);
-			chat.setContent("你被强制踢下线了！");
+			chat.setContent("你被后台强制踢下线了！");
 			pushCmd.setChat(chat);
 			player.getOnline().push(pushCmd);
 		}
@@ -415,23 +415,33 @@ public abstract class BaseDesk{
 	
 	
 	/***游戏暂停****/
-	public final void pause(int seconds) {
+	public final void pause(int seconds, Long managerId) {
 		this.operatorVerfy();
 		pauseEndTime = System.currentTimeMillis() + seconds * 1000; 
 		logger.info("游戏:{}准备暂停{}秒", gameItem.getName(), seconds);
 		
 		PushPauseCmd pushCmd = new PushPauseCmd();
 		pushCmd.setSeconds(seconds);
-		this.broadcast(pushCmd);
+		if(managerId != null) {
+			this.broadcast(pushCmd, managerId);
+		}
+		else {
+			this.broadcast(pushCmd);
+		}
 	}
 	/***游戏取消暂停(恢复正常)****/
-	public final void resume() {
+	public final void resume(Long managerId) {
 		this.operatorVerfy();
 		pauseEndTime = 0; 
 		logger.info("游戏:{}恢复正常", gameItem.getName());
 		
 		PushResumeCmd pushCmd = new PushResumeCmd();
-		this.broadcast(pushCmd);
+		if(managerId != null) {
+			this.broadcast(pushCmd, managerId);
+		}
+		else {
+			this.broadcast(pushCmd);
+		}
 	}
 	
 	

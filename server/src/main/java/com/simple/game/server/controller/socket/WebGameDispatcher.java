@@ -122,7 +122,6 @@ public class WebGameDispatcher {
 			}
 			else if(reqCmd instanceof ReqApplyManagerCmd) {
 				ddzService.applyManager(gameSessionInfo, (ReqApplyManagerCmd)reqCmd);
-				responseReq(reqCmd, gameSession);
 				return ;
 			}
 			else if(reqCmd instanceof ReqChangeManagerCmd) {

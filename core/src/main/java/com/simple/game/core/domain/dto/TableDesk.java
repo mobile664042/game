@@ -13,6 +13,7 @@ import com.simple.game.core.domain.cmd.push.game.PushApplyManagerCmd;
 import com.simple.game.core.domain.cmd.push.game.PushChangeManagerCmd;
 import com.simple.game.core.domain.cmd.push.game.PushJoinCmd;
 import com.simple.game.core.domain.cmd.push.game.notify.PushNotifyApplyManagerCmd;
+import com.simple.game.core.domain.cmd.push.game.notify.PushSysChatCmd;
 import com.simple.game.core.domain.cmd.push.seat.PushApproveBroadcastLiveCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqApplyManagerCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqChangeManagerCmd;
@@ -21,10 +22,13 @@ import com.simple.game.core.domain.cmd.req.game.ReqKickoutCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqPauseCmd;
 import com.simple.game.core.domain.cmd.req.game.ReqResumeCmd;
 import com.simple.game.core.domain.cmd.req.seat.ReqApproveBroadcastLiveCmd;
+import com.simple.game.core.domain.cmd.rtn.game.RtnApplyManagerCmd;
 import com.simple.game.core.domain.cmd.rtn.game.RtnGameInfoCmd;
 import com.simple.game.core.domain.cmd.vo.PlayerVo;
 import com.simple.game.core.domain.dto.config.DeskItem;
 import com.simple.game.core.domain.dto.config.GameItem;
+import com.simple.game.core.domain.dto.constant.ChatKind;
+import com.simple.game.core.domain.ext.Chat;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
 
@@ -83,6 +87,19 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 	}
 	public final void kickout(GameSessionInfo gameSessionInfo, ReqKickoutCmd reqCmd) {
 		checkAndGetManager(gameSessionInfo.getPlayerId());
+		//发送给玩家
+		{
+			Player other = playerMap.get(reqCmd.getOtherId());
+			if(other == null) {
+				throw new BizException(String.format("%s不在游戏中", reqCmd.getOtherId()));
+			}
+			PushSysChatCmd pushCmd = new PushSysChatCmd();
+			Chat chat = new Chat();
+			chat.setKind(ChatKind.text);
+			chat.setContent("你被管理员强制踢下线了！");
+			pushCmd.setChat(chat);
+			other.getOnline().push(pushCmd);
+		}
 		left(reqCmd.getOtherId());
 	}
 	
@@ -203,7 +220,7 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 	 * 
 	 * @param playerId
 	 */
-	public boolean applyManager(GameSessionInfo gameSessionInfo, ReqApplyManagerCmd reqCmd) {
+	public void applyManager(GameSessionInfo gameSessionInfo, ReqApplyManagerCmd reqCmd) {
 		this.operatorVerfy();
 		
 		//判断是否是在游戏桌中
@@ -221,7 +238,11 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 			pushCmd.setNickname(player.getNickname());
 			manager.get().getOnline().push(pushCmd);
 			logger.info("{}向管理员{}发送更换管理员申请", player.getNickname(), manager.get().getNickname());
-			return false;
+			
+			RtnApplyManagerCmd rtnCmd = new RtnApplyManagerCmd();
+			rtnCmd.setResult(false);
+			player.getOnline().getSession().write(rtnCmd);	
+			return;
 		}
 		
 		if(manager.compareAndSet(null, player)) {
@@ -232,9 +253,12 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 			pushCmd.setPlayerId(playerId);
 			pushCmd.setNickname(player.getNickname());
 			pushCmd.setHeadPic(player.getHeadPic());
-			this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+			this.broadcast(pushCmd, playerId);
 			
-			return true;
+			RtnApplyManagerCmd rtnCmd = new RtnApplyManagerCmd();
+			rtnCmd.setResult(true);
+			player.getOnline().getSession().write(rtnCmd);
+			return;
 		}
 
 		throw new BizException(String.format("管理员之位已被%s强走了，请重试吧", manager.get().getNickname()));
@@ -257,8 +281,8 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 				throw new BizException(String.format("非法请求，不在游戏桌中"));
 			}
 			manager.set(other);
-			PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
-			pushCmd.setPlayerId(gameSessionInfo.getPlayerId());
+			PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChangeManagerCmd();
+			pushCmd.setPlayerId(reqCmd.getOtherId());
 			pushCmd.setNickname(other.getNickname());
 			pushCmd.setHeadPic(other.getHeadPic());
 			this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
@@ -266,7 +290,7 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 		else {
 			//取消管理员之位
 			manager.set(null);
-			PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChatMultiCmd();
+			PushChangeManagerCmd pushCmd = reqCmd.valueOfPushChangeManagerCmd();
 			this.broadcast(pushCmd, gameSessionInfo.getPlayerId());
 		}
 		logger.info("{}在游戏桌:{}--{},将管理员之位传给:{}", gameSessionInfo.getPlayerId(), deskItem.getPlayKind(), this.getAddrNo(), reqCmd.getOtherId());
@@ -287,7 +311,7 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 		checkAndGetManager(gameSessionInfo.getPlayerId());
 		
 		Player player = playerMap.get(gameSessionInfo.getPlayerId());
-		pause(reqCmd.getSeconds());
+		pause(reqCmd.getSeconds(), gameSessionInfo.getPlayerId());
 		
 		logger.info("{}在游戏桌:{}--{},暂停游戏{}秒", player.getNickname(), deskItem.getPlayKind(), this.getAddrNo(), reqCmd.getSeconds());
 	}
@@ -298,7 +322,7 @@ public abstract class TableDesk extends BaseDesk implements AddressNo{
 		checkAndGetManager(gameSessionInfo.getPlayerId());
 		
 		Player player = playerMap.get(gameSessionInfo.getPlayerId());
-		resume();
+		resume(gameSessionInfo.getPlayerId());
 		
 		logger.info("{}在游戏桌:{}--{},恢复游戏", player.getNickname(), deskItem.getPlayKind(), this.getAddrNo());
 	}

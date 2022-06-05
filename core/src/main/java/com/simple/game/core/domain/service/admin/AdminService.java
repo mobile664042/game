@@ -55,12 +55,12 @@ public abstract class AdminService{
 		if(reqCmd.getSeconds() <= 0) {
 			throw new BizException("暂停时长不能小于或等于0");
 		}
-		tableDesk.pause(reqCmd.getSeconds());
+		tableDesk.pause(reqCmd.getSeconds(), null);
 	}
 	/***系统给游戏取消暂停(恢复正常)****/
 	public void resume(ReqAdminResumeCmd reqCmd) {
 		TableDesk tableDesk = checkAndGet(reqCmd.getPlayKind(), reqCmd.getDeskNo());
-		tableDesk.resume();
+		tableDesk.resume(null);
 	}
 	
 	
