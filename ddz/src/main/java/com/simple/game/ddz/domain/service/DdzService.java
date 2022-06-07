@@ -2,9 +2,11 @@ package com.simple.game.ddz.domain.service;
 
 import com.simple.game.core.domain.dto.GameSessionInfo;
 import com.simple.game.core.domain.service.TableService;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledShowCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
 import com.simple.game.ddz.domain.dto.DdzGameSeat;
 import com.simple.game.ddz.domain.manager.DdzGameManager;
@@ -39,13 +41,34 @@ public class DdzService extends TableService{
 	
 	/***
 	 * 抢地主
-	 * @param playerId
-	 * @param position
-	 * @param score		简化操作，暂时不用
+	 * @param gameSessionInfo
+	 * @param reqCmd
 	 */
 	public void robLandlord(GameSessionInfo gameSessionInfo, ReqRobLandlordCmd reqCmd) {
 		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
 		ddzDeskSeat.robLandlord(gameSessionInfo, reqCmd);
+	}
+	
+	
+	/***
+	 * 加倍
+	 * @param gameSessionInfo
+	 * @param reqCmd
+	 */
+	public void doubled(GameSessionInfo gameSessionInfo, ReqDoubledCmd reqCmd) {
+		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
+		ddzDeskSeat.doubled(gameSessionInfo, reqCmd);
+	}
+	
+	
+	/***
+	 * 加倍并明牌
+	 * @param gameSessionInfo
+	 * @param reqCmd
+	 */
+	public void doubledShowCard(GameSessionInfo gameSessionInfo, ReqDoubledShowCardCmd reqCmd) {
+		DdzGameSeat ddzDeskSeat = (DdzGameSeat)checkAndGetGameSeat(gameSessionInfo.getAddress());
+		ddzDeskSeat.doubledShowCard(gameSessionInfo, reqCmd);
 	}
 	
 	/***

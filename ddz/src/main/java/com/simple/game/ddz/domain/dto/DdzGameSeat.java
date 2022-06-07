@@ -14,17 +14,25 @@ import com.simple.game.core.domain.dto.Player;
 import com.simple.game.core.domain.dto.SeatPlayer;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyDoubledCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushDoubleShowCardCmd;
+import com.simple.game.ddz.domain.cmd.push.seat.PushDoubledCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushRobLandlordCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushSurrenderCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledShowCardCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqSurrenderCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDdzGameSeatCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDoubledCmd;
+import com.simple.game.ddz.domain.cmd.rtn.seat.RtnDoubledShowCardCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.rtn.seat.RtnRobLandlordCmd;
+import com.simple.game.ddz.domain.dto.DdzDesk.DoubledShowCardResult;
 import com.simple.game.ddz.domain.dto.config.DdzDeskItem;
 import com.simple.game.ddz.domain.dto.constant.ddz.GameProgress;
 import com.simple.game.ddz.domain.ruler.DdzCard.PlayCardResult;
@@ -178,6 +186,66 @@ public class DdzGameSeat extends GameSeat{
 		rtnCmd.setFinalCards(outParam.getParam());
 		Player player = seatPlayer.getPlayer();
 		player.getOnline().getSession().write(rtnCmd);
+	}
+	
+
+	/***
+	 * 加倍
+	 */
+	public void doubled(GameSessionInfo gameSessionInfo, ReqDoubledCmd reqCmd) {
+		SeatPlayer seatPlayer = checkSeatPlayer(gameSessionInfo);
+
+		OutParam<Boolean> outParam = new OutParam<Boolean>();
+		int doubleFinal = getDdzDesk().doubled(position, outParam);
+		PushDoubledCmd pushCmd = reqCmd.valueOfPushDoubledCmd();
+		pushCmd.setPosition(position);
+		pushCmd.setDoubleFinal(doubleFinal);
+		
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		
+		RtnDoubledCmd rtnCmd = new RtnDoubledCmd();
+		rtnCmd.setDoubleFinal(doubleFinal);
+		Player player = seatPlayer.getPlayer();
+		
+		//发送广播
+		if(outParam.getParam() != null && outParam.getParam()) {
+			NotifyDoubledCmd nofifyCmd = new NotifyDoubledCmd();
+			desk.broadcast(nofifyCmd, gameSessionInfo.getPlayerId());
+			rtnCmd.setNext(true);		
+		}
+		
+		player.getOnline().getSession().write(rtnCmd);
+	}
+	
+
+	/***
+	 * 明牌
+	 */
+	public void doubledShowCard(GameSessionInfo gameSessionInfo, ReqDoubledShowCardCmd reqCmd) {
+		SeatPlayer seatPlayer = checkSeatPlayer(gameSessionInfo);
+
+		DoubledShowCardResult result = getDdzDesk().doubledShowCard(position);
+		PushDoubleShowCardCmd pushCmd = reqCmd.valueOfPushShowCardCmd();
+		pushCmd.setPosition(position);
+		pushCmd.setCards(result.getCards());
+		pushCmd.setDoubleFinal(result.getDoubleFinal());
+		//发送广播
+		desk.broadcast(pushCmd, gameSessionInfo.getPlayerId());
+		
+		
+		RtnDoubledShowCardCmd rtnCmd = new RtnDoubledShowCardCmd();
+		rtnCmd.setDoubleFinal(result.getDoubleFinal());
+		Player player = seatPlayer.getPlayer();
+		
+		//发送广播
+		if(result.isNext()) {
+			NotifyDoubledCmd nofifyCmd = new NotifyDoubledCmd();
+			desk.broadcast(nofifyCmd, gameSessionInfo.getPlayerId());
+			rtnCmd.setNext(true);
+		}
+		player.getOnline().getSession().write(rtnCmd);
+		
 	}
 	
 	/***

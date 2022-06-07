@@ -18,11 +18,14 @@ import com.simple.game.core.domain.dto.GameSessionInfo;
 import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.core.robot.ActionListener;
 import com.simple.game.core.util.MyThreadFactory;
+import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyDoubledCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameOverCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameSkipCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifySendCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.push.seat.PushRobLandlordCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledShowCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
@@ -69,20 +72,35 @@ public class DdzActionListener extends ActionListener{
 			queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
 		} 
 		else if(cmdTask.getCmd() instanceof RtnRobLandlordCmd) {
-			//如果抢到地主位了，就得准备出牌
+			//如果抢到地主位了
 			RtnRobLandlordCmd rtnCmd = (RtnRobLandlordCmd)cmdTask.getCmd();
 			if(rtnCmd.getCode() == 0) {
 				robotPlayer.addCommonCards(rtnCmd.getCards());
-				robotPlayer.beLandlord();
-				int delaySecond = 1 + random.nextInt(gameItem.getMaxFirstPlayCardSecond()/3);
-				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
-				logger.info("准备出牌：" + delaySecond);
+				robotPlayer.beenLandlord();
+				//加倍的概率3/5
+				if(random.nextInt(5) > 1) {
+					int delaySecond = 1 + random.nextInt(gameItem.getMaxDoubleSecond()/3);
+					queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
+				}
 			}
 		} 
 		else if(cmdTask.getCmd() instanceof PushRobLandlordCmd) {
 			//设置地主位
 			PushRobLandlordCmd pushCmd = (PushRobLandlordCmd)cmdTask.getCmd();
 			robotPlayer.setLandlordPosition(pushCmd.getPosition());
+			//加倍的概率1/2
+			if(random.nextInt(2) == 1) {
+				int delaySecond = 1 + random.nextInt(gameItem.getMaxDoubleSecond()/3);
+				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
+			}
+		} 
+		else if(cmdTask.getCmd() instanceof NotifyDoubledCmd) {
+			//如果抢到地主位了，就得准备出牌
+			if(robotPlayer.isLandlord()) {
+				int delaySecond = 1 + random.nextInt(gameItem.getMaxFirstPlayCardSecond()/3);
+				queue.offer(new DelayedItem<CmdTask>(delaySecond, cmdTask));
+				logger.info("准备出牌：" + delaySecond);
+			}
 		} 
 		else if(cmdTask.getCmd() instanceof RtnPlayCardCmd) {
 			//如果出牌成功
@@ -196,13 +214,27 @@ public class DdzActionListener extends ActionListener{
 			//通用返回值捕捉不到，直接当成功处理
 			robotPlayer.clear();
 		} 
-		else if(cmdTask.getCmd() instanceof RtnRobLandlordCmd) {
+		else if(cmdTask.getCmd() instanceof RtnRobLandlordCmd || cmdTask.getCmd() instanceof PushRobLandlordCmd) {
+			//如果不幸运，必须得加倍
+			Random random = new Random();
+			if(random.nextInt(5) == 1) {
+				//加倍&明牌
+				ReqDoubledShowCardCmd reqCmd = new ReqDoubledShowCardCmd();
+				deskSeat.doubledShowCard(gameSessionInfo, reqCmd);
+			}
+			else {
+				//加倍
+				ReqDoubledCmd reqCmd = new ReqDoubledCmd();
+				deskSeat.doubled(gameSessionInfo, reqCmd);
+			}
+		}
+		else if(cmdTask.getCmd() instanceof NotifyDoubledCmd) {
 			//如果抢到地主位了，就得准备出牌
 			List<Integer> cards = robotPlayer.sendCard(true);
 			ReqPlayCardCmd reqCmd = new ReqPlayCardCmd();
 			reqCmd.setCards(cards);
 			deskSeat.playCard(gameSessionInfo, reqCmd);
-		}
+		} 
 		else if(cmdTask.getCmd() instanceof PushPlayCardCmd) {
 			//到自己出牌
 			//需要判断是否结束了

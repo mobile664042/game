@@ -160,10 +160,21 @@ function joinGameDesk(){
 	}
 
 	function onError(event) {
+		connected = false;
+		$('#j_join').removeAttr('disabled');
+	    $('#j_left').attr('disabled', true);
+	    $('#s_sitdown').attr('disabled', true);
+	    $('#s_quickSitdown').attr('disabled', true);
+	    $('#s_standup').attr('disabled', true);
 		alert("通讯异常:" + JSON.stringify(event));
 	}
 	function onClose(event) {
 		connected = false;
+		$('#j_join').removeAttr('disabled');
+	    $('#j_left').attr('disabled', true);
+	    $('#s_sitdown').attr('disabled', true);
+	    $('#s_quickSitdown').attr('disabled', true);
+	    $('#s_standup').attr('disabled', true);
 		alert("你掉线了！");
 	}
 	
@@ -317,7 +328,7 @@ function playcard(){
 		return;
 	}
 	
-	if(extGameInfo.currentProgress != 'robbedLandlord'){
+	if(extGameInfo.currentProgress != 'doubled'){
 		alert("还未到打牌阶段");
 		return;
 	}
@@ -352,7 +363,7 @@ function skipPlaycard(){
 	}
 	
 	
-	if(extGameInfo.currentProgress != 'robbedLandlord'){
+	if(extGameInfo.currentProgress != 'doubled'){
 		alert("还未到打牌阶段");
 		return;
 	}
@@ -408,7 +419,8 @@ function robLandlord(){
 	webSocket.send(sendMessage);
 }
 
-function surrender(){
+
+function doubled(){
 	if(!logoinToken){
 		alert("请先登录");
 		return;
@@ -424,6 +436,73 @@ function surrender(){
 	}
 	
 	if(extGameInfo.currentProgress != 'robbedLandlord'){
+		alert("不是抢完地主(加倍)阶段");
+		return;
+	}
+	
+	//加倍
+	let reqDoubledCmd = {
+		"cmd": 151005
+	}
+	
+	let sendMessage = JSON.stringify(reqDoubledCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+	$('#p_doubled').attr('disabled', true);
+	$('#p_doubledShowCard').attr('disabled', true);
+}
+function doubledShowCard(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!connected){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	
+	if(extGameInfo.currentProgress != 'robbedLandlord'){
+		alert("不是抢完地主(加倍)阶段");
+		return;
+	}
+	
+	//加倍
+	let reqDoubledShowCardCmd = {
+		"cmd": 151006
+	}
+	
+	let sendMessage = JSON.stringify(reqDoubledShowCardCmd);
+	console.log("发送：" + sendMessage);
+	webSocket.send(sendMessage);
+	$('#p_doubled').attr('disabled', true);
+	$('#p_doubledShowCard').attr('disabled', true);
+}
+
+
+
+
+
+function surrender(){
+	if(!logoinToken){
+		alert("请先登录");
+		return;
+	}
+	if(!connected){
+		alert("请先进入游戏");
+		return;
+	}
+	
+	if(!extSeatInfo.currentPosition){
+		alert("你还未坐下");
+		return;
+	}
+	
+	if(extGameInfo.currentProgress != 'doubled'){
 		alert("还未到打牌阶段,不可以投降");
 		return;
 	}
@@ -1032,7 +1111,21 @@ function onDispather(rtnData){
 	    case 1151002:
 	    onPushRobLandlordCmd(rtnData);
 	    break;
-	    
+	    case 151005:
+	    onReqDoubledCmd(rtnData);
+	    break;
+	    case 1151005:
+	    onPushDoubledCmd(rtnData);
+	    break;
+	    case 151006:
+	    onReqDoubledShowCardCmd(rtnData);
+	    break;
+	    case 1151006:
+	    onPushDoubleShowCardCmd(rtnData);
+	    break;
+	    case 2151005:
+	    onNotifyDoubledCmd();
+	    break;
 	    
 	    case 151003:
 	    onReqPlayCardCmd(rtnData);
@@ -1148,7 +1241,7 @@ function onDispather(rtnData){
 	    case 2151004:
 	    onNotifyGameOverCmd(rtnData);
 	    break;
-	    case 2151005:
+	    case 2151010:
 	    onNotifyGameSkipCmd(rtnData);
 	    break;
 	    
@@ -1198,13 +1291,15 @@ function deskMsg(message){
 //全局配置信息(后期改成从后台动态获取)(倒计时，需要比服务器小一秒)
 var globalConfig = {};
 /***最长等待抢地主时长****/
-globalConfig.maxRobbedLandlordSecond = 18;
+globalConfig.maxRobbedLandlordSecond = 17;
 /***最长等待下一轮时长****/
 globalConfig.maxReadyNextSecond = 299;
 /***最长等待过牌时长(如果此时是自己出牌，自动选择最小的一张牌)****/
 globalConfig.maxPlayCardSecond = 18;
 /***最长等待第一次过牌时长(如果此时是自己出牌，自动选择最小的一张牌)****/
 globalConfig.maxFirstPlayCardSecond = 27;
+/***最长等待加倍时长****/
+globalConfig.maxDoubleSecond = 5;
 /***一局游戏允许最大超时次数****/
 globalConfig.maxPlayCardOuttimeCount = 2;
 /***一局游戏允许最大跳过次数(断线后或超时跳过牌)****/
@@ -1316,10 +1411,16 @@ function onRtnGameInfoCmd(rtnCmd){
 	$('#p_commonCards').html('');
 	$('#p_landlord_position').html('');
 	$('#p_doubleFinal').html(rtnCmd.doubleFinal);
+	$('#s_position').val(extSeatInfo.currentPosition);
 	
 	//渲染
 	if(extGameInfo.currentProgress == "ready"){
 		$('#p_currentProgress').css("background","yellow");
+		return;
+	}
+	
+	if(extGameInfo.currentProgress == "sended"){
+		$('#p_currentProgress').css("background","blue");
 		return;
 	}
 	
@@ -1331,13 +1432,13 @@ function onRtnGameInfoCmd(rtnCmd){
 			$('#p_commonCards').html($('#p_commonCards').html() + imgHtml);
 		});
 	}
-	if(extGameInfo.currentProgress == "sended"){
-		$('#p_currentProgress').css("background","blue");
+	$('#p_landlord_position').html(extGameInfo.landlordPosition);
+	if(extGameInfo.currentProgress == "robbedLandlord"){
+		$('#p_currentProgress').css("background","orange");
 		return;
 	}
 	
-	$('#s_position').val(extSeatInfo.currentPosition);
-	$('#p_landlord_position').html(extGameInfo.landlordPosition);
+	
 	//设置已出过的牌
 	if(extGameInfo.battlefield){
 		extGameInfo.battlefield.forEach(function(element) {
@@ -1352,12 +1453,10 @@ function onRtnGameInfoCmd(rtnCmd){
 			}
 		});
 	}
-	if(extGameInfo.currentProgress == "robbedLandlord"){
-		$('#p_currentProgress').css("background","orange");
+	if(extGameInfo.currentProgress == "doubled"){
+		$('#p_currentProgress').css("background","#cddc39");
 		return;
 	}
-	
-	
 	
 	
 	if(extGameInfo.currentProgress == "gameover"){
@@ -1451,11 +1550,15 @@ function onRtnGameSeatInfoCmd(rtnCmd){
 		});
 	}
 	
-	if(extGameInfo.currentProgress = 'sended'){
+	if(extGameInfo.currentProgress == 'sended'){
 		leftSecond=rtnCmd.leftSecond;
 		leftSecondMsg="等待抢地主";
 	}
-	if(extGameInfo.currentProgress = 'robbedLandlord'){
+	if(extGameInfo.currentProgress == 'robbedLandlord'){
+		leftSecond=rtnCmd.leftSecond;
+		leftSecondMsg='等待是否加倍';
+	}
+	if(extGameInfo.currentProgress == 'doubled'){
 		leftSecond=rtnCmd.leftSecond;
 		leftSecondMsg='等待'+ extGameInfo.currentPosition +'席位出牌';
 		if(extGameInfo.currentPosition == extSeatInfo.currentPosition){
@@ -1574,13 +1677,16 @@ function onReqRobLandlordCmd(rtnCmd){
 	extGameInfo.currentProgress = 'robbedLandlord';
 	extGameInfo.landlordPosition = extSeatInfo.currentPosition;
 	extGameInfo.currentPosition = extSeatInfo.currentPosition;
+	$('#p_currentProgress').css("background","orange");
+	$('#p_doubleFinal').html('1');
+	$('#p_doubled').removeAttr('disabled');
+	$('#p_doubledShowCard').removeAttr('disabled');
 	
 	//你是地主了;
 	$('#p_landlord_position').html(extSeatInfo.currentPosition);
-	let divHtml = '<div>你是地主了!</div>';
-	showMsg(divHtml);
-	leftSecond=globalConfig.maxFirstPlayCardSecond;
-	leftSecondMsg="等待出牌";
+	deskMsg('<div>你是地主了!</div><hr/>');
+	leftSecond=globalConfig.maxDoubleSecond;
+	leftSecondMsg="等待是否加倍";
 	
 	//显示底牌
 	$('#p_commonCards').html('');
@@ -1607,6 +1713,23 @@ function onReqRobLandlordCmd(rtnCmd){
 	//计算剩余牌
 	initResidueCount();
 }
+function onReqDoubledCmd(rtnCmd){
+	$('#p_doubleFinal').html(rtnCmd.doubleFinal);
+	deskMsg('<div>你已加倍</div><hr/>');
+	
+	if(rtnCmd.next){
+		onNotifyDoubledCmd();
+	}
+}
+function onReqDoubledShowCardCmd(rtnCmd){
+	$('#p_doubleFinal').html(rtnCmd.doubleFinal);
+	deskMsg('<div>你已加倍&明牌</div><hr/>');
+	if(rtnCmd.next){
+		onNotifyDoubledCmd();
+	}
+}
+
+
 
 function mysort(a,b){
 	return a-b;
@@ -1627,11 +1750,14 @@ function onPushRobLandlordCmd(pushCmd){
 	extGameInfo.currentProgress = 'robbedLandlord';
 	extGameInfo.landlordPosition = pushCmd.position;
 	extGameInfo.currentPosition = pushCmd.position;
+	$('#p_currentProgress').css("background","orange");
+	
+	$('#p_doubled').removeAttr('disabled');
+	$('#p_doubledShowCard').removeAttr('disabled');
 	
 	$('#p_landlord_position').html(pushCmd.position);
-	let divHtml = '<div>'+ pushCmd.position +'席位成为地主</div>';
-	showMsg(divHtml);
-	
+	$('#p_doubleFinal').html('1');
+	deskMsg('<div>'+ pushCmd.position +'席位成为地主</div><hr/>');
 	
 	//显示底牌
 	$('#p_commonCards').html('');
@@ -1645,14 +1771,57 @@ function onPushRobLandlordCmd(pushCmd){
 		});
 	}
 	
-	leftSecond=globalConfig.maxFirstPlayCardSecond;
-	leftSecondMsg='等待'+ pushCmd.position +'席位出牌';
-	if(extSeatInfo && extSeatInfo.currentPosition == pushCmd.position){
-		leftSecondMsg="等待我出牌";
-	}
+	leftSecond=globalConfig.maxDoubleSecond;
+	leftSecondMsg='等待是否加倍';
 	
 	//计算剩余牌
 	initResidueCount();
+}
+function onPushDoubledCmd(pushCmd){
+	$('#p_doubleFinal').html(pushCmd.doubleFinal);
+	deskMsg('<div>'+ pushCmd.position +'席位已加倍</div><hr/>');
+}
+function onPushDoubleShowCardCmd(pushCmd){
+	$('#p_doubleFinal').html(pushCmd.doubleFinal);
+	
+	//加载牌
+	let seatPlayer = extGameInfo.seatPlayingMap[pushCmd.position.toString()];
+	let playerHtml = '<img class="headPic_item" src="/img/head/'+ seatPlayer.headPic +'.jpeg">' + seatPlayer.nickname;
+			
+	//地主;
+	if(pushCmd.position == extGameInfo.landlordPosition){
+		let spanHtml = '<span class="landlord_item">' + pushCmd.position;
+		spanHtml += playerHtml + ': 已加倍&明牌</span>';
+		deskMsg('<div>' + spanHtml + '</div>');
+	}
+	else{
+		let spanHtml = '<span class="farmer_item">' + pushCmd.position;
+		spanHtml += playerHtml + ': 已加倍&明牌</span></div>';
+		deskMsg('<div>' + spanHtml + '</div>');
+	}
+	
+	if(pushCmd.cards && pushCmd.cards.length > 0){
+		deskMsg('<div>');
+		pushCmd.cards.forEach(function(element) {
+			let imgHtml = '<img alt="'+ element +'" class="pkPic_item" src="/img/pk/' + element + '.png">';
+			deskMsg(imgHtml);
+		});
+		deskMsg('</div>');
+	}
+	else{
+		deskMsg('要不起');
+	}
+	deskMsg('<hr/>');
+}
+
+function onNotifyDoubledCmd(){
+	$('#p_currentProgress').css("background","#cddc39");
+	extGameInfo.currentProgress = 'doubled';
+	leftSecond=globalConfig.maxFirstPlayCardSecond;
+	leftSecondMsg='等待'+ extGameInfo.landlordPosition +'席位出牌';
+	if(extSeatInfo && extSeatInfo.currentPosition == extGameInfo.landlordPosition){
+		leftSecondMsg="等待我出牌";
+	}
 }
 
 function initResidueCount(){
@@ -2047,7 +2216,7 @@ function onNotifySendCardCmd(rtnCmd){
 
 function onNotifyGameOverCmd(rtnCmd){
 	extGameInfo.currentProgress = 'ready';
-	
+	$('#p_doubleFinal').html(rtnCmd.doubleFinal);
 	let divHtml = '<div>游戏结束了 '+'</div>';
 	showMsg(divHtml);
 	
@@ -2093,7 +2262,6 @@ function onNotifyGameSkipCmd(rtnCmd){
 	leftSecond=globalConfig.maxReadyNextSecond;
 	leftSecondMsg="等待准备一局";
 	$('#p_ready').removeAttr('disabled');
-	
 }
 
 

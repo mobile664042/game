@@ -114,6 +114,11 @@ public class DdzCard {
 		return doubleCount;
 	}
 	
+
+	public void doubleCountIncrAndGet(int count) {
+		doubleCount += count; 
+	}
+	
 	/***
 	 * 自动出牌
 	 * @param outCards 出过的牌
@@ -247,6 +252,7 @@ public class DdzCard {
 		private int residueCount;
 		private boolean isGameOver;
 	}
+
 	
 	private void verifyCard(int targetPosition, List<SCard> cards) {
 		if(cards == null || cards.isEmpty()) {

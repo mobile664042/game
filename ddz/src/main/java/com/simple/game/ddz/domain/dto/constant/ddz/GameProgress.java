@@ -7,8 +7,11 @@ public enum GameProgress {
 	/****已发完牌阶段，准备抢地主***/
 	sended,
 	
-	/****已抢地主, 出牌阶段***/
+	/****已抢地主, 加倍阶段***/
 	robbedLandlord,
+	
+	/****已加倍, 出牌阶段***/
+	doubled,
 	
 	/*****/
 	gameover,

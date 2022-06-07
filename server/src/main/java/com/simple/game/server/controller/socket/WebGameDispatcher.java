@@ -47,6 +47,8 @@ import com.simple.game.core.domain.dto.GameSeat;
 import com.simple.game.core.domain.dto.GameSessionInfo;
 import com.simple.game.core.exception.BizException;
 import com.simple.game.core.util.GameSession;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledCmd;
+import com.simple.game.ddz.domain.cmd.req.seat.ReqDoubledShowCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqPlayCardCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqReadyNextCmd;
 import com.simple.game.ddz.domain.cmd.req.seat.ReqRobLandlordCmd;
@@ -251,6 +253,14 @@ public class WebGameDispatcher {
 				ddzService.robLandlord(gameSessionInfo, (ReqRobLandlordCmd)reqCmd);
 				return ;
 			}
+			else if(reqCmd instanceof ReqDoubledCmd) {
+				ddzService.doubled(gameSessionInfo, (ReqDoubledCmd)reqCmd);
+				return ;
+			}
+			else if(reqCmd instanceof ReqDoubledShowCardCmd) {
+				ddzService.doubledShowCard(gameSessionInfo, (ReqDoubledShowCardCmd)reqCmd);
+				return ;
+			}
 			else if(reqCmd instanceof ReqSurrenderCmd) {
 				ddzService.surrender(gameSessionInfo, (ReqSurrenderCmd)reqCmd);
 				responseReq(reqCmd, gameSession);
@@ -347,6 +357,10 @@ public class WebGameDispatcher {
 			return JSON.parseObject(message, ReqReadyNextCmd.class);
 		case ReqRobLandlordCmd.CMD:
 			return JSON.parseObject(message, ReqRobLandlordCmd.class);
+		case ReqDoubledCmd.CMD:
+			return JSON.parseObject(message, ReqDoubledCmd.class);
+		case ReqDoubledShowCardCmd.CMD:
+			return JSON.parseObject(message, ReqDoubledShowCardCmd.class);
 		case ReqSurrenderCmd.CMD:
 			return JSON.parseObject(message, ReqSurrenderCmd.class);
 			

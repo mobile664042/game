@@ -22,6 +22,7 @@ import com.simple.game.core.domain.dto.constant.SCard;
 import com.simple.game.core.domain.dto.constant.SeatPost;
 import com.simple.game.core.domain.manager.CoinManager;
 import com.simple.game.core.exception.BizException;
+import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyDoubledCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameOverCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifyGameSkipCmd;
 import com.simple.game.ddz.domain.cmd.push.game.notify.NotifySendCardCmd;
@@ -55,6 +56,13 @@ public class DdzDesk extends TableDesk{
 	
 	protected final DdzCard ddzCard = new DdzCard();
 	
+	/***
+	 * 加倍操作记录
+	 * KEY: position
+	 * VALUE: doubleCount
+	 */
+	protected final HashMap<Integer, Integer> doubledMap = new HashMap<Integer, Integer>();
+	
 	public DdzDesk(DdzGameItem gameItem, DdzDeskItem deskItem) {
 		super(gameItem, deskItem);
 	} 
@@ -71,6 +79,8 @@ public class DdzDesk extends TableDesk{
 	protected long lastGameOverTime;
 	/***最近系统发牌时间***/
 	protected long lastSendCardTime;
+	/***最近系统发牌时间***/
+	protected long lastRobLandlordTime;
 	
 	/***最近一次过牌时间***/
 	protected long lastPlayCardTime;
@@ -132,6 +142,10 @@ public class DdzDesk extends TableDesk{
 			return handleWaitRobLandlordTimeout();
 		}
 		else if(currentProgress == GameProgress.robbedLandlord) {
+			//判断等待加倍是否超时
+			return handleDoubledTimeout();
+		}
+		else if(currentProgress == GameProgress.doubled) {
 			//判断等待出牌是否超时
 			return handleWaitPlayCardTimeout();
 		}
@@ -191,14 +205,24 @@ public class DdzDesk extends TableDesk{
 	/****执行下了操作时剩余的时间***/
 	public int getLeftSecond() {
 		if(currentProgress == GameProgress.sended) {
-			long time = System.currentTimeMillis() - lastSendCardTime;
+			long time = (lastSendCardTime + this.getDdzGameItem().getMaxRobbedLandlordSecond()* 1000) - System.currentTimeMillis();
 			if(time <= 0) {
 				return 0;
 			}
 			return (int)(time / 1000);
 		}
 		else if(currentProgress == GameProgress.robbedLandlord) {
-			long time = System.currentTimeMillis() - lastPlayCardTime; 
+			long time = (lastRobLandlordTime + this.getDdzGameItem().getMaxDoubleSecond()* 1000) - System.currentTimeMillis();
+			if(time <= 0) {
+				return 0;
+			}
+			return (int)(time / 1000);
+		}
+		else if(currentProgress == GameProgress.doubled) {
+			long time = (lastPlayCardTime + this.getDdzGameItem().getMaxPlayCardSecond()* 1000) - System.currentTimeMillis();
+			if(!this.ddzCard.isStarted()) {
+				time = (lastPlayCardTime + this.getDdzGameItem().getMaxFirstPlayCardSecond()* 1000) - System.currentTimeMillis();
+			}
 			if(time <= 0) {
 				return 0;
 			}
@@ -215,12 +239,15 @@ public class DdzDesk extends TableDesk{
 			return rtnCmd;
 		}
 		
-		rtnCmd.setCommonCards(ddzCard.getCommonCardList());
 		if(currentProgress == GameProgress.sended) {
 			return rtnCmd;
 		}
 		
+		rtnCmd.setCommonCards(ddzCard.getCommonCardList());
 		rtnCmd.setLandlordPosition(ddzCard.getLandlordPosition());
+		if(currentProgress == GameProgress.robbedLandlord) {
+			return rtnCmd;
+		}
 		
 		int doubleFinal = getDoubleKind().getFinalDouble(ddzCard.getDoubleCount());
 		rtnCmd.setDoubleFinal(doubleFinal);
@@ -242,7 +269,7 @@ public class DdzDesk extends TableDesk{
 		}
 		rtnCmd.setLandlordPlayCardCount(ddzCard.getLandlordPlayCardCount());
 		rtnCmd.setFarmerPlayCardCount(ddzCard.getFarmerPlayCardCount());
-		if(currentProgress == GameProgress.robbedLandlord) {
+		if(currentProgress == GameProgress.doubled) {
 			return rtnCmd;
 		}
 		
@@ -318,6 +345,32 @@ public class DdzDesk extends TableDesk{
 		NotifyGameSkipCmd notifyCmd = new NotifyGameSkipCmd();
 		broadcast(notifyCmd);
 		return true;
+	}
+	
+	/***
+	 * 处理加倍超时的
+	 * @return
+	 */
+	private boolean handleDoubledTimeout() {
+		//当前出牌位
+		long time = System.currentTimeMillis() - lastRobLandlordTime; 
+		if(time == 0) {
+			return false;
+		}
+		long second = time / 1000; 
+		if(second < this.getDdzGameItem().getMaxDoubleSecond()) {
+			return false;
+		}
+		
+		finishedDoubled();
+		return true;
+	}
+	
+	private void finishedDoubled() {
+		currentProgress = GameProgress.doubled;
+		lastPlayCardTime = System.currentTimeMillis();
+		NotifyDoubledCmd nofifyCmd = new NotifyDoubledCmd();
+		this.broadcast(nofifyCmd, true);
 	}
 	
 	/***
@@ -468,14 +521,77 @@ public class DdzDesk extends TableDesk{
 		
 		List<Integer> commonCards = this.ddzCard.setLandlord(position, outParam);
 		currentProgress = GameProgress.robbedLandlord;
-		lastPlayCardTime = System.currentTimeMillis();
+		lastRobLandlordTime = System.currentTimeMillis();
 		return commonCards;
 	}
 	
+	/***
+	 * 加倍
+	 * @param playerId
+	 * @param doubleCount
+	 */
+	public synchronized int doubled(int position, OutParam<Boolean> outParam) {
+		boolean result = doubled(position, 1);
+		int doubleFinal = getDoubleKind().getFinalDouble(ddzCard.getDoubleCount());
+		outParam.setParam(result);
+		return doubleFinal;
+	}
+	
+	private boolean doubled(int position, int doubleCount) {
+		if(currentProgress != GameProgress.robbedLandlord) {
+			throw new BizException("不是抢完地主状态，无法进行加倍");
+		}
+		//判断是否加倍完成
+		if(doubledMap.containsKey(position)) {
+			throw new BizException("你已执行过加倍操作");
+		}
+		
+		this.ddzCard.doubleCountIncrAndGet(doubleCount);
+		doubledMap.put(position, doubleCount);
+		if(doubledMap.size()== 3) {
+			currentProgress = GameProgress.doubled;
+			lastPlayCardTime = System.currentTimeMillis();
+			
+			return true;
+		}
+		return false;
+	}
+	
+	/***
+	 * 明牌
+	 * @param position
+	 * @param outParam
+	 * @return
+	 */
+	public synchronized DoubledShowCardResult doubledShowCard(int position) {
+		boolean result = doubled(position, 3);
+		int doubleFinal = getDoubleKind().getFinalDouble(ddzCard.getDoubleCount());
+		DoubledShowCardResult doubledShowCardResult = new DoubledShowCardResult();
+		doubledShowCardResult.next = result;
+		doubledShowCardResult.doubleFinal = doubleFinal;
+		if(position == 1) {
+			doubledShowCardResult.cards = ddzCard.getFirstCardList();
+		}
+		else if(position == 2) {
+			doubledShowCardResult.cards = ddzCard.getSecondCardList();
+		}
+		else if(position == 3) {
+			doubledShowCardResult.cards = ddzCard.getThirdCardList();
+		}
+		return doubledShowCardResult;
+	}
+	
+	@Getter
+	public class DoubledShowCardResult{
+		private int doubleFinal;
+		private List<Integer> cards;
+		private boolean next;
+	}
+
 	
 	public synchronized PlayCardResult playCard(int position, List<Integer> cards) {
-		if(currentProgress != GameProgress.robbedLandlord) {
-			throw new BizException("不是抢完状态，无法进行出牌");
+		if(currentProgress != GameProgress.doubled) {
+			throw new BizException("不是加倍完状态，无法进行出牌");
 		}
 		
 		PlayCardResult playCardResult = this.ddzCard.playCard(position, cards);
@@ -499,8 +615,8 @@ public class DdzDesk extends TableDesk{
 	 * @param position
 	 */
 	public synchronized void surrender(int position) {
-		if(currentProgress != GameProgress.robbedLandlord) {
-			throw new BizException("不是抢完状态，无法进行投降");
+		if(currentProgress != GameProgress.doubled) {
+			throw new BizException("不是加倍完状态，无法进行投降");
 		}
 		
 		//进入surrender状态了
@@ -550,6 +666,7 @@ public class DdzDesk extends TableDesk{
 	}
 	private void handleNext() {
 		currentProgress = GameProgress.ready;
+		doubledMap.clear();
 		ddzCard.readyNext();
 		
 		surrenderPosition = 0;
@@ -687,9 +804,6 @@ public class DdzDesk extends TableDesk{
 	 */
 	private GameResultRecord handleSurrenderResult() {
 		int doubleCount = this.ddzCard.getDoubleCount() + this.getDdzGameItem().getPunishSurrenderDoubleCount();
-		if(this.ddzCard.isSpring()) {
-			doubleCount += 1;
-		}
 		int doubleFinal = this.getDoubleKind().getFinalDouble(doubleCount);
 		long singleResult = doubleFinal * this.getDdzDeskItem().getUnitPrice();
 		int landlordPosition = this.ddzCard.getLandlordPosition();

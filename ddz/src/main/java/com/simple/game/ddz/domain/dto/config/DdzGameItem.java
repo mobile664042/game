@@ -18,8 +18,10 @@ public class DdzGameItem extends GameItem{
 	private DoubleKind doubleKind = DoubleKind.exponential;
 
 	/***最长等待抢地主时长****/
-	private int maxRobbedLandlordSecond = 19;
+	private int maxRobbedLandlordSecond = 18;
 	
+	/***最长等待加倍时长****/
+	private int maxDoubleSecond = 6;
 
 	/***最长等待下一轮时长****/
 	private int maxReadyNextSecond = 300;

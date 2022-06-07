@@ -45,10 +45,12 @@ public class RobotPlayer {
 	public void setLandlordPosition(int landlordPosition) {
 		this.landlordPosition = landlordPosition;
 	}
-	public void beLandlord() {
+	public void beenLandlord() {
 		this.landlordPosition = position;
 	}
-
+	public boolean isLandlord() {
+		return this.landlordPosition == position;
+	}
 
 	public void setPosition(int position) {
 		this.position = position;
