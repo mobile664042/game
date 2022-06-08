@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.simple.game.server.cmd.req.user.LoginReq;
 import com.simple.game.server.cmd.rtn.RtnResult;
-import com.simple.game.server.controller.socket.WebSocketHandler;
 import com.simple.game.server.service.UserService;
 
 import io.swagger.annotations.Api;
@@ -38,13 +37,8 @@ public class ClientLoginController {
 	@ApiOperation(value="退出",notes="退出")
     public RtnResult<String> logout(HttpServletRequest request){
     	userService.logout(request.getSession());
-    	
-    	System.out.println("webSocketHandler=" + webSocketHandler);
-    	
         return RtnResult.success("ok");
     }
 
-    @Autowired
-	private WebSocketHandler webSocketHandler;
 
 }

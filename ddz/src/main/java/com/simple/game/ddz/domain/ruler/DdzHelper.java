@@ -38,12 +38,6 @@ public class DdzHelper {
 			list.add(item);
 		}
 		Collections.sort(list);
-		
-		for(int i=0; i<number; i++) {
-			System.out.println(list.get(i).score);
-		}
-		
-		
 		return list.get(0).allCard;
 	}
 	

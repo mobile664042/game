@@ -85,7 +85,7 @@ public class DdzDesk extends TableDesk{
 	/***最近一次过牌时间***/
 	protected long lastPlayCardTime;
 	
-	public /* synchronized */ boolean onScan() {
+	protected boolean onScan() {
 		if(currentProgress == GameProgress.ready) {
 			if(this.playerMap.size() == 0) {
 				return false;
@@ -515,7 +515,7 @@ public class DdzDesk extends TableDesk{
 			if(currentProgress != GameProgress.robbedLandlord) {
 				throw new BizException("不是发完牌状态，无法进行抢地主");
 			}
-			String msg = String.format("地主已被%s席位抢走了", currentProgress);
+			String msg = String.format("地主已被%s席位抢走了", surrenderPosition);
 			throw new BizException(msg);
 		}
 		

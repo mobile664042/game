@@ -83,8 +83,4 @@ public class LocalUtil {
 		log.info("本机pid：{}", pid);
 		return pid;
 	}
-	
-	public static void main(String[] args)throws SocketException {
-		System.out.println(getLocalPid());
-	}
 }

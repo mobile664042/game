@@ -57,9 +57,10 @@ public class MyGameSession implements GameSession {
 	@Override
 	public void write(String text){
 		try {
-			session.getBasicRemote().sendText(text);
+			synchronized (session) {
+				session.getBasicRemote().sendText(text);
+			}
 			log.info(session.getId() + " 输出: " + text);
-			
 		} catch (Exception e) {
 			log.error("写入{}失败", text, e);
 		}

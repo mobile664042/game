@@ -1757,7 +1757,22 @@ function onPushRobLandlordCmd(pushCmd){
 	
 	$('#p_landlord_position').html(pushCmd.position);
 	$('#p_doubleFinal').html('1');
-	deskMsg('<div>'+ pushCmd.position +'席位成为地主</div><hr/>');
+	
+	
+	let seatPlayer = extGameInfo.seatPlayingMap[pushCmd.position.toString()];
+	let playerHtml = '<img class="headPic_item" src="/img/head/'+ seatPlayer.headPic +'.jpeg">' + seatPlayer.nickname;
+	//地主;
+	if(pushCmd.position == extGameInfo.landlordPosition){
+		let spanHtml = '<span class="landlord_item">' + pushCmd.position;
+		spanHtml += playerHtml + ': </span>已成为地主';
+		deskMsg(spanHtml);
+	}
+	else{
+		let spanHtml = '<span class="farmer_item">' + pushCmd.position;
+		spanHtml += playerHtml + ': </span>已成为地主';
+		deskMsg(spanHtml);
+	}
+	deskMsg('<hr/>');
 	
 	//显示底牌
 	$('#p_commonCards').html('');
@@ -1779,7 +1794,21 @@ function onPushRobLandlordCmd(pushCmd){
 }
 function onPushDoubledCmd(pushCmd){
 	$('#p_doubleFinal').html(pushCmd.doubleFinal);
-	deskMsg('<div>'+ pushCmd.position +'席位已加倍</div><hr/>');
+	
+	let seatPlayer = extGameInfo.seatPlayingMap[pushCmd.position.toString()];
+	let playerHtml = '<img class="headPic_item" src="/img/head/'+ seatPlayer.headPic +'.jpeg">' + seatPlayer.nickname;
+	//地主;
+	if(pushCmd.position == extGameInfo.landlordPosition){
+		let spanHtml = '<span class="landlord_item">' + pushCmd.position;
+		spanHtml += playerHtml + ': </span>已加倍';
+		deskMsg(spanHtml);
+	}
+	else{
+		let spanHtml = '<span class="farmer_item">' + pushCmd.position;
+		spanHtml += playerHtml + ': </span>已加倍';
+		deskMsg(spanHtml);
+	}
+	deskMsg('<hr/>');
 }
 function onPushDoubleShowCardCmd(pushCmd){
 	$('#p_doubleFinal').html(pushCmd.doubleFinal);

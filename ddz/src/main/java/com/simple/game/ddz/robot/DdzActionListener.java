@@ -217,7 +217,7 @@ public class DdzActionListener extends ActionListener{
 		else if(cmdTask.getCmd() instanceof RtnRobLandlordCmd || cmdTask.getCmd() instanceof PushRobLandlordCmd) {
 			//如果不幸运，必须得加倍
 			Random random = new Random();
-			if(random.nextInt(5) == 1) {
+			if(random.nextInt(3) == 1) {
 				//加倍&明牌
 				ReqDoubledShowCardCmd reqCmd = new ReqDoubledShowCardCmd();
 				deskSeat.doubledShowCard(gameSessionInfo, reqCmd);
